@@ -6,12 +6,10 @@ CONFIG -= qt
 SOURCES += \
     main.cpp
 
-HEADERS += \
-    glwrapper.h
+HEADERS +=
 
 OTHER_FILES += \
     Makefile \
-    shaders/fragment.glsl \
     shaders/vertex.glsl \
     .gitignore
 

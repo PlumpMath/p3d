@@ -12,8 +12,13 @@ CONFIG += staticlib
 
 SOURCES += P3dViewer.cpp
 
-HEADERS += P3dViewer.h
+HEADERS += P3dViewer.h \
+    glwrapper.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+OTHER_FILES += \
+    shaders/fragment.glsl \
+    shaders/vertex.glsl
