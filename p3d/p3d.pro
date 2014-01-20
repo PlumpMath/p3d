@@ -7,7 +7,11 @@ DEPLOYMENTFOLDERS = folder_01
 QML_IMPORT_PATH =
 
 # The .cpp file which was generated for your project. Feel free to hack it.
-SOURCES += main.cpp
+INCLUDEPATH += ../libViewer
+
+SOURCES += main.cpp \
+    ../libViewer/P3dViewer.cpp \
+    QmlAppViewer.cpp
 
 # Installation path
 # target.path =
@@ -19,3 +23,13 @@ qtcAddDeployment()
 OTHER_FILES += \
     p3d64.png \
     p3d80.png
+
+HEADERS += \
+    ../libViewer/glwrapper.h \
+    ../libViewer/P3dViewer.h \
+    QmlAppViewer.h
+
+shaders.target = shaders
+shaders.commands = ln -s $$PWD/../libViewer/shaders $$OUT_PWD/shaders
+QMAKE_EXTRA_TARGETS += shaders
+PRE_TARGETDEPS += shaders

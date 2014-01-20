@@ -7,6 +7,7 @@ ApplicationWindow {
     title: qsTr("Hello World")
     width: 640
     height: 480
+    color: "#f2f2f2"
 
     menuBar: MenuBar {
         Menu {
@@ -23,12 +24,14 @@ ApplicationWindow {
     }
 
     Rectangle {
+        visible: false
         anchors.fill: parent
         color: "#f2f2f2"
     }
 
 
     TabView {
+        visible: false
         anchors.fill: parent
         Tab {
             title: "Staff picks"

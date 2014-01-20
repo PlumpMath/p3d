@@ -44,6 +44,7 @@ GLuint LoadShader (GLenum type, const char *shaderSrc)
 
             glGetShaderInfoLog ( shader, infoLen, 0, infoLog );
             printf( "Error compiling shader:\n%s\n", infoLog );
+            fflush(stdout);
 
 //            delete[] infoLog;
             free(infoLog);
@@ -62,15 +63,17 @@ GLuint LoadShaderFromFile (GLenum type, const char *shaderFile)
     FILE* f = fopen(shaderFile, "rb");
     if(!f) {
         printf("Unable to load shader: %s\n", shaderFile);
+        fflush(stdout);
         return 0;
     }
     fseek(f, 0L, SEEK_END);
     size = ftell(f);
     fseek(f, 0L, SEEK_SET);
 //    char *shaderSrc = new char[size];
-    char *shaderSrc = (char*) malloc(size);
+    char *shaderSrc = (char*) malloc(size + 1);
     fread(shaderSrc, size, 1, f);
     fclose(f);
+    shaderSrc[size] = 0;
 
     GLuint shader = LoadShader(type, shaderSrc);
 //    delete[] shaderSrc;
@@ -119,6 +122,7 @@ void on_surface_created() {
 
             glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
             printf ( "Error linking program:\n%s\n", infoLog );
+            fflush(stdout);
 
 //            delete[] infoLog;
             free(infoLog);
@@ -138,10 +142,6 @@ void on_surface_created() {
     glBindBuffer(GL_ARRAY_BUFFER, vertexPosObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW);
 
-
-
-    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-
     initOk = 1;
 }
 
@@ -158,6 +158,7 @@ void on_draw_frame(int width, int height) {
     glViewport ( 0, 0, width, height );
 
     // Clear the color buffer
+    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
     glClear ( GL_COLOR_BUFFER_BIT );
 
     // Use the program object

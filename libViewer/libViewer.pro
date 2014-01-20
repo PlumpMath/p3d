@@ -4,8 +4,6 @@
 #
 #-------------------------------------------------
 
-QT       -= core gui
-
 TARGET = libViewer
 TEMPLATE = lib
 CONFIG += staticlib

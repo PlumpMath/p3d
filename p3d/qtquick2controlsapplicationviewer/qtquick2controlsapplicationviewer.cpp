@@ -11,29 +11,9 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QQmlComponent>
-#include <QQmlEngine>
-#include <QQuickView>
 
-class QtQuick2ApplicationViewerPrivate
-{
-    QString mainQmlFile;
-    QQmlEngine engine;
-    QQuickWindow *window;
 
-    QtQuick2ApplicationViewerPrivate() : window(0)
-    {}
-
-    ~QtQuick2ApplicationViewerPrivate()
-    {
-        delete window;
-    }
-
-    static QString adjustPath(const QString &path);
-
-    friend class QtQuick2ControlsApplicationViewer;
-};
-
-QString QtQuick2ApplicationViewerPrivate::adjustPath(const QString &path)
+QString QtQuick2ControlsApplicationViewer::adjustPath(const QString &path)
 {
 #if defined(Q_OS_MAC)
     if (!QDir::isAbsolutePath(path))
@@ -55,48 +35,49 @@ QString QtQuick2ApplicationViewerPrivate::adjustPath(const QString &path)
     return path;
 }
 
-QtQuick2ControlsApplicationViewer::QtQuick2ControlsApplicationViewer()
-    : d(new QtQuick2ApplicationViewerPrivate())
+QtQuick2ControlsApplicationViewer::QtQuick2ControlsApplicationViewer(QObject *parent) : QObject(parent)
 {
 
 }
 
 QtQuick2ControlsApplicationViewer::~QtQuick2ControlsApplicationViewer()
 {
-    delete d;
+    delete window;
 }
 
 void QtQuick2ControlsApplicationViewer::setMainQmlFile(const QString &file)
 {
-    d->mainQmlFile = QtQuick2ApplicationViewerPrivate::adjustPath(file);
+    mainQmlFile = adjustPath(file);
 
-    QQmlComponent component(&d->engine);
+    QQmlComponent component(&engine);
 
-    QObject::connect(&d->engine, SIGNAL(quit()), QCoreApplication::instance(), SLOT(quit()));
+    QObject::connect(&engine, SIGNAL(quit()), QCoreApplication::instance(), SLOT(quit()));
 
 #ifdef Q_OS_ANDROID
-    component.loadUrl(QUrl(QStringLiteral("assets:/")+d->mainQmlFile));
+    component.loadUrl(QUrl(QStringLiteral("assets:/")+mainQmlFile));
 #else
-    component.loadUrl(QUrl::fromLocalFile(d->mainQmlFile));
+    component.loadUrl(QUrl::fromLocalFile(mainQmlFile));
 #endif
 
     if (!component.isReady())
         qWarning("%s", qPrintable(component.errorString()));
 
-    d->window = qobject_cast<QQuickWindow *>(component.create());
-    if (!d->window)
+    window = qobject_cast<QQuickWindow *>(component.create());
+    if (!window)
         qFatal("Error: Your root item has to be a Window.");
 
-    d->engine.setIncubationController(d->window->incubationController());
+    emit windowReady();
+
+    engine.setIncubationController(window->incubationController());
 }
 
 void QtQuick2ControlsApplicationViewer::addImportPath(const QString &path)
 {
-    d->engine.addImportPath(QtQuick2ApplicationViewerPrivate::adjustPath(path));
+    engine.addImportPath(adjustPath(path));
 }
 
 void QtQuick2ControlsApplicationViewer::show()
 {
-    if (d->window)
-        d->window->show();
+    if (window)
+        window->show();
 }

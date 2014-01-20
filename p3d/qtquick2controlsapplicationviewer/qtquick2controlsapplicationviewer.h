@@ -15,6 +15,9 @@
 #include <QGuiApplication>
 #endif
 
+#include <QQmlEngine>
+#include <QQuickView>
+
 QT_BEGIN_NAMESPACE
 
 #ifndef QT_NO_WIDGETS
@@ -25,18 +28,27 @@ QT_BEGIN_NAMESPACE
 
 QT_END_NAMESPACE
 
-class QtQuick2ControlsApplicationViewer
+class QtQuick2ControlsApplicationViewer : public QObject
 {
+    Q_OBJECT
 public:
-    explicit QtQuick2ControlsApplicationViewer();
+    explicit QtQuick2ControlsApplicationViewer(QObject* parent = 0);
     virtual ~QtQuick2ControlsApplicationViewer();
 
     void setMainQmlFile(const QString &file);
     void addImportPath(const QString &path);
     void show();
 
+    QString mainQmlFile;
+    QQmlEngine engine;
+    QQuickWindow *window;
+
+signals:
+    void windowReady();
+
 private:
-    class QtQuick2ApplicationViewerPrivate *d;
+    static QString adjustPath(const QString &path);
+
 };
 
 #endif // QTQUICK2APPLICATIONVIEWER_H
