@@ -1,0 +1,4 @@
+*.o
+deps.txt
+em_test.js
+em_test.html
