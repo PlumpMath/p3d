@@ -29,7 +29,15 @@ HEADERS += \
     ../libViewer/P3dViewer.h \
     QmlAppViewer.h
 
-shaders.target = shaders
-shaders.commands = ln -s $$PWD/../libViewer/shaders $$OUT_PWD/shaders
-QMAKE_EXTRA_TARGETS += shaders
-PRE_TARGETDEPS += shaders
+android {
+    shaders.path = /assets/shaders
+    shaders.files = $$files($$PWD/../libViewer/shaders/*)
+    message($$shaders.files)
+    shaders.depends = FORCE
+    INSTALLS += shaders
+} else {
+    shaders.target = shaders
+    shaders.commands = ln -s $$PWD/../libViewer/shaders $$OUT_PWD/shaders
+    QMAKE_EXTRA_TARGETS += shaders
+    PRE_TARGETDEPS += shaders
+}
