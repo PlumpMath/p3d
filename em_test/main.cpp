@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <GL/glfw.h>
 #include <emscripten/emscripten.h>
-#include "game.h"
+#include "P3dViewer.h"
 
 const int width = 480;
 const int height = 800;

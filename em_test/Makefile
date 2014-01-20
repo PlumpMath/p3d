@@ -1,19 +1,25 @@
-CFLAGS = -I. -Wall -Wextra -O3
+CFLAGS = -I. -I../libViewer -Wall -Wextra -O3
+CXXFLAGS = -I. -I../libViewer -Wall -Wextra -O3
 LDFLAGS = -s ASM_JS=1 --embed-file shaders
+#LDFLAGS = -s ASM_JS=1 --preload-file shaders --memory-init-file 1
 
-SOURCES = main.c game.c
-OBJECTS = main.o game.o
+SOURCES = main.cpp ../libViewer/P3dViewer.cpp
+OBJECTS = main.o P3dViewer.o
 TARGET = em_test.html
 SHADERS = $(shell find shaders/ -name "*.glsl")
 
 # Targets start here.
 all: $(TARGET)
 
+P3dViewer.o: ../libViewer/P3dViewer.cpp
+	$(CC) -c $(CFLAGS) $< -o $@
+
+
 $(TARGET): $(OBJECTS) Makefile $(SHADERS)
 	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $(OBJECTS)
 
 clean:
-	$(RM) $(TARGET) $(OBJECTS) deps.txt
+	$(RM) $(TARGET) $(OBJECTS) deps.txt $(TARGET).mem $(basename $(TARGET)).data
 
 deps.txt: $(SOURCES)
 	@$(CC) $(CFLAGS) -MM  $(SOURCES) > $@

@@ -1,7 +1,11 @@
-#include "game.h"
+#include "P3dViewer.h"
 #include "glwrapper.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+P3dViewer::P3dViewer()
+{
+}
 
 GLuint programObject;
 GLuint vertexPosObject;
@@ -166,3 +170,4 @@ void on_draw_frame(int width, int height) {
 
     glDrawArrays ( GL_TRIANGLES, 0, 3 );
 }
+

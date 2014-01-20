@@ -4,11 +4,9 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-    game.c \
-    main.c
+    main.cpp
 
 HEADERS += \
-    game.h \
     glwrapper.h
 
 OTHER_FILES += \
