@@ -1,6 +1,10 @@
 #ifdef __EMSCRIPTEN__
 #include <GLES2/gl2.h>
-#else
+#endif //__EMSCRIPTEN__
+
+#ifdef __ANDROID__
+#include <GLES2/gl2.h>
+#endif //__ANDROID__
 
 #ifdef QT_GUI_LIB
 #include <qglobal.h>
@@ -15,4 +19,3 @@
 
 #endif //QT_GUI_LIB
 
-#endif //__EMSCRIPTEN__
