@@ -67,21 +67,7 @@ GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
 
 GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile)
 {
-    long size;
-    FILE* f = fopen(shaderFile, "rb");
-    if(!f) {
-        printf("Unable to load shader: %s\n", shaderFile);
-        fflush(stdout);
-        return 0;
-    }
-    fseek(f, 0L, SEEK_END);
-    size = ftell(f);
-    fseek(f, 0L, SEEK_SET);
-    char *shaderSrc = new char[size + 1];
-    fread(shaderSrc, size, 1, f);
-    fclose(f);
-    shaderSrc[size] = 0;
-
+    const char* shaderSrc = m_Adapter->loadAsset(shaderFile);
     GLuint shader = loadShader(type, shaderSrc);
     delete[] shaderSrc;
     return shader;

@@ -3,12 +3,13 @@
 #include <QOpenGLContext>
 
 #include "P3dViewer.h"
+#include "QtPlatformAdapter.h"
 
 QmlAppViewer::QmlAppViewer(QObject *parent) :
     QtQuick2ControlsApplicationViewer(parent)
 {
     connect(this, SIGNAL(windowReady()), SLOT(onWindowReady()));
-    m_P3dViewer = new P3dViewer();
+    m_P3dViewer = new P3dViewer(new QtPlatformAdapter());
 }
 
 QmlAppViewer::~QmlAppViewer()
