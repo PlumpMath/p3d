@@ -8,10 +8,12 @@ TARGET = libViewer
 TEMPLATE = lib
 CONFIG += staticlib
 
-SOURCES += P3dViewer.cpp
+SOURCES += P3dViewer.cpp \
+    PlatformAdapter.cpp
 
 HEADERS += P3dViewer.h \
-    glwrapper.h
+    glwrapper.h \
+    PlatformAdapter.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

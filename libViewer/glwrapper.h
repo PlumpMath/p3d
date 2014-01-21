@@ -1,6 +1,6 @@
 #ifdef __EMSCRIPTEN__
 #include <GLES2/gl2.h>
-#endif
+#else
 
 #ifdef QT_GUI_LIB
 #include <qglobal.h>
@@ -11,6 +11,8 @@
 #else
 #include <GL/gl.h>
 #include <GL/glext.h>
-#endif
+#endif //QT_OPENGL_ES_2
 
-#endif
+#endif //QT_GUI_LIB
+
+#endif //__EMSCRIPTEN__

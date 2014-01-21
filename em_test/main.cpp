@@ -12,6 +12,8 @@ int init_gl(void);
 void do_frame();
 void shutdown_gl();
 
+P3dViewer viewer;
+
 void do_frame2(void* arg)
 {
     (void) arg;
@@ -21,8 +23,8 @@ void do_frame2(void* arg)
 int main(void) 
 {
     if (init_gl() == GL_TRUE) {
-        on_surface_created();
-        on_surface_changed();
+        viewer.onSurfaceCreated();
+        viewer.onSurfaceChanged();
         //emscripten_async_call(do_frame2, 0, 1);
         emscripten_set_main_loop(do_frame, 0, 1);
     }
@@ -49,7 +51,7 @@ int init_gl()
 
 void do_frame()
 {
-    on_draw_frame(width, height);
+    viewer.drawFrame(width, height);
     glfwSwapBuffers();
 }
 

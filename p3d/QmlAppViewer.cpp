@@ -8,6 +8,12 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     QtQuick2ControlsApplicationViewer(parent)
 {
     connect(this, SIGNAL(windowReady()), SLOT(onWindowReady()));
+    m_P3dViewer = new P3dViewer();
+}
+
+QmlAppViewer::~QmlAppViewer()
+{
+    delete m_P3dViewer;
 }
 
 void QmlAppViewer::onWindowReady()
@@ -19,12 +25,12 @@ void QmlAppViewer::onWindowReady()
 void QmlAppViewer::onGLInit()
 {
     qDebug() << "GL ctx:" << QOpenGLContext::currentContext();
-    on_surface_created();
+    m_P3dViewer->onSurfaceCreated();
 }
 
 void QmlAppViewer::onGLRender()
 {
-    on_draw_frame(window->width(), window->height());
+    m_P3dViewer->drawFrame(window->width(), window->height());
 
     window->resetOpenGLState();
 }

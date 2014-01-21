@@ -11,7 +11,8 @@ INCLUDEPATH += ../libViewer
 
 SOURCES += main.cpp \
     ../libViewer/P3dViewer.cpp \
-    QmlAppViewer.cpp
+    QmlAppViewer.cpp \
+    ../libViewer/PlatformAdapter.cpp
 
 # Installation path
 # target.path =
@@ -27,7 +28,8 @@ OTHER_FILES += \
 HEADERS += \
     ../libViewer/glwrapper.h \
     ../libViewer/P3dViewer.h \
-    QmlAppViewer.h
+    QmlAppViewer.h \
+    ../libViewer/PlatformAdapter.h
 
 android {
     shaders.path = /assets/shaders

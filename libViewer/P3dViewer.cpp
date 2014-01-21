@@ -1,17 +1,27 @@
 #include "P3dViewer.h"
-#include "glwrapper.h"
-#include <stdlib.h>
+#include "PlatformAdapter.h"
 #include <stdio.h>
+#include "glwrapper.h"
 
-P3dViewer::P3dViewer()
+P3dViewer::P3dViewer(PlatformAdapter* adapter)
 {
+    m_Adapter = adapter;
+    if(!m_Adapter)
+    {
+        m_Adapter = new PlatformAdapter();
+    }
+
+    m_ProgramObject = 0;
+    m_VertexPosObject = 0;
+    m_InitOk = false;
 }
 
-GLuint programObject;
-GLuint vertexPosObject;
-int initOk = 0;
+P3dViewer::~P3dViewer()
+{
+    delete m_Adapter;
+}
 
-GLuint LoadShader (GLenum type, const char *shaderSrc)
+GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
 {
     GLuint shader;
     GLint compiled;
@@ -39,15 +49,13 @@ GLuint LoadShader (GLenum type, const char *shaderSrc)
 
         if ( infoLen > 1 )
         {
-//            char* infoLog = new char[sizeof(char) * infoLen ];
-            char* infoLog = (char*) malloc(sizeof(char) * infoLen);
+            char* infoLog = new char[sizeof(char) * infoLen ];
 
             glGetShaderInfoLog ( shader, infoLen, 0, infoLog );
             printf( "Error compiling shader:\n%s\n", infoLog );
             fflush(stdout);
 
-//            delete[] infoLog;
-            free(infoLog);
+            delete[] infoLog;
         }
 
         glDeleteShader ( shader );
@@ -57,7 +65,7 @@ GLuint LoadShader (GLenum type, const char *shaderSrc)
     return shader;
 }
 
-GLuint LoadShaderFromFile (GLenum type, const char *shaderFile)
+GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile)
 {
     long size;
     FILE* f = fopen(shaderFile, "rb");
@@ -69,66 +77,62 @@ GLuint LoadShaderFromFile (GLenum type, const char *shaderFile)
     fseek(f, 0L, SEEK_END);
     size = ftell(f);
     fseek(f, 0L, SEEK_SET);
-//    char *shaderSrc = new char[size];
-    char *shaderSrc = (char*) malloc(size + 1);
+    char *shaderSrc = new char[size + 1];
     fread(shaderSrc, size, 1, f);
     fclose(f);
     shaderSrc[size] = 0;
 
-    GLuint shader = LoadShader(type, shaderSrc);
-//    delete[] shaderSrc;
-    free(shaderSrc);
+    GLuint shader = loadShader(type, shaderSrc);
+    delete[] shaderSrc;
     return shader;
 }
 
-void on_surface_created() {
+void P3dViewer::onSurfaceCreated() {
 
     GLuint vertexShader;
     GLuint fragmentShader;
     GLint linked;
 
     // Load the vertex/fragment shaders
-    vertexShader = LoadShaderFromFile ( GL_VERTEX_SHADER, "shaders/vertex.glsl" );
-    fragmentShader = LoadShaderFromFile ( GL_FRAGMENT_SHADER, "shaders/fragment.glsl" );
+    vertexShader = loadShaderFromFile ( GL_VERTEX_SHADER, "shaders/vertex.glsl" );
+    fragmentShader = loadShaderFromFile ( GL_FRAGMENT_SHADER, "shaders/fragment.glsl" );
 
     // Create the program object
-    programObject = glCreateProgram ( );
+    m_ProgramObject = glCreateProgram ( );
 
-    if ( programObject == 0 )
+    if ( m_ProgramObject == 0 )
        return;
 
-    glAttachShader ( programObject, vertexShader );
-    glAttachShader ( programObject, fragmentShader );
+    glAttachShader ( m_ProgramObject, vertexShader );
+    glAttachShader ( m_ProgramObject, fragmentShader );
 
     // Bind vPosition to attribute 0
-    glBindAttribLocation ( programObject, 0, "vPosition" );
+    glBindAttribLocation ( m_ProgramObject, 0, "vPosition" );
 
     // Link the program
-    glLinkProgram ( programObject );
+    glLinkProgram ( m_ProgramObject );
 
     // Check the link status
-    glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
+    glGetProgramiv ( m_ProgramObject, GL_LINK_STATUS, &linked );
 
     if ( !linked )
     {
         GLint infoLen = 0;
 
-        glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
+        glGetProgramiv ( m_ProgramObject, GL_INFO_LOG_LENGTH, &infoLen );
 
         if ( infoLen > 1 )
         {
-//            char* infoLog = new char[sizeof(char) * infoLen];
-            char* infoLog = (char*) malloc(sizeof(char) * infoLen);
+            char* infoLog = new char[sizeof(char) * infoLen];
 
-            glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
+            glGetProgramInfoLog ( m_ProgramObject, infoLen, NULL, infoLog );
             printf ( "Error linking program:\n%s\n", infoLog );
             fflush(stdout);
 
-//            delete[] infoLog;
-            free(infoLog);
+            delete[] infoLog;
         }
 
-        glDeleteProgram ( programObject );
+        glDeleteProgram ( m_ProgramObject );
         return;
     }
 
@@ -138,19 +142,19 @@ void on_surface_created() {
                              -0.5f, -0.5f, 0.0f,
                              0.5f, -0.5f, 0.0f };
 
-    glGenBuffers(1, &vertexPosObject);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexPosObject);
+    glGenBuffers(1, &m_VertexPosObject);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW);
 
-    initOk = 1;
+    m_InitOk = true;
 }
 
-void on_surface_changed() {
+void P3dViewer::onSurfaceChanged() {
     // No-op
 }
 
-void on_draw_frame(int width, int height) {
-    if(!initOk) {
+void P3dViewer::drawFrame(int width, int height) {
+    if(!m_InitOk) {
         return;
     }
 
@@ -162,10 +166,10 @@ void on_draw_frame(int width, int height) {
     glClear ( GL_COLOR_BUFFER_BIT );
 
     // Use the program object
-    glUseProgram ( programObject );
+    glUseProgram ( m_ProgramObject );
 
     // Load the vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, vertexPosObject);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
     glVertexAttribPointer(0 /* ? */, 3, GL_FLOAT, 0, 0, 0);
     glEnableVertexAttribArray(0);
 
