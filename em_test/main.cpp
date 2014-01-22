@@ -24,7 +24,7 @@ int main(void)
 {
     if (init_gl() == GL_TRUE) {
         viewer.onSurfaceCreated();
-        viewer.onSurfaceChanged();
+        viewer.onSurfaceChanged(width, height);
         //emscripten_async_call(do_frame2, 0, 1);
         emscripten_set_main_loop(do_frame, 0, 1);
     }
@@ -51,7 +51,7 @@ int init_gl()
 
 void do_frame()
 {
-    viewer.drawFrame(width, height);
+    viewer.drawFrame();
     glfwSwapBuffers();
 }
 

@@ -17,6 +17,7 @@ signals:
 public slots:
     void onWindowReady();
     void onGLInit();
+    void onGLResize();
     void onGLRender();
 
 private:

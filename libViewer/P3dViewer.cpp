@@ -135,21 +135,22 @@ void P3dViewer::onSurfaceCreated() {
     m_InitOk = true;
 }
 
-void P3dViewer::onSurfaceChanged() {
-    // No-op
+void P3dViewer::onSurfaceChanged(int width, int height) {
+    m_Width = width;
+    m_Height = height;
 }
 
-void P3dViewer::drawFrame(int width, int height) {
+void P3dViewer::drawFrame() {
     if(!m_InitOk) {
         return;
     }
 
     // Set the viewport
-    glViewport ( 0, 0, width, height );
+    glViewport ( 0, 0, m_Width, m_Height );
 
-    // Clear the color buffer
+    // Clear color, depth, stencil buffers
     glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-    glClear ( GL_COLOR_BUFFER_BIT );
+    glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // Use the program object
     glUseProgram ( m_ProgramObject );

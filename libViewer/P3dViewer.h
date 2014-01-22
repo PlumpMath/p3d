@@ -6,18 +6,14 @@ typedef unsigned int	GLenum;
 
 class PlatformAdapter;
 
-void on_surface_created();
-void on_surface_changed();
-void on_draw_frame(int width, int height);
-
 class P3dViewer
 {
 public:
     P3dViewer(PlatformAdapter* adapter = 0);
     virtual ~P3dViewer();
     void onSurfaceCreated();
-    void onSurfaceChanged();
-    void drawFrame(int width, int height);
+    void onSurfaceChanged(int width, int height);
+    void drawFrame();
 
 private:
     GLuint loadShader (GLenum type, const char *shaderSrc);
@@ -28,6 +24,8 @@ private:
     GLuint m_ProgramObject;
     GLuint m_VertexPosObject;
     bool m_InitOk;
+    int m_Width;
+    int m_Height;
 };
 
 #endif // P3DVIEWER_H

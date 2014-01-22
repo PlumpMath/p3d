@@ -35,7 +35,7 @@ extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1sur
 
 	_width = width;
 	_height = height;
-	viewer.onSurfaceChanged();
+	viewer.onSurfaceChanged(_width, _height);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1draw_1frame
@@ -45,7 +45,7 @@ extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1dra
 	(void)env;
 	(void)cls;
 
-	viewer.drawFrame(_width, _height);
+	viewer.drawFrame();
 }
 
 JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_init_1asset_1manager
