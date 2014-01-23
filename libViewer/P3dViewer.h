@@ -14,6 +14,7 @@ public:
     void onSurfaceCreated();
     void onSurfaceChanged(int width, int height);
     void drawFrame();
+    bool loadModel(const char* binaryData);
 
 private:
     GLuint loadShader (GLenum type, const char *shaderSrc);

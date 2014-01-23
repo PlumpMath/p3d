@@ -1,5 +1,6 @@
 #include "P3dViewer.h"
 #include "PlatformAdapter.h"
+#include "ModelLoader.h"
 #include <stdio.h>
 #include "glwrapper.h"
 
@@ -161,5 +162,12 @@ void P3dViewer::drawFrame() {
     glEnableVertexAttribArray(0);
 
     glDrawArrays ( GL_TRIANGLES, 0, 3 );
+}
+
+bool P3dViewer::loadModel(const char *binaryData)
+{
+    ModelLoader loader;
+    bool res = loader.load(binaryData);
+    return res;
 }
 

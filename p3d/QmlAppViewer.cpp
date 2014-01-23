@@ -81,6 +81,7 @@ void QmlAppViewer::onGLRender()
     if(!m_ModelData.isEmpty())
     {
         //TODO: load the model
+        m_P3dViewer->loadModel(m_ModelData.constData());
         m_ModelData.clear();
     }
     m_P3dViewer->drawFrame();
