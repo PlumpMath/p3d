@@ -9,11 +9,13 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += P3dViewer.cpp \
-    PlatformAdapter.cpp
+    PlatformAdapter.cpp \
+    ModelLoader.cpp
 
 HEADERS += P3dViewer.h \
     glwrapper.h \
-    PlatformAdapter.h
+    PlatformAdapter.h \
+    ModelLoader.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

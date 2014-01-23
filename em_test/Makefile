@@ -4,22 +4,19 @@ CXXFLAGS = -I. -I../libViewer -Wall -Wextra $(OPTIMIZE)
 LDFLAGS = -s ASM_JS=1 --embed-file shaders $(OPTIMIZE)
 #LDFLAGS = -s ASM_JS=1 --preload-file shaders --memory-init-file 1
 
-SOURCES = main.cpp ../libViewer/P3dViewer.cpp ../libViewer/PlatformAdapter.cpp
-OBJECTS = main.o P3dViewer.o PlatformAdapter.o
+LIBVIEWER_DIR = ../libViewer
+LIBVIEWER_SOURCES = P3dViewer.cpp PlatformAdapter.cpp ModelLoader.cpp
+SOURCES = main.cpp $(LIBVIEWER_SOURCES)
+OBJECTS = $(SOURCES:.cpp=.o)
+VPATH = $(LIBVIEWER_DIR)
 TARGET = em_test.html
-SHADERS = $(shell find ../libViewer/shaders/ -name "*.glsl")
+SHADERS = $(shell find $(LIBVIEWER_DIR)/shaders/ -name "*.glsl")
 
 # Targets start here.
 all: $(TARGET)
 
-shaders: ../libViewer/shaders
+shaders: $(LIBVIEWER_DIR)/shaders
 	ln -s $< $@
-
-P3dViewer.o: ../libViewer/P3dViewer.cpp
-	$(CC) -c $(CFLAGS) $< -o $@
-
-PlatformAdapter.o: ../libViewer/PlatformAdapter.cpp
-	$(CC) -c $(CFLAGS) $< -o $@
 
 $(TARGET): $(OBJECTS) Makefile shaders $(SHADERS)
 	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $(OBJECTS)
@@ -27,9 +24,9 @@ $(TARGET): $(OBJECTS) Makefile shaders $(SHADERS)
 clean:
 	$(RM) $(TARGET) $(OBJECTS) deps.txt $(TARGET).mem $(basename $(TARGET)).data
 
-deps.txt: $(SOURCES)
-	@$(CC) $(CFLAGS) -MM  $(SOURCES) > $@
-	
+deps.txt: $(SOURCES) Makefile
+	@$(CC) $(CFLAGS) -MM  $^ > $@
+
 # list targets that do not create files (but not all makes understand .PHONY)
 .PHONY:	all clean
 
