@@ -1,6 +1,8 @@
 #ifndef P3DVIEWER_H
 #define P3DVIEWER_H
 
+#include <cstdlib>
+
 typedef unsigned int	GLuint;
 typedef unsigned int	GLenum;
 
@@ -14,7 +16,7 @@ public:
     void onSurfaceCreated();
     void onSurfaceChanged(int width, int height);
     void drawFrame();
-    bool loadModel(const char* binaryData);
+    bool loadModel(const char* binaryData, size_t size);
 
 private:
     GLuint loadShader (GLenum type, const char *shaderSrc);

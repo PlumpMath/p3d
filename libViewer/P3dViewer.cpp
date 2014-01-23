@@ -164,10 +164,10 @@ void P3dViewer::drawFrame() {
     glDrawArrays ( GL_TRIANGLES, 0, 3 );
 }
 
-bool P3dViewer::loadModel(const char *binaryData)
+bool P3dViewer::loadModel(const char *binaryData, size_t size)
 {
     ModelLoader loader;
-    bool res = loader.load(binaryData);
+    bool res = loader.load(binaryData, size);
     return res;
 }
 
