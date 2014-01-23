@@ -4,7 +4,11 @@
 #include <stdint.h>
 #include <endian.h>
 
+#ifdef __ANDROID__
+#define READ_U32(x) (letoh32(*((uint32_t*) &x)))
+#else
 #define READ_U32(x) (le32toh(*((uint32_t*) &x)))
+#endif
 
 
 ModelLoader::ModelLoader()

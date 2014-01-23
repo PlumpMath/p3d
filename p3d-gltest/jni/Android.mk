@@ -8,6 +8,7 @@ LOCAL_CFLAGS    := -Wall -Wextra
 LOCAL_SRC_FILES := \
 	../../libViewer/PlatformAdapter.cpp \
 	../../libViewer/P3dViewer.cpp \
+	../../libViewer/ModelLoader.cpp \
 	jni.cpp \
 	AndroidPlatformAdapter.cpp
 LOCAL_LDLIBS	:= -lGLESv2 -llog -landroid
