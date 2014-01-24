@@ -1,6 +1,6 @@
-OPTIMIZE = -O3
+OPTIMIZE = -O2
 CFLAGS = -I. -I../libViewer -Wall -Wextra $(OPTIMIZE)
-CXXFLAGS = -I. -I../libViewer -Wall -Wextra $(OPTIMIZE)
+CXXFLAGS = -I. -I../libViewer -Wall -Wextra -std=c++0x $(OPTIMIZE)
 LDFLAGS = -s ASM_JS=1 --embed-file shaders $(OPTIMIZE)
 #LDFLAGS = -s ASM_JS=1 --preload-file shaders --memory-init-file 1
 
