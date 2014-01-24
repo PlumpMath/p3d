@@ -3,10 +3,11 @@
 
 #include <cstdlib>
 
-typedef unsigned int	GLuint;
-typedef unsigned int	GLenum;
+typedef unsigned int GLuint;
+typedef unsigned int GLenum;
 
 class PlatformAdapter;
+class ModelLoader;
 
 class P3dViewer
 {
@@ -25,11 +26,12 @@ private:
     GLuint loadShader (GLenum type, const char *shaderSrc);
     GLuint loadShaderFromFile (GLenum type, const char *shaderFile);
 
+    ModelLoader* m_ModelLoader;
     GLuint m_ProgramObject;
     GLuint m_VertexPosObject;
-    bool m_InitOk;
     int m_Width;
     int m_Height;
+    bool m_InitOk;
 };
 
 #endif // P3DVIEWER_H

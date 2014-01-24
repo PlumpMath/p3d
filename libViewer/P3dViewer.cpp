@@ -14,12 +14,15 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
     m_ProgramObject = 0;
     m_VertexPosObject = 0;
     m_InitOk = false;
+    m_ModelLoader = new ModelLoader();
 
     P3D_LOGD("Viewer constructed");
 }
 
 P3dViewer::~P3dViewer()
 {
+    delete m_ModelLoader;
+
     delete PlatformAdapter::adapter;
 }
 
@@ -155,18 +158,29 @@ void P3dViewer::drawFrame() {
     // Use the program object
     glUseProgram ( m_ProgramObject );
 
-    // Load the vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
-    glVertexAttribPointer(0 /* ? */, 3, GL_FLOAT, 0, 0, 0);
-    glEnableVertexAttribArray(0);
+    if(m_ModelLoader->isLoaded())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer());
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(0);
 
-    glDrawArrays ( GL_TRIANGLES, 0, 3 );
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
+        glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(), GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        // Load the vertex data
+        glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
+        glVertexAttribPointer(0 /* ? */, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(0);
+
+        glDrawArrays ( GL_TRIANGLES, 0, 3 );
+    }
 }
 
 bool P3dViewer::loadModel(const char *binaryData, size_t size)
 {
-    ModelLoader loader;
-    bool res = loader.load(binaryData, size);
+    bool res = m_ModelLoader->load(binaryData, size);
     return res;
 }
 

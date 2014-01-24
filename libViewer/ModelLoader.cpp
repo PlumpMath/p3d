@@ -27,7 +27,7 @@ struct IndexPosUvNorm
 
     bool operator==(const IndexPosUvNorm &other) const
     {
-        return (memcmp(this, &other, sizeof(*this)) == 0);
+        return memcmp(this, &other, sizeof(*this)) == 0;
     }
 };
 
@@ -54,6 +54,7 @@ typedef std::unordered_map<IndexPosUvNorm, uint32_t> IndexPosUvNormMap;
 ModelLoader::ModelLoader()
 {
     m_data = 0;
+    m_loaded = false;
 }
 
 ModelLoader::~ModelLoader()
@@ -63,6 +64,7 @@ ModelLoader::~ModelLoader()
 
 bool ModelLoader::load(const char *data, size_t size)
 {
+    m_loaded = false;
     m_data = data;
 
     P3D_LOGD("Loading %d bytes", size);
@@ -171,6 +173,7 @@ bool ModelLoader::load(const char *data, size_t size)
 
     deindex(data);
 
+    m_loaded = true;
     return true;
 }
 
@@ -185,13 +188,17 @@ void ModelLoader::deindex(const char* data)
     uint16_t mat;
     uint32_t i;
     uint32_t il;
+    uint32_t f;
+    uint32_t faces;
     uint32_t pos_offset;
     uint32_t uv_offset;
     uint32_t norm_offset;
     uint32_t mat_offset;
     uint32_t new_offset;
+    uint32_t new_mat_offset;
     uint32_t vert_offset;
     uint32_t f4_offset;
+    static const float norm_scale = 1.0f / 127.0f;
 
     std::vector<float> new_pos;
     new_pos.reserve(m_pos_count);
@@ -206,10 +213,11 @@ void ModelLoader::deindex(const char* data)
 
     // pos uv norm
     IndexPosUvNormMap map;
-    uint32_t* new_pos_uv_norm = new uint32_t[m_f3_count_pos_uv_norm * 3 +
-            m_f4_count_pos_uv_norm * 4];
-    uint16_t* new_mat_pos_uv_norm = new uint16_t[m_f3_count_pos_uv_norm * 3 +
-            m_f4_count_pos_uv_norm * 4];
+    m_index_count_pos_uv_norm = m_f3_count_pos_uv_norm * 3 +
+            m_f4_count_pos_uv_norm * 6;
+    uint32_t* new_pos_uv_norm = new uint32_t[m_index_count_pos_uv_norm];
+    uint16_t* new_mat_pos_uv_norm = new uint16_t[m_f3_count_pos_uv_norm +
+            m_f4_count_pos_uv_norm * 2];
 
     // tris
     pos_offset = m_f3_start_pos_uv_norm;
@@ -220,8 +228,9 @@ void ModelLoader::deindex(const char* data)
     IndexPosUvNorm index;
     uint32_t new_index;
     new_offset = 0;
-    f4_offset = m_f3_count_pos_uv_norm * 3;
-    for(i = 0, il = f4_offset + m_f4_count_pos_uv_norm * 4; i < il; ++i)
+    new_mat_offset = 0;
+    f4_offset = m_f3_count_pos_uv_norm;
+    for(i = 0, il = f4_offset + m_f4_count_pos_uv_norm; i < il; ++i)
     {
         if(i == f4_offset)
         {
@@ -232,56 +241,66 @@ void ModelLoader::deindex(const char* data)
             mat_offset = norm_offset + m_f4_count_pos_uv_norm * 4 * 4;
         }
 
-        index.pos = READ_U32(data[pos_offset]);
-        pos_offset += 4;
-        index.uv = READ_U32(data[uv_offset]);
-        uv_offset += 4;
-        index.norm = READ_U32(data[norm_offset]);
-        norm_offset += 4;
+        faces = i < f4_offset ? 3 : 4;
+        for(f = 0; f < faces; ++f)
+        {
+            index.pos = READ_U32(data[pos_offset]);
+            pos_offset += 4;
+            index.uv = READ_U32(data[uv_offset]);
+            uv_offset += 4;
+            index.norm = READ_U32(data[norm_offset]);
+            norm_offset += 4;
+            if(map.count(index))
+            {
+                new_index = map[index];
+            }
+            else
+            {
+                new_index = map.size();
+                map.insert(std::pair<IndexPosUvNorm, uint32_t>(index, new_index));
+
+                vert_offset = m_pos_start + 4 * (3 * index.pos);
+                new_pos.push_back(READ_FLOAT(data[vert_offset]));
+                vert_offset += 4;
+                new_pos.push_back(READ_FLOAT(data[vert_offset]));
+                vert_offset += 4;
+                new_pos.push_back(READ_FLOAT(data[vert_offset]));
+
+                vert_offset = m_tex_start + 4 * (2 * index.uv);
+                new_uv.push_back(READ_FLOAT(data[vert_offset]));
+                vert_offset += 4;
+                new_uv.push_back(READ_FLOAT(data[vert_offset]));
+
+                vert_offset = m_norm_start + (3 * index.norm);
+                new_norm.push_back(data[vert_offset] * norm_scale);
+                vert_offset += 1;
+                new_norm.push_back(data[vert_offset] * norm_scale);
+                vert_offset += 1;
+                new_norm.push_back(data[vert_offset] * norm_scale);
+            }
+            new_pos_uv_norm[new_offset] = new_index;
+            ++new_offset;
+        }
+
+        // material
         mat = READ_U16(data[mat_offset]);
-        if(i < f4_offset)
-        {
-            if(i % 3 == 2) mat_offset += 2;
-        }
-        else
-        {
-            if((i - f4_offset) % 4 == 3) mat_offset += 2;
-        }
+        mat_offset += 2;
+        new_mat_pos_uv_norm[new_mat_offset++] = mat;
         if(mat > maxMat)
         {
             maxMat = mat;
         }
-        if(map.count(index))
+
+        // extra tri for quads
+        if(faces == 4)
         {
-            new_index = map[index];
+            new_pos_uv_norm[new_offset] = new_pos_uv_norm[new_offset - 4];
+            ++new_offset;
+            new_pos_uv_norm[new_offset] = new_pos_uv_norm[new_offset - 3];
+            ++new_offset;
+
+            new_mat_pos_uv_norm[new_mat_offset++] = mat;
         }
-        else
-        {
-            new_index = map.size();
-            map.insert(std::pair<IndexPosUvNorm, uint32_t>(index, new_index));
-
-            vert_offset = m_pos_start + 4 * (3 * index.pos);
-            new_pos.push_back(READ_FLOAT(data[vert_offset]));
-            vert_offset += 4;
-            new_pos.push_back(READ_FLOAT(data[vert_offset]));
-            vert_offset += 4;
-            new_pos.push_back(READ_FLOAT(data[vert_offset]));
-
-            vert_offset = m_tex_start + 4 * (2 * index.uv);
-            new_uv.push_back(READ_FLOAT(data[vert_offset]));
-            vert_offset += 4;
-            new_uv.push_back(READ_FLOAT(data[vert_offset]));
-
-            vert_offset = m_norm_start + 4 * (3 * index.norm);
-            new_norm.push_back(READ_FLOAT(data[vert_offset]));
-            vert_offset += 4;
-            new_norm.push_back(READ_FLOAT(data[vert_offset]));
-            vert_offset += 4;
-            new_norm.push_back(READ_FLOAT(data[vert_offset]));
-        }
-        new_pos_uv_norm[new_offset] = new_index;
-        new_mat_pos_uv_norm[new_offset] = mat;
-        ++new_offset;
     }
 
     m_mat_count = maxMat + 1;
@@ -290,6 +309,14 @@ void ModelLoader::deindex(const char* data)
     P3D_LOGD("new pos size: %d", new_pos.size());
     P3D_LOGD("new uv size: %d", new_uv.size());
     P3D_LOGD("new norm size: %d", new_norm.size());
+
+    glGenBuffers(1, &m_pos_buffer_id);
+    glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id);
+    glBufferData(GL_ARRAY_BUFFER, new_pos.size() * 4, new_pos.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &m_index_buffer_id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_count_pos_uv_norm * 4, new_pos_uv_norm, GL_STATIC_DRAW);
 
     delete [] new_pos_uv_norm;
     delete [] new_mat_pos_uv_norm;
