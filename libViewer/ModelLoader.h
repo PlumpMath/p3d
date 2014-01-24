@@ -9,6 +9,8 @@ public:
     ModelLoader();
     virtual ~ModelLoader();
     bool load(const char* data, size_t size);
+private:
+    size_t addPadding(size_t size);
 };
 
 #endif // MODELLOADER_H

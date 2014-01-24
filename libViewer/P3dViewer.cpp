@@ -1,25 +1,26 @@
 #include "P3dViewer.h"
 #include "PlatformAdapter.h"
 #include "ModelLoader.h"
-#include <stdio.h>
 #include "glwrapper.h"
 
 P3dViewer::P3dViewer(PlatformAdapter* adapter)
 {
-    m_Adapter = adapter;
-    if(!m_Adapter)
+    PlatformAdapter::adapter = adapter;
+    if(!PlatformAdapter::adapter)
     {
-        m_Adapter = new PlatformAdapter();
+        PlatformAdapter::adapter = new PlatformAdapter();
     }
 
     m_ProgramObject = 0;
     m_VertexPosObject = 0;
     m_InitOk = false;
+
+    P3D_LOGD("Viewer constructed");
 }
 
 P3dViewer::~P3dViewer()
 {
-    delete m_Adapter;
+    delete PlatformAdapter::adapter;
 }
 
 GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
@@ -53,8 +54,7 @@ GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
             char* infoLog = new char[sizeof(char) * infoLen ];
 
             glGetShaderInfoLog ( shader, infoLen, 0, infoLog );
-            printf( "Error compiling shader:\n%s\n", infoLog );
-            fflush(stdout);
+            P3D_LOGE( "Error compiling shader:\n%s", infoLog );
 
             delete[] infoLog;
         }
@@ -68,7 +68,7 @@ GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
 
 GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile)
 {
-    const char* shaderSrc = m_Adapter->loadAsset(shaderFile);
+    const char* shaderSrc = PlatformAdapter::adapter->loadAsset(shaderFile);
     GLuint shader = loadShader(type, shaderSrc);
     delete[] shaderSrc;
     return shader;
@@ -113,8 +113,7 @@ void P3dViewer::onSurfaceCreated() {
             char* infoLog = new char[sizeof(char) * infoLen];
 
             glGetProgramInfoLog ( m_ProgramObject, infoLen, NULL, infoLog );
-            printf ( "Error linking program:\n%s\n", infoLog );
-            fflush(stdout);
+            P3D_LOGE( "Error linking program:\n%s", infoLog );
 
             delete[] infoLog;
         }
