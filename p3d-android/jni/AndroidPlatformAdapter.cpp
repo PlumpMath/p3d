@@ -28,7 +28,7 @@ const char* AndroidPlatformAdapter::loadAsset(const char* filename,
 
 	AAsset* asset = AAssetManager_open(m_AssetManager, filename, AASSET_MODE_UNKNOWN);
 	if (NULL == asset) {
-		LOGE("_ASSET_NOT_FOUND_");
+		LOGE("_ASSET_NOT_FOUND_ %s", filename);
 		return 0;
 	}
 	size_t filesize = AAsset_getLength(asset);
@@ -41,7 +41,6 @@ const char* AndroidPlatformAdapter::loadAsset(const char* filename,
 	}
 
 	AAsset_read (asset,data,filesize);
-	LOGD("asset %s: %s", filename, data);
 	AAsset_close(asset);
 
 	if(!size) {
@@ -49,6 +48,27 @@ const char* AndroidPlatformAdapter::loadAsset(const char* filename,
 	}
 
 	return data;
+}
+
+void AndroidPlatformAdapter::logTag(LogLevel level, const char* tag,
+		const char* format, va_list args) {
+	switch(level) {
+	case LOG_INFO:
+		__android_log_vprint(ANDROID_LOG_INFO, tag, format, args);
+		break;
+	case LOG_DEBUG:
+		__android_log_vprint(ANDROID_LOG_DEBUG, tag, format, args);
+		break;
+	case LOG_WARN:
+		__android_log_vprint(ANDROID_LOG_WARN, tag, format, args);
+		break;
+	case LOG_ERROR:
+		__android_log_vprint(ANDROID_LOG_ERROR, tag, format, args);
+		break;
+	default:
+		__android_log_vprint(ANDROID_LOG_VERBOSE, tag, format, args);
+		break;
+	}
 }
 
 void AndroidPlatformAdapter::setAssetManager(AAssetManager* assetManager) {

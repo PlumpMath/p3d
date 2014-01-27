@@ -2,13 +2,21 @@
 #define PLATFORMADAPTER_H
 
 #include <cstdlib>
+#include <stdarg.h>
 
-#define  P3D_LOGD(...) PlatformAdapter::adapter->logFunc(__PRETTY_FUNCTION__, __VA_ARGS__)
-#define  P3D_LOGE(...) PlatformAdapter::adapter->logFunc(__PRETTY_FUNCTION__, __VA_ARGS__)
+#define  P3D_LOGD(...) PlatformAdapter::adapter->logFunc(PlatformAdapter::LOG_DEBUG, __PRETTY_FUNCTION__, __VA_ARGS__)
+#define  P3D_LOGE(...) PlatformAdapter::adapter->logFunc(PlatformAdapter::LOG_ERROR, __PRETTY_FUNCTION__, __VA_ARGS__)
 
 class PlatformAdapter
 {
 public:
+	enum LogLevel {
+		LOG_DEBUG = 600,
+		LOG_INFO = 400,
+		LOG_WARN = 300,
+		LOG_ERROR = 200,
+		LOG_FATAL = 100
+	};
     PlatformAdapter();
     virtual ~PlatformAdapter();
 
@@ -19,7 +27,12 @@ public:
     virtual const char* loadAsset(const char* filename, size_t *size = 0);
 
     //! \brief writes out a printf formattet log messages
-    virtual void logFunc(const char* func, const char* format, ...);
+    //! \arg level severity level
+    //! \arg func pretty function info of caller (__PRETTY_FUNCTION__)
+    //! \arg format msg format, like printf
+    virtual void logFunc(LogLevel level, const char* func, const char* format, ...);
+
+    virtual void logTag(LogLevel level, const char* tag, const char* format, va_list args);
 
     //! \brief the PlatformAdapter instance
     //! \note this can't be done as normal singleton because it is initialized from user of the lib

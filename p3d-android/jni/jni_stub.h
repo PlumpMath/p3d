@@ -39,6 +39,14 @@ JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1draw_1frame
 JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_init_1asset_1manager
   (JNIEnv *, jclass, jobject);
 
+/*
+ * Class:     in_p3d_gltest_P3dViewerJNIWrapper
+ * Method:    load_binary
+ * Signature: (Ljava/nio/ByteBuffer;I)V
+ */
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_load_1binary
+  (JNIEnv *, jclass, jobject, jint);
+
 #ifdef __cplusplus
 }
 #endif

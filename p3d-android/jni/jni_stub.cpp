@@ -14,8 +14,11 @@ AndroidPlatformAdapter* adapter = new AndroidPlatformAdapter();
 P3dViewer viewer(adapter);
 static int _width = 0;
 static int _height = 0;
+static const char* binData = 0;
+static int binSize = 0;
+static bool isModelLoaded = false;
 
-extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1surface_1created
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1surface_1created
   (JNIEnv *env, jclass cls)
 {
 	// unused
@@ -26,7 +29,7 @@ extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1sur
 	viewer.onSurfaceCreated();
 }
 
-extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1surface_1changed
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1surface_1changed
   (JNIEnv *env, jclass cls, jint width, jint height)
 {
 	// unused
@@ -38,12 +41,21 @@ extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1sur
 	viewer.onSurfaceChanged(_width, _height);
 }
 
-extern "C" JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1draw_1frame
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1draw_1frame
   (JNIEnv *env, jclass cls)
 {
 	// unused
 	(void)env;
 	(void)cls;
+
+	if(binData && !isModelLoaded) {
+		if(viewer.loadModel(binData, binSize)) {
+			isModelLoaded = true;
+		} else {
+			binData = 0;
+		}
+	}
+
 
 	viewer.drawFrame();
 }
@@ -57,4 +69,15 @@ JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_init_1asset_1manag
 	LOGD("assetmgr");
 	AAssetManager* mgr = AAssetManager_fromJava(env, am);
 	adapter->setAssetManager(mgr);
+}
+
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_load_1binary(JNIEnv* env,
+		jclass cls, jobject buf, jint size) {
+	// unused
+	(void)cls;
+
+	const char* data = (const char*) env->GetDirectBufferAddress(buf);
+	LOGD("loadBinary 0x%08x bytes at 0x%0x", size, data);
+	binSize = size;
+	binData = data;
 }

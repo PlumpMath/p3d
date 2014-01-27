@@ -1,17 +1,26 @@
 package in.p3d.gltest;
 
+import java.nio.ByteBuffer;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	private static String TAG = "MainActivity";
+
 	private GLSurfaceView glSurfaceView;
 	private boolean rendererSet;
 	
@@ -39,6 +48,8 @@ public class MainActivity extends Activity {
 	        glSurfaceView.setRenderer(new RendererWrapper());
 	        rendererSet = true;
 	        setContentView(glSurfaceView);
+	        
+	        loadModel("Ui03b"); // horse
 	    } else {
 	        // Should never be seen in production, since the manifest filters
 	        // unsupported devices.
@@ -91,5 +102,60 @@ public class MainActivity extends Activity {
 	                    || Build.MODEL.contains("google_sdk")
 	                    || Build.MODEL.contains("Emulator")
 	                    || Build.MODEL.contains("Android SDK built for x86"));
+	}
+	
+	private void loadModel(String shortid) {
+		Log.d(TAG, "Loading: " + shortid);
+		AsyncTask<String, Void, JSONObject> asyncTask = new AsyncTask<String, Void, JSONObject>() {
+			@Override
+			protected JSONObject doInBackground(String... urls) {
+				return Util.getJson(urls[0]);
+			}
+
+			@Override
+			protected void onPostExecute(JSONObject result) {
+				if (result == null) {
+					// TODO: error msg
+					return;
+				}
+				try {
+					String binUrl = "http://p3d.in"
+							+ result.getJSONObject("viewer_model").getString(
+									"base_url") + ".r48.bin";
+					Log.d(TAG, "Bin url: " + binUrl);
+					loadBinary(binUrl);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		};
+		asyncTask.execute("http://p3d.in/api/viewer_models/" + shortid);
+	}
+
+	private void loadBinary(String binUrl) {
+		Log.d(TAG, "Loading binary: " + binUrl);
+		AsyncTask<String, Void, ByteBuffer> asyncTask = new AsyncTask<String, Void, ByteBuffer>() {
+			@Override
+			protected ByteBuffer doInBackground(String... urls) {
+				return Util.getBinary(urls[0]);
+			}
+
+			@Override
+			protected void onPostExecute(ByteBuffer result) {
+				if (result == null) {
+					// TODO: error msg
+					return;
+				}
+				try {
+					Log.d(TAG, "Got binary: " + result.limit());
+					P3dViewerJNIWrapper.load_binary(result, result.limit());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		};
+		asyncTask.execute(binUrl);		
 	}
 }

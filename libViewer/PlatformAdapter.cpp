@@ -1,7 +1,6 @@
 #include "PlatformAdapter.h"
 #include <cstdio>
 #include <cstring>
-#include <stdarg.h>
 
 PlatformAdapter* PlatformAdapter::adapter = 0;
 
@@ -43,7 +42,7 @@ const char *PlatformAdapter::loadAsset(const char *filename, size_t *size)
     return data;
 }
 
-void PlatformAdapter::logFunc(const char *func, const char *format, ...)
+void PlatformAdapter::logFunc(LogLevel level, const char *func, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -63,10 +62,32 @@ void PlatformAdapter::logFunc(const char *func, const char *format, ...)
         }
     }
 
-    printf("%s: ", tag);
-    vprintf(format, args);
-    printf("\n");
-    fflush(stdout);
+    logTag(level, tag, format, args);
+
     va_end(args);
     delete [] tag_buf;
+}
+
+void PlatformAdapter::logTag(LogLevel level, const char *tag, const char *format, va_list args)
+{
+    FILE* out = stdout;
+
+    switch(level)
+    {
+    case LOG_DEBUG:
+        fprintf(out, "D ");
+        break;
+    case LOG_ERROR:
+        out = stderr;
+        fprintf(out, "E ");
+        break;
+    default:
+        fprintf(out, "U ");
+        break;
+    }
+
+    fprintf(out, "%s: ", tag);
+    vfprintf(out, format, args);
+    fprintf(out, "\n");
+    fflush(out);
 }

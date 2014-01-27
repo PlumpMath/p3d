@@ -158,6 +158,7 @@ void P3dViewer::onSurfaceCreated() {
 }
 
 void P3dViewer::onSurfaceChanged(int width, int height) {
+	P3D_LOGD("resize %d, %d", width, height);
     m_Width = width;
     m_Height = height;
 }
@@ -222,8 +223,9 @@ void P3dViewer::drawFrame() {
     }
 }
 
-bool P3dViewer::loadModel(const char *binaryData, size_t size)
+bool P3dViewer::loadModel(const char *binaryData, int size)
 {
+	P3D_LOGD("loadModel 0x%08x bytes at 0x%0x", size, binaryData);
     bool res = m_ModelLoader->load(binaryData, size);
     return res;
 }

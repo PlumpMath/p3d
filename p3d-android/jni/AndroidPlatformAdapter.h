@@ -10,6 +10,7 @@ public:
 	AndroidPlatformAdapter();
 	virtual ~AndroidPlatformAdapter();
 	virtual const char* loadAsset(const char* filename, size_t *size = 0);
+	virtual void logTag(LogLevel level, const char* tag, const char* format, va_list args);
 
 	void setAssetManager(AAssetManager* assetManager);
 

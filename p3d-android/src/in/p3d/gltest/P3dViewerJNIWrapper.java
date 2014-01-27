@@ -1,5 +1,7 @@
 package in.p3d.gltest;
 
+import java.nio.ByteBuffer;
+
 import android.content.res.AssetManager;
 
 public class P3dViewerJNIWrapper {
@@ -14,4 +16,6 @@ public class P3dViewerJNIWrapper {
     public static native void on_draw_frame();
     
     public static native void init_asset_manager(AssetManager am);
+    
+    public static native void load_binary(ByteBuffer data, int size);
 }
