@@ -177,6 +177,11 @@ bool ModelLoader::load(const char *data, size_t size)
     return true;
 }
 
+float ModelLoader::boundingRadius()
+{
+    return std::max(m_maxX - m_minX, std::max(m_maxY - m_minY, m_maxZ - m_minZ));
+}
+
 size_t ModelLoader::addPadding(size_t size)
 {
     return size + ( ( size % 4 ) ? ( 4 - size % 4 ) : 0 );
@@ -198,6 +203,17 @@ void ModelLoader::deindex(const char* data)
     uint32_t new_mat_offset;
     uint32_t vert_offset;
     uint32_t f4_offset;
+    float x;
+    float y;
+    float z;
+    m_maxX = 0.0f;
+    m_minX = 0.0f;
+    m_maxY = 0.0f;
+    m_minY = 0.0f;
+    m_maxZ = 0.0f;
+    m_minZ = 0.0f;
+
+
     static const float norm_scale = 1.0f / 127.0f;
 
     std::vector<float> new_pos;
@@ -221,9 +237,9 @@ void ModelLoader::deindex(const char* data)
 
     // tris
     pos_offset = m_f3_start_pos_uv_norm;
-    uv_offset = pos_offset + m_f3_count_pos_uv_norm * 3 * 4;
-    norm_offset = uv_offset + m_f3_count_pos_uv_norm * 3 * 4;
-    mat_offset = norm_offset + m_f3_count_pos_uv_norm * 3 * 4;
+    norm_offset = pos_offset + m_f3_count_pos_uv_norm * 3 * 4;
+    uv_offset = norm_offset + m_f3_count_pos_uv_norm * 3 * 4;
+    mat_offset = uv_offset + m_f3_count_pos_uv_norm * 3 * 4;
 
     IndexPosUvNorm index;
     uint32_t new_index;
@@ -236,9 +252,9 @@ void ModelLoader::deindex(const char* data)
         {
             // quads
             pos_offset = m_f4_start_pos_uv_norm;
-            uv_offset = pos_offset + m_f4_count_pos_uv_norm * 4 * 4;
-            norm_offset = uv_offset + m_f4_count_pos_uv_norm * 4 * 4;
-            mat_offset = norm_offset + m_f4_count_pos_uv_norm * 4 * 4;
+            norm_offset = pos_offset + m_f4_count_pos_uv_norm * 4 * 4;
+            uv_offset = norm_offset + m_f4_count_pos_uv_norm * 4 * 4;
+            mat_offset = uv_offset + m_f4_count_pos_uv_norm * 4 * 4;
         }
 
         faces = i < f4_offset ? 3 : 4;
@@ -260,11 +276,20 @@ void ModelLoader::deindex(const char* data)
                 map.insert(std::pair<IndexPosUvNorm, uint32_t>(index, new_index));
 
                 vert_offset = m_pos_start + 4 * (3 * index.pos);
-                new_pos.push_back(READ_FLOAT(data[vert_offset]));
+                x = READ_FLOAT(data[vert_offset]);
                 vert_offset += 4;
-                new_pos.push_back(READ_FLOAT(data[vert_offset]));
+                y = READ_FLOAT(data[vert_offset]);
                 vert_offset += 4;
-                new_pos.push_back(READ_FLOAT(data[vert_offset]));
+                z = READ_FLOAT(data[vert_offset]);
+                if(x > m_maxX) m_maxX = x;
+                if(x < m_minX) m_minX = x;
+                if(y > m_maxY) m_maxY = y;
+                if(y < m_minY) m_minY = y;
+                if(z > m_maxZ) m_maxZ = z;
+                if(z < m_minZ) m_minZ = z;
+                new_pos.push_back(x);
+                new_pos.push_back(y);
+                new_pos.push_back(z);
 
                 vert_offset = m_tex_start + 4 * (2 * index.uv);
                 new_uv.push_back(READ_FLOAT(data[vert_offset]));
@@ -310,9 +335,20 @@ void ModelLoader::deindex(const char* data)
     P3D_LOGD("new uv size: %d", new_uv.size());
     P3D_LOGD("new norm size: %d", new_norm.size());
 
+
+    // TODO: gen normals
+
     glGenBuffers(1, &m_pos_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id);
     glBufferData(GL_ARRAY_BUFFER, new_pos.size() * 4, new_pos.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &m_uv_buffer_id);
+    glBindBuffer(GL_ARRAY_BUFFER, m_uv_buffer_id);
+    glBufferData(GL_ARRAY_BUFFER, new_uv.size() * 4, new_uv.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &m_norm_buffer_id);
+    glBindBuffer(GL_ARRAY_BUFFER, m_norm_buffer_id);
+    glBufferData(GL_ARRAY_BUFFER, new_norm.size() * 4, new_norm.data(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_index_buffer_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id);

@@ -3,6 +3,17 @@
 #include "ModelLoader.h"
 #include "glwrapper.h"
 
+#define GLM_FORCE_RADIANS
+// vec3, vec4, ivec4, mat4
+#include <glm/glm.hpp>
+// translate, rotate, scale, perspective
+#include <glm/gtc/matrix_transform.hpp>
+// value_ptr
+#include <glm/gtc/type_ptr.hpp>
+
+const float PI = 3.14159265358979f;
+const float D2R = PI / 180;
+
 P3dViewer::P3dViewer(PlatformAdapter* adapter)
 {
     PlatformAdapter::adapter = adapter;
@@ -26,7 +37,7 @@ P3dViewer::~P3dViewer()
     delete PlatformAdapter::adapter;
 }
 
-GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
+GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc, const char* shaderName)
 {
     GLuint shader;
     GLint compiled;
@@ -57,7 +68,7 @@ GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
             char* infoLog = new char[sizeof(char) * infoLen ];
 
             glGetShaderInfoLog ( shader, infoLen, 0, infoLog );
-            P3D_LOGE( "Error compiling shader:\n%s", infoLog );
+            P3D_LOGE( "Error compiling shader %s:\n%s", shaderName, infoLog );
 
             delete[] infoLog;
         }
@@ -72,7 +83,7 @@ GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc)
 GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile)
 {
     const char* shaderSrc = PlatformAdapter::adapter->loadAsset(shaderFile);
-    GLuint shader = loadShader(type, shaderSrc);
+    GLuint shader = loadShader(type, shaderSrc, shaderFile);
     delete[] shaderSrc;
     return shader;
 }
@@ -96,8 +107,10 @@ void P3dViewer::onSurfaceCreated() {
     glAttachShader ( m_ProgramObject, vertexShader );
     glAttachShader ( m_ProgramObject, fragmentShader );
 
-    // Bind vPosition to attribute 0
-    glBindAttribLocation ( m_ProgramObject, 0, "vPosition" );
+    // Bind attribute indices
+    glBindAttribLocation( m_ProgramObject, ATTRIB_POSITION, "aPosition" );
+    glBindAttribLocation( m_ProgramObject, ATTRIB_NORMAL, "aNormal" );
+    glBindAttribLocation( m_ProgramObject, ATTRIB_UV, "aUv" );
 
     // Link the program
     glLinkProgram ( m_ProgramObject );
@@ -125,6 +138,12 @@ void P3dViewer::onSurfaceCreated() {
         return;
     }
 
+    // uniforms
+    m_UniformMVP = glGetUniformLocation(m_ProgramObject, "uMVP");
+    if (m_UniformMVP == -1) {
+      P3D_LOGE("Could not bind uniform %s\n", "uMVP");
+      return ;
+    }
 
     // vertex array
     GLfloat vVertices[] = {  0.0f,  0.5f, 0.0f,
@@ -153,26 +172,51 @@ void P3dViewer::drawFrame() {
 
     // Clear color, depth, stencil buffers
     glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-    glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClearDepthf(1.0f);
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    glEnable(GL_DEPTH_TEST);
+//    glDepthFunc(GL_LESS);
+//    glDepthRangef(0.0f, 1.0f);
+    //glFrontFace(GL_CW);
+    //glEnable(GL_CULL_FACE);
 
     // Use the program object
     glUseProgram ( m_ProgramObject );
 
     if(m_ModelLoader->isLoaded())
     {
+        // MVP
+        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, m_ModelLoader->boundingRadius() * 3.0f),
+                                     glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, 1.0f, 100.0f);
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 MVP = proj * view * model;
+        glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
+
         glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer());
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(ATTRIB_POSITION);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->normBuffer());
+        glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(ATTRIB_NORMAL);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->uvBuffer());
+        glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(ATTRIB_UV);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
         glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(), GL_UNSIGNED_INT, 0);
     }
     else
     {
+        glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+
         // Load the vertex data
         glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
-        glVertexAttribPointer(0 /* ? */, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(ATTRIB_POSITION);
 
         glDrawArrays ( GL_TRIANGLES, 0, 3 );
     }

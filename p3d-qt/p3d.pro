@@ -8,9 +8,10 @@ QML_IMPORT_PATH =
 
 QMAKE_CXXFLAGS += -std=c++0x
 
-# The .cpp file which was generated for your project. Feel free to hack it.
 INCLUDEPATH += ../libViewer
+INCLUDEPATH += ../ext/glm
 
+# The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += main.cpp \
     ../libViewer/P3dViewer.cpp \
     QmlAppViewer.cpp \

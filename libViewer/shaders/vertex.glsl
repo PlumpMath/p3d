@@ -4,9 +4,17 @@ precision mediump int;
 precision mediump float;
 #endif
 
-attribute vec4 vPosition;
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+
+uniform mat4 uMVP;
+
+varying vec2 vUv;
+varying vec3 vNormal;
 
 void main(void)
 {
-    gl_Position = vPosition * vec4(0.15f, 0.15f, 0.15f, 1.0f);
+    vNormal = aNormal;
+    vUv = vec2(0.0, 0.0);
+    gl_Position = uMVP * vec4(aPosition, 1.0);
 }

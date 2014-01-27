@@ -21,7 +21,9 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetInfoReply = 0;
     m_NetDataReply = 0;
 
-    loadModel("Ui03b");
+    loadModel("Ui03b"); // horse
+//    loadModel("Xczep"); // stone
+//    loadModel("R7wFq"); // captain
 }
 
 QmlAppViewer::~QmlAppViewer()
@@ -84,8 +86,8 @@ void QmlAppViewer::onGLRender()
         m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size());
         m_ModelData.clear();
     }
-    m_P3dViewer->drawFrame();
     window->resetOpenGLState();
+    m_P3dViewer->drawFrame();
 }
 
 void QmlAppViewer::onModelInfoReplyDone()

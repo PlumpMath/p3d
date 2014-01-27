@@ -7,6 +7,7 @@
 TARGET = libViewer
 TEMPLATE = lib
 CONFIG += staticlib
+INCLUDEPATH += ../ext/glm
 
 SOURCES += P3dViewer.cpp \
     PlatformAdapter.cpp \

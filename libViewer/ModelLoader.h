@@ -15,8 +15,11 @@ public:
     bool load(const char* data, size_t size);
     bool isLoaded() { return m_loaded; }
     GLuint posBuffer() { return m_pos_buffer_id; }
+    GLuint uvBuffer() { return m_uv_buffer_id; }
+    GLuint normBuffer() { return m_norm_buffer_id; }
     GLuint indexBuffer() { return m_index_buffer_id; }
     uint32_t indexCount() { return m_index_count_pos_uv_norm; }
+    float boundingRadius();
 
 private:
     size_t addPadding(size_t size);
@@ -62,6 +65,15 @@ private:
     GLuint m_uv_buffer_id;
     GLuint m_norm_buffer_id;
     GLuint m_index_buffer_id;
+
+    // bounding box
+    float m_maxX;
+    float m_minX;
+    float m_maxY;
+    float m_minY;
+    float m_maxZ;
+    float m_minZ;
+
 
 };
 
