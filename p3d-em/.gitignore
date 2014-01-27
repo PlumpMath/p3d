@@ -1,6 +1,7 @@
 *.o
 deps.txt
 em_test.js
-em_test.html.mem
+em_test.js.mem
+em_test.js.gz
 em_test.data
 shaders/
