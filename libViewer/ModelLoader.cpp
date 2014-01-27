@@ -74,18 +74,18 @@ bool ModelLoader::load(const char *data, size_t size)
     size_t magicSize = sizeof(magic) - 1;
     if(size < magicSize)
     {
-        // data too short
+        P3D_LOGE("data too short");
         return false;
     }
     if(strncmp(data, magic, magicSize))
     {
-        // magic doesn't match
+        P3D_LOGE("magic doesn't match");
         return false;
     }
     uint8_t headerSize = data[12];
     if(headerSize != 64 || size < 64)
     {
-        // wrong header size or data too short
+        P3D_LOGE("wrong header size or data too short");
         return false;
     }
 

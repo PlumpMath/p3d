@@ -11,5 +11,6 @@ HEADERS +=
 OTHER_FILES += \
     Makefile \
     shaders/vertex.glsl \
-    .gitignore
+    .gitignore \
+    em_test.html
 

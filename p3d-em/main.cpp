@@ -4,8 +4,8 @@
 #include <emscripten/emscripten.h>
 #include "P3dViewer.h"
 
-const int width = 480;
-const int height = 800;
+const int width = 853;
+const int height = 480;
 
 
 int init_gl(void);
@@ -60,3 +60,7 @@ void shutdown_gl()
     glfwTerminate();
 }
 
+extern "C" void loadBinary(const char* data, int size)
+{
+    viewer.loadModel(data, size);
+}

@@ -1,15 +1,17 @@
 OPTIMIZE = -O2
-CFLAGS = -I. -I../libViewer -Wall -Wextra $(OPTIMIZE)
-CXXFLAGS = -I. -I../libViewer -Wall -Wextra -std=c++0x $(OPTIMIZE)
-LDFLAGS = -s ASM_JS=1 --embed-file shaders $(OPTIMIZE)
-#LDFLAGS = -s ASM_JS=1 --preload-file shaders --memory-init-file 1
+LDOPTIMIZE = --closure 1
+
+CFLAGS = -I. -I../libViewer -I../ext/glm -Wall -Wextra $(OPTIMIZE)
+CXXFLAGS = -I. -I../libViewer -I../ext/glm -Wall -Wextra -std=c++0x $(OPTIMIZE)
+#LDFLAGS = -s ASM_JS=1 -s EXPORTED_FUNCTIONS="['_main', '_loadBinary']"  --embed-file shaders $(OPTIMIZE) $(LDOPTIMIZE)
+LDFLAGS = -s ASM_JS=1 -s EXPORTED_FUNCTIONS="['_main', '_loadBinary']"  --preload-file shaders --memory-init-file 1 $(OPTIMIZE) $(LDOPTIMIZE)
 
 LIBVIEWER_DIR = ../libViewer
 LIBVIEWER_SOURCES = P3dViewer.cpp PlatformAdapter.cpp ModelLoader.cpp
 SOURCES = main.cpp $(LIBVIEWER_SOURCES)
 OBJECTS = $(SOURCES:.cpp=.o)
-VPATH = $(LIBVIEWER_DIR)
-TARGET = em_test.html
+VPATH = $(LIBVIEWER_DIR) ../ext/glm
+TARGET = em_test.js
 SHADERS = $(shell find $(LIBVIEWER_DIR)/shaders/ -name "*.glsl")
 
 # Targets start here.
