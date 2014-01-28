@@ -23,7 +23,6 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
     }
 
     m_ProgramObject = 0;
-    m_VertexPosObject = 0;
     m_InitOk = false;
     m_ModelLoader = new ModelLoader();
 
@@ -37,122 +36,144 @@ P3dViewer::~P3dViewer()
     delete PlatformAdapter::adapter;
 }
 
-GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc, const char* shaderName)
+GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc, size_t shaderSize, const char* shaderName)
 {
     GLuint shader;
     GLint compiled;
 
     // Create the shader object
-    shader = glCreateShader ( type );
+    shader = glCreateShader(type);
 
     if ( shader == 0 )
         return 0;
 
+    GLint srcLen = shaderSize;
+
     // Load the shader source
-    glShaderSource ( shader, 1, &shaderSrc, 0 );
+    glShaderSource(shader, 1, &shaderSrc, &srcLen);
 
     // Compile the shader
-    glCompileShader ( shader );
+    glCompileShader(shader);
 
     // Check the compile status
-    glGetShaderiv ( shader, GL_COMPILE_STATUS, &compiled );
+    glGetShaderiv (shader, GL_COMPILE_STATUS, &compiled);
 
-    if ( !compiled )
+    if (!compiled)
     {
         GLint infoLen = 0;
 
-        glGetShaderiv ( shader, GL_INFO_LOG_LENGTH, &infoLen );
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
 
-        if ( infoLen > 1 )
+        if(infoLen > 1)
         {
             char* infoLog = new char[sizeof(char) * infoLen ];
 
-            glGetShaderInfoLog ( shader, infoLen, 0, infoLog );
-            P3D_LOGE( "Error compiling shader %s:\n%s", shaderName, infoLog );
+            glGetShaderInfoLog(shader, infoLen, 0, infoLog);
+            P3D_LOGE( "Error compiling shader %s:\n%s", shaderName, infoLog);
 
             delete[] infoLog;
         }
 
-        glDeleteShader ( shader );
+        glDeleteShader(shader);
         return 0;
     }
 
     return shader;
 }
 
-GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile)
+GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile, const char* defines)
 {
-    const char* shaderSrc = PlatformAdapter::adapter->loadAsset(shaderFile);
-    GLuint shader = loadShader(type, shaderSrc, shaderFile);
+    size_t srcLen = 0;
+    GLuint shader = 0;
+    const char* shaderSrc = PlatformAdapter::adapter->loadAsset(shaderFile, &srcLen);
+    if(defines)
+    {
+        size_t defsLen = strlen(defines);
+        char* tmp = new char[srcLen + defsLen];
+        strncpy(tmp, shaderSrc, srcLen);
+        strncpy(tmp + srcLen, defines, defsLen);
+        shader = loadShader(type, tmp, srcLen + defsLen, shaderFile);
+        delete[] tmp;
+    }
+    else
+    {
+        shader = loadShader(type, shaderSrc, srcLen, shaderFile);
+    }
     delete[] shaderSrc;
     return shader;
 }
 
-void P3dViewer::onSurfaceCreated() {
-
+GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, const char *defines)
+{
     GLuint vertexShader;
     GLuint fragmentShader;
+    GLuint program;
     GLint linked;
 
     // Load the vertex/fragment shaders
-    vertexShader = loadShaderFromFile ( GL_VERTEX_SHADER, "shaders/vertex.glsl" );
-    fragmentShader = loadShaderFromFile ( GL_FRAGMENT_SHADER, "shaders/fragment.glsl" );
+    vertexShader = loadShaderFromFile(GL_VERTEX_SHADER, vShaderFile, defines);
+    fragmentShader = loadShaderFromFile(GL_FRAGMENT_SHADER, fShaderFile, defines);
 
     // Create the program object
-    m_ProgramObject = glCreateProgram ( );
+    program = glCreateProgram();
 
-    if ( m_ProgramObject == 0 )
-       return;
+    if(program == 0)
+    {
+        P3D_LOGE("Could create shader program");
+        return 0;
+    }
 
-    glAttachShader ( m_ProgramObject, vertexShader );
-    glAttachShader ( m_ProgramObject, fragmentShader );
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
 
     // Bind attribute indices
-    glBindAttribLocation( m_ProgramObject, ATTRIB_POSITION, "aPosition" );
-    glBindAttribLocation( m_ProgramObject, ATTRIB_NORMAL, "aNormal" );
-    glBindAttribLocation( m_ProgramObject, ATTRIB_UV, "aUv" );
+    glBindAttribLocation(program, ATTRIB_POSITION, "aPosition");
+    glBindAttribLocation(program, ATTRIB_NORMAL, "aNormal");
+    glBindAttribLocation(program, ATTRIB_UV, "aUv");
 
     // Link the program
-    glLinkProgram ( m_ProgramObject );
+    glLinkProgram(program);
 
     // Check the link status
-    glGetProgramiv ( m_ProgramObject, GL_LINK_STATUS, &linked );
+    glGetProgramiv(program, GL_LINK_STATUS, &linked);
 
-    if ( !linked )
+    if(!linked)
     {
         GLint infoLen = 0;
 
-        glGetProgramiv ( m_ProgramObject, GL_INFO_LOG_LENGTH, &infoLen );
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLen);
 
-        if ( infoLen > 1 )
+        if(infoLen > 1)
         {
             char* infoLog = new char[sizeof(char) * infoLen];
 
-            glGetProgramInfoLog ( m_ProgramObject, infoLen, NULL, infoLog );
+            glGetProgramInfoLog(program, infoLen, NULL, infoLog);
             P3D_LOGE( "Error linking program:\n%s", infoLog );
 
             delete[] infoLog;
         }
 
-        glDeleteProgram ( m_ProgramObject );
-        return;
+        glDeleteProgram(program);
+        return 0;
     }
 
-    // uniforms
+    return program;
+}
+
+void P3dViewer::onSurfaceCreated() {
+    m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
     m_UniformMVP = glGetUniformLocation(m_ProgramObject, "uMVP");
     if (m_UniformMVP == -1) {
-      P3D_LOGE("Could not bind uniform %s\n", "uMVP");
-      return ;
+      P3D_LOGE("Could not bind uniform %s", "uMVP");
+      glDeleteProgram(m_ProgramObject);
     }
 
-    // vertex array
-    GLfloat vVertices[] = {  0.0f,  0.5f, 0.0f,
-                             -0.5f, -0.5f, 0.0f,
-                             0.5f, -0.5f, 0.0f };
-
-    glGenBuffers(1, &m_VertexPosObject);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vVertices), vVertices, GL_STATIC_DRAW);
+    m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl", "#define HAS_UV\n");
+    m_UniformMVPUv = glGetUniformLocation(m_ProgramObjectUv, "uMVP");
+    if (m_UniformMVPUv == -1) {
+      P3D_LOGE("Could not bind uniform %s", "uMVP");
+      glDeleteProgram(m_ProgramObjectUv);
+    }
 
     m_InitOk = true;
 }
@@ -169,21 +190,13 @@ void P3dViewer::drawFrame() {
     }
 
     // Set the viewport
-    glViewport ( 0, 0, m_Width, m_Height );
+    glViewport(0, 0, m_Width, m_Height);
 
     // Clear color, depth, stencil buffers
-    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepthf(1.0f);
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClearColor(0.2f, 0.2f, 0.3f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
-//    glDepthFunc(GL_LESS);
-//    glDepthRangef(0.0f, 1.0f);
-    //glFrontFace(GL_CW);
-    //glEnable(GL_CULL_FACE);
-
-    // Use the program object
-    glUseProgram ( m_ProgramObject );
 
     if(m_ModelLoader->isLoaded() && m_ModelLoader->boundingRadius() > 0.0f)
     {
@@ -193,7 +206,6 @@ void P3dViewer::drawFrame() {
         glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, 1.0f, 100.0f);
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP = proj * view * model;
-        glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
 
         glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer());
         glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -207,29 +219,24 @@ void P3dViewer::drawFrame() {
         glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(ATTRIB_UV);
 
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
+
         if(m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM))
         {
+            // pos uv norm
+            glUseProgram(m_ProgramObjectUv);
+            glUniformMatrix4fv(m_ProgramObjectUv, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM),
                            GL_UNSIGNED_INT, (GLvoid*)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV_NORM));
         }
         if(m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM))
         {
+            // pos norm
+            glUseProgram(m_ProgramObject);
+            glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM),
                            GL_UNSIGNED_INT, (GLvoid*) m_ModelLoader->indexOffset(ModelLoader::VT_POS_NORM));
         }
-    }
-    else
-    {
-        glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-
-        // Load the vertex data
-        glBindBuffer(GL_ARRAY_BUFFER, m_VertexPosObject);
-        glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(ATTRIB_POSITION);
-
-        glDrawArrays ( GL_TRIANGLES, 0, 3 );
     }
 }
 

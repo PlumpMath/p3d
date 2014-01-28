@@ -12,7 +12,7 @@ public:
     P3dMap()
     {
         m_size = 0;
-        m_bucketCount = 256;
+        m_bucketCount = 1024;
         m_buckets = new Bucket[m_bucketCount];
     }
 

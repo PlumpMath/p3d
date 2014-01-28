@@ -6,7 +6,9 @@ precision mediump float;
 
 attribute vec3 aPosition;
 attribute vec3 aNormal;
+#ifdef HAS_UV
 attribute vec2 aUv;
+#endif
 
 uniform mat4 uMVP;
 
@@ -16,6 +18,11 @@ varying vec3 vNormal;
 void main(void)
 {
     vNormal = aNormal;
+#ifdef HAS_UVS
     vUv = aUv;
+#else
+    vUv = vec2(0.0, 0.0);
+#endif
+
     gl_Position = uMVP * vec4(aPosition, 1.0);
 }

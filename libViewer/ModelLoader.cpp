@@ -365,8 +365,7 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
                     vert_offset += 1;
                     m_new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
                 }
-
-                if(vtype == VT_POS_UV)
+                else
                 {
                     // push emtpy normal
                     m_new_norm.push_back(0.0f);

@@ -28,14 +28,16 @@ public:
     bool loadModel(const char* binaryData, size_t size);
 
 private:
-    GLuint loadShader (GLenum type, const char *shaderSrc, const char *shaderName);
-    GLuint loadShaderFromFile (GLenum type, const char *shaderFile);
+    GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);
+    GLuint loadShaderFromFile(GLenum type, const char *shaderFile, const char *defines = 0);
+    GLuint loadProgram(const char* vShaderFile, const char* fShaderFile, const char *defines = 0);
 
     ModelLoader* m_ModelLoader;
     GLuint m_ProgramObject;
-    GLuint m_VertexPosObject;
+    GLuint m_ProgramObjectUv;
 
     GLint m_UniformMVP;
+    GLint m_UniformMVPUv;
 
     int m_Width;
     int m_Height;
