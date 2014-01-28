@@ -21,7 +21,8 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetInfoReply = 0;
     m_NetDataReply = 0;
 
-    loadModel("Ui03b"); // horse
+    loadModel("TpN5G"); // large monkey
+//    loadModel("Ui03b"); // horse
 //    loadModel("Xczep"); // stone
 //    loadModel("R7wFq"); // captain
 }

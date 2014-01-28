@@ -3,13 +3,20 @@
 
 #include <cstdlib>
 #include <cstdint>
-
-typedef unsigned int GLuint;
-typedef unsigned int GLenum;
+#include "P3dVector.h"
+#include "P3dMap.h"
+#include "glwrapper.h"
 
 class ModelLoader
 {
 public:
+    enum VertexType {
+        VT_POS_UV_NORM = 0,
+        VT_POS_UV = 1,
+        VT_POS_NORM = 2,
+        VT_POS = 3
+    };
+
     ModelLoader();
     virtual ~ModelLoader();
     bool load(const char* data, size_t size);
@@ -18,12 +25,24 @@ public:
     GLuint uvBuffer() { return m_uv_buffer_id; }
     GLuint normBuffer() { return m_norm_buffer_id; }
     GLuint indexBuffer() { return m_index_buffer_id; }
-    uint32_t indexCount() { return m_index_count_pos_uv_norm; }
+    uint32_t indexCount(VertexType vtype) { return m_index_count[vtype]; }
+    uint32_t indexOffset(VertexType vtype) { return m_new_f3_start[vtype]; }
     float boundingRadius();
 
 private:
+    struct VertexIndex
+    {
+        uint32_t pos;
+        uint32_t uv;
+        uint32_t norm;
+        ModelLoader::VertexType type;
+        bool operator==(const VertexIndex &other) const;
+        size_t hash() const;
+    };
+
     size_t addPadding(size_t size);
     void deindex(const char *data);
+    void deindexType(VertexType vtype, const char* data, uint32_t *new_faces, uint16_t *new_mats);
 
     bool m_loaded;
     const char* m_data;
@@ -32,33 +51,28 @@ private:
     uint32_t m_norm_count;
     uint32_t m_tex_count;
 
-    uint32_t m_f3_count_pos;
-    uint32_t m_f3_count_pos_norm;
-    uint32_t m_f3_count_pos_uv;
-    uint32_t m_f3_count_pos_uv_norm;
-
-    uint32_t m_f4_count_pos;
-    uint32_t m_f4_count_pos_norm;
-    uint32_t m_f4_count_pos_uv;
-    uint32_t m_f4_count_pos_uv_norm;
-
-    uint32_t m_index_count_pos_uv_norm;
+    uint32_t m_f3_count[4];
+    uint32_t m_f4_count[4];
 
     uint32_t m_pos_start;
     uint32_t m_norm_start;
     uint32_t m_tex_start;
 
-    uint32_t m_f3_start_pos;
-    uint32_t m_f3_start_pos_norm;
-    uint32_t m_f3_start_pos_uv;
-    uint32_t m_f3_start_pos_uv_norm;
-
-    uint32_t m_f4_start_pos;
-    uint32_t m_f4_start_pos_norm;
-    uint32_t m_f4_start_pos_uv;
-    uint32_t m_f4_start_pos_uv_norm;
+    uint32_t m_f3_start[4];
+    uint32_t m_f4_start[4];
 
     uint16_t m_mat_count;
+
+    // new data
+    P3dVector<GLfloat> m_new_pos;
+    P3dVector<GLfloat> m_new_uv;
+    P3dVector<GLfloat> m_new_norm;
+    P3dMap<VertexIndex, uint32_t> m_vertex_map;
+
+    size_t m_total_index_count;
+    uint32_t m_index_count[4];
+    uint32_t m_new_f3_start[4];
+    uint32_t m_new_f4_start[4];
 
     // OpenGL
     GLuint m_pos_buffer_id;

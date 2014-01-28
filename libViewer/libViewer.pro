@@ -16,7 +16,9 @@ SOURCES += P3dViewer.cpp \
 HEADERS += P3dViewer.h \
     glwrapper.h \
     PlatformAdapter.h \
-    ModelLoader.h
+    ModelLoader.h \
+    P3dVector.h \
+    P3dMap.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

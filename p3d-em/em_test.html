@@ -38,7 +38,8 @@
     <script type='text/javascript'>
       function postRun() {
         console.log("postRun");
-        var binURL = "samples/captain.bin";
+        //var binURL = "samples/captain.bin";
+        var binURL = "samples/monkey500k.bin";
 
         var xhr = new XMLHttpRequest();
         xhr.open('GET', binURL, true);
@@ -60,6 +61,7 @@
 
       // connect to canvas
       var Module = {
+        TOTAL_MEMORY: 96 * 1024 * 1024,
         preRun: [],
         postRun: [postRun],
         print: (function() {

@@ -36,7 +36,9 @@ HEADERS += \
     QmlAppViewer.h \
     ../libViewer/PlatformAdapter.h \
     QtPlatformAdapter.h \
-    ../libViewer/ModelLoader.h
+    ../libViewer/ModelLoader.h \
+    ../libViewer/P3dMap.h \
+    ../libViewer/P3dVector.h
 
 android {
     shaders.path = /assets/shaders

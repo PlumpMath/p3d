@@ -185,7 +185,7 @@ void P3dViewer::drawFrame() {
     // Use the program object
     glUseProgram ( m_ProgramObject );
 
-    if(m_ModelLoader->isLoaded())
+    if(m_ModelLoader->isLoaded() && m_ModelLoader->boundingRadius() > 0.0f)
     {
         // MVP
         glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, m_ModelLoader->boundingRadius() * 3.0f),
@@ -207,8 +207,18 @@ void P3dViewer::drawFrame() {
         glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(ATTRIB_UV);
 
+
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
-        glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(), GL_UNSIGNED_INT, 0);
+        if(m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM))
+        {
+            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM),
+                           GL_UNSIGNED_INT, (GLvoid*)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV_NORM));
+        }
+        if(m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM))
+        {
+            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM),
+                           GL_UNSIGNED_INT, (GLvoid*) m_ModelLoader->indexOffset(ModelLoader::VT_POS_NORM));
+        }
     }
     else
     {
