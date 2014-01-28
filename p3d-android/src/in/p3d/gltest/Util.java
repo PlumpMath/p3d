@@ -31,6 +31,7 @@ public class Util {
 			HttpEntity entity = response.getEntity();
 			is = entity.getContent();
 		} catch(Exception e) {
+			Log.e(TAG, "error", e);
 			return null;
 		}
 	    
@@ -45,6 +46,7 @@ public class Util {
 			is.close();
 			result = sb.toString();	            
 		} catch(Exception e) {
+			Log.e(TAG, "error", e);
 			return null;
 		}
  
@@ -52,6 +54,7 @@ public class Util {
 		try {
 			jsonObject = new JSONObject(result);            
 		} catch(JSONException e) {
+			Log.e(TAG, "error", e);
 			return null;
 		}
     
@@ -79,7 +82,6 @@ public class Util {
 		// Read response to string
 		try {	
 			int len = (int) entity.getContentLength();
-			Log.d(TAG, "bin len: " + len);
 			data = ByteBuffer.allocateDirect(len);
 			int len1;
 			byte[] temp = new byte[2048];

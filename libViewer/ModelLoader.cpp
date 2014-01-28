@@ -216,13 +216,13 @@ void ModelLoader::deindex(const char* data)
 
     static const float norm_scale = 1.0f / 127.0f;
 
-    std::vector<float> new_pos;
+    std::vector<GLfloat> new_pos;
     new_pos.reserve(m_pos_count);
 
-    std::vector<float> new_uv;
+    std::vector<GLfloat> new_uv;
     new_uv.reserve(m_tex_count);
 
-    std::vector<float> new_norm;
+    std::vector<GLfloat> new_norm;
     new_norm.reserve(m_norm_count);
 
     //TODO: other index types
@@ -297,11 +297,11 @@ void ModelLoader::deindex(const char* data)
                 new_uv.push_back(READ_FLOAT(data[vert_offset]));
 
                 vert_offset = m_norm_start + (3 * index.norm);
-                new_norm.push_back(data[vert_offset] * norm_scale);
+                new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
                 vert_offset += 1;
-                new_norm.push_back(data[vert_offset] * norm_scale);
+                new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
                 vert_offset += 1;
-                new_norm.push_back(data[vert_offset] * norm_scale);
+                new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
             }
             new_pos_uv_norm[new_offset] = new_index;
             ++new_offset;
@@ -335,24 +335,23 @@ void ModelLoader::deindex(const char* data)
     P3D_LOGD("new uv size: %d", new_uv.size());
     P3D_LOGD("new norm size: %d", new_norm.size());
 
-
     // TODO: gen normals
 
     glGenBuffers(1, &m_pos_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, new_pos.size() * 4, new_pos.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, new_pos.size() * sizeof(GLfloat), new_pos.data(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_uv_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_uv_buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, new_uv.size() * 4, new_uv.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, new_uv.size() * sizeof(GLfloat), new_uv.data(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_norm_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_norm_buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, new_norm.size() * 4, new_norm.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, new_norm.size() * sizeof(GLfloat), new_norm.data(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_index_buffer_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_count_pos_uv_norm * 4, new_pos_uv_norm, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_count_pos_uv_norm * sizeof(uint32_t), new_pos_uv_norm, GL_STATIC_DRAW);
 
     delete [] new_pos_uv_norm;
     delete [] new_mat_pos_uv_norm;

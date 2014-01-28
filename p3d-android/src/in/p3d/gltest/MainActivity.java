@@ -23,6 +23,7 @@ public class MainActivity extends Activity {
 
 	private GLSurfaceView glSurfaceView;
 	private boolean rendererSet;
+	private RendererWrapper renderer;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,8 @@ public class MainActivity extends Activity {
 	        }
 	 
 	        glSurfaceView.setEGLContextClientVersion(2);
-	        glSurfaceView.setRenderer(new RendererWrapper());
+	        renderer = new RendererWrapper();
+	        glSurfaceView.setRenderer(renderer);
 	        rendererSet = true;
 	        setContentView(glSurfaceView);
 	        
@@ -149,7 +151,7 @@ public class MainActivity extends Activity {
 				}
 				try {
 					Log.d(TAG, "Got binary: " + result.limit());
-					P3dViewerJNIWrapper.load_binary(result, result.limit());
+					renderer.loadModel(result);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

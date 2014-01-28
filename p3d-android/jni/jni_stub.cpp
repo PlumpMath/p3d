@@ -14,9 +14,6 @@ AndroidPlatformAdapter* adapter = new AndroidPlatformAdapter();
 P3dViewer viewer(adapter);
 static int _width = 0;
 static int _height = 0;
-static const char* binData = 0;
-static int binSize = 0;
-static bool isModelLoaded = false;
 
 JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1surface_1created
   (JNIEnv *env, jclass cls)
@@ -48,15 +45,6 @@ JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_on_1draw_1frame
 	(void)env;
 	(void)cls;
 
-	if(binData && !isModelLoaded) {
-		if(viewer.loadModel(binData, binSize)) {
-			isModelLoaded = true;
-		} else {
-			binData = 0;
-		}
-	}
-
-
 	viewer.drawFrame();
 }
 
@@ -77,7 +65,5 @@ JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_load_1binary(JNIEn
 	(void)cls;
 
 	const char* data = (const char*) env->GetDirectBufferAddress(buf);
-	LOGD("loadBinary 0x%08x bytes at 0x%0x", size, data);
-	binSize = size;
-	binData = data;
+	viewer.loadModel(data, size);
 }

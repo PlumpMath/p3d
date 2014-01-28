@@ -6,6 +6,7 @@ precision mediump float;
 
 attribute vec3 aPosition;
 attribute vec3 aNormal;
+attribute vec2 aUv;
 
 uniform mat4 uMVP;
 
@@ -15,6 +16,6 @@ varying vec3 vNormal;
 void main(void)
 {
     vNormal = aNormal;
-    vUv = vec2(0.0, 0.0);
+    vUv = aUv;
     gl_Position = uMVP * vec4(aPosition, 1.0);
 }

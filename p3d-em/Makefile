@@ -20,7 +20,7 @@ all: $(TARGET)
 shaders: $(LIBVIEWER_DIR)/shaders
 	ln -s $< $@
 
-$(TARGET): $(OBJECTS) Makefile shaders $(SHADERS)
+$(TARGET): $(OBJECTS) Makefile deps.txt shaders $(SHADERS)
 	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $(OBJECTS)
 
 clean:
@@ -32,7 +32,7 @@ deps.txt: $(SOURCES) Makefile
 # list targets that do not create files (but not all makes understand .PHONY)
 .PHONY:	all clean
 
-$(OBJECTS): Makefile deps.txt
+$(OBJECTS): Makefile
 
 -include deps.txt
 
