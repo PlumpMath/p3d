@@ -51,7 +51,8 @@ public class MainActivity extends Activity {
 	        rendererSet = true;
 	        setContentView(glSurfaceView);
 	        
-	        loadModel("Ui03b"); // horse
+	        //loadModel("Ui03b"); // horse
+	        loadModel("TpN5G"); // large monkey
 	    } else {
 	        // Should never be seen in production, since the manifest filters
 	        // unsupported devices.

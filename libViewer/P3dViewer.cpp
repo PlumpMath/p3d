@@ -225,7 +225,7 @@ void P3dViewer::drawFrame() {
         {
             // pos uv norm
             glUseProgram(m_ProgramObjectUv);
-            glUniformMatrix4fv(m_ProgramObjectUv, 1, GL_FALSE, glm::value_ptr(MVP));
+            glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM),
                            GL_UNSIGNED_INT, (GLvoid*)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV_NORM));
         }
