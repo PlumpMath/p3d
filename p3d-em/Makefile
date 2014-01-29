@@ -1,4 +1,4 @@
-OPTIMIZE = -O2
+OPTIMIZE = -O3
 LDOPTIMIZE = --closure 1
 
 CFLAGS = -I. -I../libViewer -I../ext/glm -Wall -Wextra $(OPTIMIZE)

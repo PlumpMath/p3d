@@ -64,15 +64,16 @@ private:
     uint16_t m_mat_count;
 
     // new data
-    P3dVector<GLfloat> m_new_pos;
-    P3dVector<GLfloat> m_new_uv;
-    P3dVector<GLfloat> m_new_norm;
     P3dMap<VertexIndex, uint32_t> m_vertex_map;
 
     size_t m_total_index_count;
     uint32_t m_index_count[4];
     uint32_t m_new_f3_start[4];
     uint32_t m_new_f4_start[4];
+
+    uint32_t m_new_pos_count;
+    uint32_t m_new_norm_count;
+    uint32_t m_new_uv_count;
 
     // OpenGL
     GLuint m_pos_buffer_id;

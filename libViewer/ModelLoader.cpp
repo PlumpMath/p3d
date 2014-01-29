@@ -23,6 +23,7 @@ float READ_FLOAT(const char& x) {
 
 bool ModelLoader::VertexIndex::operator==(const VertexIndex &other) const
 {
+    if(type != other.type) return false;
     if(pos != other.pos) return false;
     switch(type)
     {
@@ -198,6 +199,8 @@ size_t ModelLoader::addPadding(size_t size)
 
 void ModelLoader::deindex(const char* data)
 {
+    static const float norm_scale = 1.0f / 127.0f;
+
     m_mat_count = 1;
     m_maxX = 0.0f;
     m_minX = 0.0f;
@@ -206,14 +209,9 @@ void ModelLoader::deindex(const char* data)
     m_maxZ = 0.0f;
     m_minZ = 0.0f;
 
-    m_new_pos.clear();
-    m_new_pos.reserve(m_pos_count);
-
-    m_new_uv.clear();
-    m_new_uv.reserve(m_tex_count);
-
-    m_new_norm.clear();
-    m_new_norm.reserve(m_norm_count);
+    m_new_pos_count = 0;
+    m_new_norm_count = 0;
+    m_new_uv_count = 0;
 
     m_total_index_count = 0;
 
@@ -236,34 +234,100 @@ void ModelLoader::deindex(const char* data)
     deindexType(VT_POS_NORM, data, new_faces, new_mats);
     deindexType(VT_POS, data, new_faces, new_mats);
 
-    //TODO: other index types
-
-
     P3D_LOGD("mat count: %d", m_mat_count);
-    P3D_LOGD("new pos size: %d", m_new_pos.size());
-    P3D_LOGD("new uv size: %d", m_new_uv.size());
-    P3D_LOGD("new norm size: %d", m_new_norm.size());
+    P3D_LOGD("new pos size: %d", m_new_pos_count);
+    P3D_LOGD("new uv size: %d", m_new_uv_count);
+    P3D_LOGD("new norm size: %d", m_new_norm_count);
+
+
+    GLfloat* new_pos = new GLfloat[m_new_pos_count];
+    GLfloat* new_uv = new GLfloat[m_new_uv_count];
+    GLfloat* new_norm = new GLfloat[m_new_norm_count];
+    uint32_t new_offset;
+    uint32_t vert_offset;
+    float x;
+    float y;
+    float z;
+    int vertCount = 0;
+    for(P3dMap<VertexIndex, uint32_t>::iterator itr = m_vertex_map.begin(); itr.hasNext(); ++itr)
+    {
+        const VertexIndex& index = itr.key();
+        uint32_t new_index = itr.value();
+        //P3D_LOGD("%d: %d/%d/%d > %d", vertCount, index.pos, index.uv, index.norm, new_index);
+
+        ++vertCount;
+        // pos
+        new_offset = new_index * 3;
+        vert_offset = m_pos_start + 4 * (3 * index.pos);
+        x = READ_FLOAT(data[vert_offset]);
+        vert_offset += 4;
+        y = READ_FLOAT(data[vert_offset]);
+        vert_offset += 4;
+        z = READ_FLOAT(data[vert_offset]);
+        if(x > m_maxX) m_maxX = x;
+        if(x < m_minX) m_minX = x;
+        if(y > m_maxY) m_maxY = y;
+        if(y < m_minY) m_minY = y;
+        if(z > m_maxZ) m_maxZ = z;
+        if(z < m_minZ) m_minZ = z;
+        new_pos[new_offset++] = x;
+        new_pos[new_offset++] = y;
+        new_pos[new_offset++] = z;
+
+        // uv
+        if(index.type == VT_POS_UV || index.type == VT_POS_UV_NORM)
+        {
+            new_offset = new_index * 2;
+            vert_offset = m_tex_start + 4 * (2 * index.uv);
+            new_uv[new_offset++] = READ_FLOAT(data[vert_offset]);
+            vert_offset += 4;
+            new_uv[new_offset++] = READ_FLOAT(data[vert_offset]);
+        }
+
+        // norm
+        new_offset = new_index * 3;
+        if(index.type == VT_POS_NORM || index.type == VT_POS_UV_NORM)
+        {
+            vert_offset = m_norm_start + (3 * index.norm);
+            new_norm[new_offset++] = static_cast<signed char>(data[vert_offset]) * norm_scale;
+            vert_offset += 1;
+            new_norm[new_offset++] = static_cast<signed char>(data[vert_offset]) * norm_scale;
+            vert_offset += 1;
+            new_norm[new_offset++] = static_cast<signed char>(data[vert_offset]) * norm_scale;
+        }
+        else
+        {
+            // store emtpy normal
+            new_norm[new_offset++] = 0.0f;
+            new_norm[new_offset++] = 0.0f;
+            new_norm[new_offset++] = 0.0f;
+        }
+    }
 
     // TODO: gen normals
 
     glGenBuffers(1, &m_pos_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, m_new_pos.size() * sizeof(GLfloat), m_new_pos.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_new_pos_count * sizeof(GLfloat), new_pos, GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_uv_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_uv_buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, m_new_uv.size() * sizeof(GLfloat), m_new_uv.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_new_uv_count * sizeof(GLfloat), new_uv, GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_norm_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_norm_buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, m_new_norm.size() * sizeof(GLfloat), m_new_norm.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_new_norm_count * sizeof(GLfloat), new_norm, GL_STATIC_DRAW);
 
     glGenBuffers(1, &m_index_buffer_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint32_t), new_faces, GL_STATIC_DRAW);
 
-    delete [] new_faces;
+    delete [] new_norm;
+    delete [] new_uv;
+    delete [] new_pos;
+
     delete [] new_mats;
+    delete [] new_faces;
 }
 
 void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, uint32_t* new_faces, uint16_t* new_mats)
@@ -279,12 +343,7 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
     uint32_t faces;
     uint32_t new_offset;
     uint32_t new_mat_offset;
-    uint32_t vert_offset;
     uint32_t f4_offset;
-    float x;
-    float y;
-    float z;
-    static const float norm_scale = 1.0f / 127.0f;
 
     // tris
     pos_offset = m_f3_start[vtype];
@@ -332,46 +391,16 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
             {
                 new_index = m_vertex_map.size();
                 m_vertex_map.insert(index, new_index);
-                vert_offset = m_pos_start + 4 * (3 * index.pos);
-                x = READ_FLOAT(data[vert_offset]);
-                vert_offset += 4;
-                y = READ_FLOAT(data[vert_offset]);
-                vert_offset += 4;
-                z = READ_FLOAT(data[vert_offset]);
-                if(x > m_maxX) m_maxX = x;
-                if(x < m_minX) m_minX = x;
-                if(y > m_maxY) m_maxY = y;
-                if(y < m_minY) m_minY = y;
-                if(z > m_maxZ) m_maxZ = z;
-                if(z < m_minZ) m_minZ = z;
-                m_new_pos.push_back(x);
-                m_new_pos.push_back(y);
-                m_new_pos.push_back(z);
 
+                m_new_pos_count += 3;
+
+                // uv
                 if(vtype == VT_POS_UV || vtype == VT_POS_UV_NORM)
                 {
-                    vert_offset = m_tex_start + 4 * (2 * index.uv);
-                    m_new_uv.push_back(READ_FLOAT(data[vert_offset]));
-                    vert_offset += 4;
-                    m_new_uv.push_back(READ_FLOAT(data[vert_offset]));
+                    m_new_uv_count += 2;
                 }
 
-                if(vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM)
-                {
-                    vert_offset = m_norm_start + (3 * index.norm);
-                    m_new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
-                    vert_offset += 1;
-                    m_new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
-                    vert_offset += 1;
-                    m_new_norm.push_back(static_cast<signed char>(data[vert_offset]) * norm_scale);
-                }
-                else
-                {
-                    // push emtpy normal
-                    m_new_norm.push_back(0.0f);
-                    m_new_norm.push_back(0.0f);
-                    m_new_norm.push_back(0.0f);
-                }
+                m_new_norm_count += 3;
             }
             new_faces[new_offset] = new_index;
             ++new_offset;

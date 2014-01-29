@@ -9,6 +9,49 @@ template<typename K, typename T>
 class P3dMap
 {
 public:
+    class iterator {
+    public:
+        iterator(P3dMap* _map)
+        {
+            map = _map;
+            bucketIndex = 0;
+            itemIndex = -1;
+            operator++();
+        }
+
+        const K& key()
+        {
+            return map->m_buckets[bucketIndex][itemIndex].key;
+        }
+
+        T& value()
+        {
+            return map->m_buckets[bucketIndex][itemIndex].val;
+        }
+
+        iterator& operator++()
+        {
+            ++itemIndex;
+            while(itemIndex >= map->m_buckets[bucketIndex].size())
+            {
+                ++bucketIndex;
+                itemIndex = 0;
+                if(bucketIndex >= map->m_bucketCount) return *this;
+            }
+            return *this;
+        }
+
+        bool hasNext()
+        {
+            return bucketIndex < map->m_bucketCount;
+        }
+
+    private:
+        P3dMap* map;
+        size_t bucketIndex;
+        size_t itemIndex;
+    };
+
     P3dMap()
     {
         m_size = 0;
@@ -51,6 +94,8 @@ public:
     {
         insertItem(key, val);
     }
+
+    iterator begin() { return iterator(this); }
 
 private:
     // disable copy ctor

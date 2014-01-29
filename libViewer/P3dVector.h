@@ -49,7 +49,7 @@ public:
     {
         if(m_size + 1 > m_capacity)
         {
-            size_t new_size = m_capacity * 3 / 2;
+            size_t new_size = m_capacity * 5 / 4;
             // always add at least 8
             if(new_size < m_capacity + 8) new_size = m_capacity + 8;
             reserve(new_size);
