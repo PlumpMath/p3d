@@ -23,6 +23,35 @@ ApplicationWindow {
         }
     }
 
+    MouseArea {
+        anchors.fill: parent
+        property real oldX: -1
+        property real oldY: -1
+
+        function move() {
+            var dx = mouseX - oldX;
+            var dy = mouseY - oldY;
+            if(dx != 0.0 || dy != 0.0) {
+                console.log("mouse move:", dx, dy)
+                viewer.rotateCamera(oldX / width * 2 - 1, oldY / height * 2 - 1,
+                                    mouseX / width * 2 - 1, mouseY / height * 2 - 1);
+                oldX = mouseX;
+                oldY = mouseY;
+            }
+        }
+
+        onMouseXChanged: move()
+        onMouseYChanged: move();
+        onPressed: {
+            console.log("mouse press:", mouseX, mouseY)
+            oldX = mouseX;
+            oldY = mouseY;
+        }
+        onReleased: {
+            console.log("mouse release:", mouseX, mouseY)
+        }
+    }
+
     Rectangle {
         visible: false
         anchors.fill: parent

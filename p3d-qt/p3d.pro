@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     QmlAppViewer.cpp \
     ../libViewer/PlatformAdapter.cpp \
     QtPlatformAdapter.cpp \
-    ../libViewer/ModelLoader.cpp
+    ../libViewer/ModelLoader.cpp \
+    ../libViewer/CameraNavigation.cpp
 
 # Installation path
 # target.path =
@@ -38,7 +39,8 @@ HEADERS += \
     QtPlatformAdapter.h \
     ../libViewer/ModelLoader.h \
     ../libViewer/P3dMap.h \
-    ../libViewer/P3dVector.h
+    ../libViewer/P3dVector.h \
+    ../libViewer/CameraNavigation.h
 
 android {
     shaders.path = /assets/shaders

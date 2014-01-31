@@ -242,6 +242,8 @@ void ModelLoader::deindex(const char* data)
     P3D_LOGD("new uv size: %d", m_new_uv_count);
     P3D_LOGD("new norm size: %d", m_new_norm_count);
 
+    P3D_LOGD("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 4);
+
 
     GLfloat* new_pos = new GLfloat[m_new_pos_count];
     GLfloat* new_uv = new GLfloat[m_new_uv_count];

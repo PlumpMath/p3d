@@ -1,6 +1,7 @@
 #include "P3dViewer.h"
 #include "PlatformAdapter.h"
 #include "ModelLoader.h"
+#include "CameraNavigation.h"
 #include "glwrapper.h"
 
 #define GLM_FORCE_RADIANS
@@ -25,12 +26,14 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
     m_ProgramObject = 0;
     m_InitOk = false;
     m_ModelLoader = new ModelLoader();
+    m_CameraNavigation = new CameraNavigation();
 
     P3D_LOGD("Viewer constructed");
 }
 
 P3dViewer::~P3dViewer()
 {
+    delete m_CameraNavigation;
     delete m_ModelLoader;
 
     delete PlatformAdapter::adapter;
@@ -201,8 +204,7 @@ void P3dViewer::drawFrame() {
     if(m_ModelLoader->isLoaded() && m_ModelLoader->boundingRadius() > 0.0f)
     {
         // MVP
-        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, m_ModelLoader->boundingRadius() * 3.0f),
-                                     glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 view = m_CameraNavigation->viewMatrix();
         glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, 1.0f, 100.0f);
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP = proj * view * model;
@@ -259,6 +261,10 @@ void P3dViewer::drawFrame() {
 bool P3dViewer::loadModel(const char *binaryData, size_t size)
 {
     bool res = m_ModelLoader->load(binaryData, size);
+    if(res)
+    {
+        m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
+    }
     return res;
 }
 

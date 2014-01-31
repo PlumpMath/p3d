@@ -9,6 +9,7 @@ typedef unsigned int GLenum;
 
 class PlatformAdapter;
 class ModelLoader;
+class CameraNavigation;
 
 const GLuint ATTRIB_POSITION = 0;
 const GLuint ATTRIB_NORMAL = 1;
@@ -26,6 +27,7 @@ public:
     void onSurfaceChanged(int width, int height);
     void drawFrame();
     bool loadModel(const char* binaryData, size_t size);
+    CameraNavigation* cameraNavigation() {return m_CameraNavigation;}
 
 private:
     GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);
@@ -33,6 +35,7 @@ private:
     GLuint loadProgram(const char* vShaderFile, const char* fShaderFile, const char *defines = 0);
 
     ModelLoader* m_ModelLoader;
+    CameraNavigation* m_CameraNavigation;
     GLuint m_ProgramObject;
     GLuint m_ProgramObjectUv;
 

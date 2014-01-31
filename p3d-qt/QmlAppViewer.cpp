@@ -1,5 +1,6 @@
 #include "QmlAppViewer.h"
 #include <QDebug>
+#include <QQmlContext>
 #include <QOpenGLContext>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -10,6 +11,7 @@
 #include <QTimer>
 
 #include "P3dViewer.h"
+#include "CameraNavigation.h"
 #include "QtPlatformAdapter.h"
 
 QmlAppViewer::QmlAppViewer(QObject *parent) :
@@ -22,10 +24,10 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetDataReply = 0;
 
 //    loadModel("TpN5G"); // large monkey
-//    loadModel("Ui03b"); // horse
+    loadModel("Ui03b"); // horse
 //    loadModel("Xczep"); // stone
 //    loadModel("eqPpp"); // stone only pos
-    loadModel("Pbx7k"); // stone only pos uv
+//    loadModel("Pbx7k"); // stone only pos uv
 //    loadModel("R7wFq"); // captain
 }
 
@@ -56,8 +58,15 @@ void QmlAppViewer::loadModel(const QString &shortid)
     connect(m_NetInfoReply, SIGNAL(finished()), SLOT(onModelInfoReplyDone()));
 }
 
+void QmlAppViewer::rotateCamera(float p1x, float p1y, float p2x, float p2y)
+{
+    m_P3dViewer->cameraNavigation()->rotateCamera(p1x, p1y, p2x, p2y);
+    window->update();
+}
+
 void QmlAppViewer::onWindowReady()
 {
+    engine.rootContext()->setContextProperty("viewer", this);
     connect(window, SIGNAL(beforeRendering()), SLOT(onGLRender()), Qt::DirectConnection);
     connect(window, SIGNAL(sceneGraphInitialized()), SLOT(onGLInit()), Qt::DirectConnection);
     connect(window, SIGNAL(widthChanged(int)), SLOT(onGLResize()), Qt::DirectConnection);
