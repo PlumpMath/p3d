@@ -8,6 +8,9 @@
 
 #include "P3dMap.h"
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+
 #ifdef __ANDROID__
 #define READ_U32(x) (letoh32(*((uint32_t*) &x)))
 #define READ_U16(x) (letoh16(*((uint16_t*) &x)))
@@ -304,7 +307,7 @@ void ModelLoader::deindex(const char* data)
         }
     }
 
-    // TODO: gen normals
+    generateNormals(new_faces, new_pos, new_norm);
 
     glGenBuffers(1, &m_pos_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id);
@@ -348,8 +351,18 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
     // tris
     pos_offset = m_f3_start[vtype];
     norm_offset = pos_offset + m_f3_count[vtype] * 3 * 4;
-    uv_offset = norm_offset + m_f3_count[vtype] * 3 * 4;
-    mat_offset = uv_offset + m_f3_count[vtype] * 3 * 4;
+    if(vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM)
+    {
+        uv_offset = norm_offset + m_f3_count[vtype] * 3 * 4;
+    } else {
+        uv_offset = norm_offset;
+    }
+    if(vtype == VT_POS_UV || vtype == VT_POS_UV_NORM)
+    {
+        mat_offset = uv_offset + m_f3_count[vtype] * 3 * 4;
+    } else {
+        mat_offset = uv_offset;
+    }
 
     VertexIndex index;
     index.type = vtype;
@@ -364,8 +377,18 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
             // quads
             pos_offset = m_f4_start[vtype];
             norm_offset = pos_offset + m_f4_count[vtype] * 4 * 4;
-            uv_offset = norm_offset + m_f4_count[vtype] * 4 * 4;
-            mat_offset = uv_offset + m_f4_count[vtype] * 4 * 4;
+            if(vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM)
+            {
+                uv_offset = norm_offset + m_f4_count[vtype] * 4 * 4;
+            } else {
+                uv_offset = norm_offset;
+            }
+            if(vtype == VT_POS_UV || vtype == VT_POS_UV_NORM)
+            {
+                mat_offset = uv_offset + m_f4_count[vtype] * 4 * 4;
+            } else {
+                mat_offset = uv_offset;
+            }
         }
 
         faces = i < f4_offset ? 3 : 4;
@@ -425,6 +448,86 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
 
             new_mats[new_mat_offset++] = mat;
         }
+    }
+}
+
+void ModelLoader::generateNormals(uint32_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
+{
+    uint32_t i;
+    uint32_t il;
+
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+
+    uint32_t minIndex;
+    uint32_t maxIndex;
+
+    minIndex = m_new_norm_count;
+    maxIndex = 0;
+
+    // pos
+    for(i = m_new_f3_start[VT_POS], il = m_index_count[VT_POS]; i < il;)
+    {
+        a = new_faces[i++];
+        b = new_faces[i++];
+        c = new_faces[i++];
+        if(a > maxIndex) maxIndex = a;
+        if(a < minIndex) minIndex = a;
+        if(b > maxIndex) maxIndex = b;
+        if(b < minIndex) minIndex = b;
+        if(c > maxIndex) maxIndex = c;
+        if(c < minIndex) minIndex = c;
+        glm::vec3 posa(new_pos[a * 3], new_pos[a * 3 + 1], new_pos[a * 3 + 2]);
+        glm::vec3 posb(new_pos[b * 3], new_pos[b * 3 + 1], new_pos[b * 3 + 2]);
+        glm::vec3 posc(new_pos[c * 3], new_pos[a * 3 + 1], new_pos[c * 3 + 2]);
+        glm::vec3 normal = glm::normalize(glm::cross(posa - posb, posb - posc));
+        new_norm[a * 3 + 0] += normal.x;
+        new_norm[a * 3 + 1] += normal.y;
+        new_norm[a * 3 + 2] += normal.z;
+        new_norm[b * 3 + 0] += normal.x;
+        new_norm[b * 3 + 1] += normal.y;
+        new_norm[b * 3 + 2] += normal.z;
+        new_norm[c * 3 + 0] += normal.x;
+        new_norm[c * 3 + 1] += normal.y;
+        new_norm[c * 3 + 2] += normal.z;
+    }
+
+    // pos uv
+    for(i = m_new_f3_start[VT_POS_UV], il = m_index_count[VT_POS_UV]; i < il;)
+    {
+        a = new_faces[i++];
+        b = new_faces[i++];
+        c = new_faces[i++];
+        if(a > maxIndex) maxIndex = a;
+        if(a < minIndex) minIndex = a;
+        if(b > maxIndex) maxIndex = b;
+        if(b < minIndex) minIndex = b;
+        if(c > maxIndex) maxIndex = c;
+        if(c < minIndex) minIndex = c;
+        glm::vec3 posa(new_pos[a * 3], new_pos[a * 3 + 1], new_pos[a * 3 + 2]);
+        glm::vec3 posb(new_pos[b * 3], new_pos[b * 3 + 1], new_pos[b * 3 + 2]);
+        glm::vec3 posc(new_pos[c * 3], new_pos[a * 3 + 1], new_pos[c * 3 + 2]);
+        glm::vec3 normal = glm::normalize(glm::cross(posa - posb, posb - posc));
+        new_norm[a * 3 + 0] += normal.x;
+        new_norm[a * 3 + 1] += normal.y;
+        new_norm[a * 3 + 2] += normal.z;
+        new_norm[b * 3 + 0] += normal.x;
+        new_norm[b * 3 + 1] += normal.y;
+        new_norm[b * 3 + 2] += normal.z;
+        new_norm[c * 3 + 0] += normal.x;
+        new_norm[c * 3 + 1] += normal.y;
+        new_norm[c * 3 + 2] += normal.z;
+    }
+
+    // normalize
+    for(i = minIndex; i <= maxIndex; ++i)
+    {
+        glm::vec3 normal(new_norm[i * 3], new_norm[i * 3 + 1], new_norm[i * 3 + 2]);
+        normal = glm::normalize(normal);
+        new_norm[i * 3 + 0] += normal.x;
+        new_norm[i * 3 + 1] += normal.y;
+        new_norm[i * 3 + 2] += normal.z;
     }
 }
 

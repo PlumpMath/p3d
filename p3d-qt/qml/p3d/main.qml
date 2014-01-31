@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.1
 
 ApplicationWindow {
     id: window
-    title: qsTr("Hello World")
+    title: qsTr("p3d.in")
     width: 640
     height: 480
     color: "#f2f2f2"
