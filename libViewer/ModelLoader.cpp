@@ -70,8 +70,6 @@ ModelLoader::~ModelLoader()
 
 bool ModelLoader::load(const char *data, size_t size)
 {
-    clear();
-
     P3D_LOGD("Loading %d bytes", size);
 
     // check header

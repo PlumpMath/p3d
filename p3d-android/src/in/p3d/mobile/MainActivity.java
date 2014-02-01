@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Intent;
-import android.net.Uri;
 import android.net.http.HttpResponseCache;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -35,6 +34,7 @@ public class MainActivity extends FragmentActivity implements
 		ActionBar.TabListener {
 
 	private static String TAG = "MainActivity";
+	private static MainActivity singleton;
 
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -51,9 +51,14 @@ public class MainActivity extends FragmentActivity implements
 	 */
 	ViewPager mViewPager;
 
+	public static MainActivity getInstance() {
+		return singleton;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		singleton = this;
 		setContentView(R.layout.activity_main);
 
 		// Http cache
@@ -100,6 +105,9 @@ public class MainActivity extends FragmentActivity implements
 					.setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
 		}
+		
+		// try force loading libs
+		P3dViewerJNIWrapper.init();
 	}
 
 	@Override
@@ -141,12 +149,16 @@ public class MainActivity extends FragmentActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_exit:
-			finish();
-            System.exit(0);
+			exitApp();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	public void exitApp() {
+		finish();
+        System.exit(0);
 	}
 	
 	/**

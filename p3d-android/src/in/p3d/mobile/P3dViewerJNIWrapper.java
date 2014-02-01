@@ -3,12 +3,20 @@ package in.p3d.mobile;
 import java.nio.ByteBuffer;
 
 import android.content.res.AssetManager;
+import android.util.Log;
 
 public class P3dViewerJNIWrapper {
+	private static final String TAG = "P3dViewerJNIWrapper";
     static {
+    	Log.d(TAG, "Loading .so");
         System.loadLibrary("p3dviewer");
     }
 
+    public static void init() {
+    	// dummy to force library load
+    	Log.d(TAG, "init");
+    };
+    
     public static native void on_surface_created();
  
     public static native void on_surface_changed(int width, int height);

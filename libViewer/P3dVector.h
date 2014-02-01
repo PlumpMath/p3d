@@ -43,6 +43,7 @@ public:
         free(m_data);
         m_data = 0;
         m_size = 0;
+        m_capacity = 0;
     }
 
     void push_back(const T& val)

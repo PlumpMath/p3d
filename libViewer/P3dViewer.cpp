@@ -173,6 +173,8 @@ GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, 
 }
 
 void P3dViewer::onSurfaceCreated() {
+    m_InitOk = false;
+
     m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
     m_UniformMVP = glGetUniformLocation(m_ProgramObject, "uMVP");
     if (m_UniformMVP == -1) {
@@ -214,7 +216,7 @@ void P3dViewer::drawFrame() {
     {
         // MVP
         glm::mat4 view = m_CameraNavigation->viewMatrix();
-        glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, 1.0f, 100.0f);
+        glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, 1.0f, m_ModelLoader->boundingRadius() * 10.0f);
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP = proj * view * model;
 
@@ -273,6 +275,7 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size)
     if(res)
     {
         m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
+        m_CameraNavigation->reset();
     }
     return res;
 }

@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
@@ -26,6 +27,7 @@ public class ViewerActivity extends Activity {
 	private GLSurfaceView glSurfaceView;
 	private boolean rendererSet;
 	private RendererWrapper renderer;
+	private ProgressDialog loadingDialog;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +77,7 @@ public class ViewerActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_exit:
-			finish();
-            System.exit(0);
+			MainActivity.getInstance().exitApp();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -100,6 +101,13 @@ public class ViewerActivity extends Activity {
 	        glSurfaceView.onResume();
 	    }
 	}
+	
+	@Override
+	protected void onDestroy() {
+		Log.d(TAG, "destroy");
+		super.onDestroy();
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -118,6 +126,8 @@ public class ViewerActivity extends Activity {
 	
 	private void loadModel(String shortid) {
 		Log.d(TAG, "Loading: " + shortid);
+		loadingDialog = ProgressDialog.show(this, "", getString(R.string.loading), true);
+		
 		AsyncTask<String, Void, JSONObject> asyncTask = new AsyncTask<String, Void, JSONObject>() {
 			@Override
 			protected JSONObject doInBackground(String... urls) {
@@ -161,6 +171,7 @@ public class ViewerActivity extends Activity {
 				}
 				try {
 					Log.d(TAG, "Got binary: " + result.limit());
+					loadingDialog.cancel();
 					renderer.loadModel(result);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block

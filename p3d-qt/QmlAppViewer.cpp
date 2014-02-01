@@ -24,11 +24,12 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetDataReply = 0;
 
 //    loadModel("TpN5G"); // large monkey
-    loadModel("Ui03b"); // horse
+//    loadModel("Ui03b"); // horse
 //    loadModel("Xczep"); // stone
 //    loadModel("eqPpp"); // stone only pos
 //    loadModel("Pbx7k"); // stone only pos uv
 //    loadModel("R7wFq"); // captain
+    loadModel("v5JcV");
 }
 
 QmlAppViewer::~QmlAppViewer()
