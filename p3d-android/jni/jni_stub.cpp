@@ -4,6 +4,7 @@
 #include <android/asset_manager_jni.h>
 
 #include "P3dViewer.h"
+#include "CameraNavigation.h"
 #include "AndroidPlatformAdapter.h"
 
 #define  LOG_TAG    "jni"
@@ -66,4 +67,28 @@ JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_load_1binary(JNIEn
 
 	const char* data = (const char*) env->GetDirectBufferAddress(buf);
 	viewer.loadModel(data, size);
+}
+
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_start_1rotate_1cam
+  (JNIEnv *env, jclass cls, jfloat x, jfloat y) {
+	// unused
+	(void)env;
+	(void)cls;
+	viewer.cameraNavigation()->startRotate(x, y);
+}
+
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_rotate_1cam
+  (JNIEnv *env, jclass cls, jfloat x, jfloat y) {
+	// unused
+	(void)env;
+	(void)cls;
+	viewer.cameraNavigation()->rotate(x, y);
+}
+
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_reset_1cam
+  (JNIEnv *env, jclass cls) {
+	// unused
+	(void)env;
+	(void)cls;
+	viewer.cameraNavigation()->reset();
 }

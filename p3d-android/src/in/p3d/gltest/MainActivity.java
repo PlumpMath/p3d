@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
 	 
 	    if (supportsEs2) {
 	    	P3dViewerJNIWrapper.init_asset_manager(getAssets());
-	        glSurfaceView = new GLSurfaceView(this);
+	        glSurfaceView = new P3dGLSurfaceView(this);
 	 
 	        if (isProbablyEmulator()) {
 	            // Avoids crashes on startup with some emulator images.
@@ -51,8 +51,8 @@ public class MainActivity extends Activity {
 	        rendererSet = true;
 	        setContentView(glSurfaceView);
 	        
-	        //loadModel("Ui03b"); // horse
-	        loadModel("TpN5G"); // large monkey
+	        loadModel("Ui03b"); // horse
+	        //loadModel("TpN5G"); // large monkey
 	    } else {
 	        // Should never be seen in production, since the manifest filters
 	        // unsupported devices.

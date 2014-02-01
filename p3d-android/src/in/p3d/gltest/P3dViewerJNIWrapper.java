@@ -18,4 +18,10 @@ public class P3dViewerJNIWrapper {
     public static native void init_asset_manager(AssetManager am);
     
     public static native void load_binary(ByteBuffer data, int size);
+    
+    public static native void start_rotate_cam(float x, float y);
+    
+    public static native void rotate_cam(float x, float y);
+    
+    public static native void reset_cam();
 }

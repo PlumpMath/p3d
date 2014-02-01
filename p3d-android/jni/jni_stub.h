@@ -47,6 +47,30 @@ JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_init_1asset_1manag
 JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_load_1binary
   (JNIEnv *, jclass, jobject, jint);
 
+/*
+ * Class:     in_p3d_gltest_P3dViewerJNIWrapper
+ * Method:    start_rotate_cam
+ * Signature: (FF)V
+ */
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_start_1rotate_1cam
+  (JNIEnv *, jclass, jfloat, jfloat);
+
+/*
+ * Class:     in_p3d_gltest_P3dViewerJNIWrapper
+ * Method:    rotate_cam
+ * Signature: (FF)V
+ */
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_rotate_1cam
+  (JNIEnv *, jclass, jfloat, jfloat);
+
+/*
+ * Class:     in_p3d_gltest_P3dViewerJNIWrapper
+ * Method:    reset_cam
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_in_p3d_gltest_P3dViewerJNIWrapper_reset_1cam
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif
