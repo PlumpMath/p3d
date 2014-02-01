@@ -15,7 +15,10 @@ public:
     explicit QmlAppViewer(QObject *parent = 0);
     virtual ~QmlAppViewer();
     Q_INVOKABLE void loadModel(const QString& shortid);
-    Q_INVOKABLE void rotateCamera(float p1x, float p1y, float p2x, float p2y);
+
+    Q_INVOKABLE void startRotateCamera(float x, float y);
+    Q_INVOKABLE void rotateCamera(float x, float y);
+    Q_INVOKABLE void resetCamera();
 
 signals:
 

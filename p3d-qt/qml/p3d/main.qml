@@ -31,10 +31,8 @@ ApplicationWindow {
         function move() {
             var dx = mouseX - oldX;
             var dy = mouseY - oldY;
-            if(dx != 0.0 || dy != 0.0) {
-                console.log("mouse move:", dx, dy)
-                viewer.rotateCamera(oldX / width * 2 - 1, oldY / height * 2 - 1,
-                                    mouseX / width * 2 - 1, mouseY / height * 2 - 1);
+            /*if(dx != 0.0 || dy != 0.0)*/ {
+                viewer.rotateCamera(mouseX / width * 2 - 1, -mouseY / height * 2 + 1);
                 oldX = mouseX;
                 oldY = mouseY;
             }
@@ -43,12 +41,12 @@ ApplicationWindow {
         onMouseXChanged: move()
         onMouseYChanged: move();
         onPressed: {
-            console.log("mouse press:", mouseX, mouseY)
             oldX = mouseX;
             oldY = mouseY;
+            viewer.startRotateCamera(mouseX / width * 2 - 1, -mouseY / height * 2 + 1);
         }
-        onReleased: {
-            console.log("mouse release:", mouseX, mouseY)
+        onDoubleClicked: {
+            viewer.resetCamera();
         }
     }
 

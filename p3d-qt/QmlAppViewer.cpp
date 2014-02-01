@@ -58,9 +58,20 @@ void QmlAppViewer::loadModel(const QString &shortid)
     connect(m_NetInfoReply, SIGNAL(finished()), SLOT(onModelInfoReplyDone()));
 }
 
-void QmlAppViewer::rotateCamera(float p1x, float p1y, float p2x, float p2y)
+void QmlAppViewer::startRotateCamera(float x, float y)
 {
-    m_P3dViewer->cameraNavigation()->rotateCamera(p1x, p1y, p2x, p2y);
+    m_P3dViewer->cameraNavigation()->startRotate(x, y);
+}
+
+void QmlAppViewer::rotateCamera(float x, float y)
+{
+    m_P3dViewer->cameraNavigation()->rotate(x, y);
+    window->update();
+}
+
+void QmlAppViewer::resetCamera()
+{
+    m_P3dViewer->cameraNavigation()->reset();
     window->update();
 }
 

@@ -1,4 +1,5 @@
 #include "CameraNavigation.h"
+#include "PlatformAdapter.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -6,13 +7,21 @@
 
 CameraNavigation::CameraNavigation()
 {
-    m_rot_x = 0;
-    m_rot_y = 0;
+    m_rotateSpeed = 2;
+
+    m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
 CameraNavigation::~CameraNavigation()
 {
 
+}
+
+void CameraNavigation::reset()
+{
+    m_target = glm::vec3();
+    m_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    m_pos = glm::vec3(0.0f, 0.0f, m_boundingRadius * 3.0f);
 }
 
 void CameraNavigation::setBoundingRadius(float radius)
@@ -23,43 +32,53 @@ void CameraNavigation::setBoundingRadius(float radius)
 
 glm::mat4 CameraNavigation::viewMatrix()
 {
-    glm::mat4 view = glm::lookAt(m_pos, m_target, glm::vec3(0.0f, 1.0f, 0.0f));
-
+    glm::mat4 view = glm::lookAt(m_pos, m_target, m_up);
     return view;
 }
 
-void CameraNavigation::rotateCamera(float p1x, float p1y, float p2x, float p2y)
+void CameraNavigation::startRotate(float x, float y)
 {
-    glm::vec3 va = getArcballVector(p1x, p1y);
-    glm::vec3 vb = getArcballVector(p2x, p2y);
+    m_rotateStart = getArcballVector(x, y);
+    m_rotateEnd = m_rotateStart;
+}
 
-    float dot = glm::dot(va, vb);
+void CameraNavigation::rotate(float x, float y)
+{
+    m_rotateEnd = getArcballVector(x, y);
+
+    float dot = glm::dot(m_rotateStart, m_rotateEnd);
     float angle = acos(1.0f < dot ? 1.0f : dot);
-    glm::vec3 axis = glm::normalize(glm::cross(va, vb));
+    angle *= m_rotateSpeed;
+    if(angle > -0.01f && angle < 0.01f) {
+        return;
+    }
 
-    axis = glm::inverse(glm::mat3(viewMatrix())) * axis;
-
+    glm::vec3 axis = glm::normalize(glm::cross(m_rotateStart, m_rotateEnd));
     glm::quat quat = glm::angleAxis(-angle, axis);
 
-    glm::vec4 tmp(m_pos, 0.0f);
-    tmp = glm::toMat4(quat) * tmp;
-    m_pos = glm::vec3(tmp);
+    m_pos = quat * m_pos;
+    m_up = quat * m_up;
+    m_rotateEnd = quat * m_rotateEnd;
+    m_rotateStart = m_rotateEnd;
 }
 
 glm::vec3 CameraNavigation::getArcballVector(float x, float y)
 {
-    glm::vec3 P = glm::vec3(x, y, 0);
-    P.y = -P.y;
-    float OP_squared = P.x * P.x + P.y * P.y;
-    if (OP_squared <= 1*1)
-        P.z = sqrt(1*1 - OP_squared);  // Pythagore
-    else
-        P = glm::normalize(P);  // nearest point
-    return P;
+    glm::vec3 mouseOnBall(x, y, 0);
+    float lengthSquared = mouseOnBall.x * mouseOnBall.x + mouseOnBall.y * mouseOnBall.y;
 
-//    glm::vec3 eye = m_pos - m_target;
-//    glm::vec3 proj = glm::vec3(0.0f, 1.0f, 0.0) * P.y;
-//    proj += glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0), eye)) * P.x;
-//    proj += glm::normalize(eye) * P.z;
-//    return proj;
+    if(lengthSquared < 1)
+    {
+        mouseOnBall.z = sqrt(1.0 - lengthSquared);
+    }
+    else
+    {
+        mouseOnBall = glm::normalize(mouseOnBall);
+    }
+
+    glm::vec3 eye = m_pos - m_target;
+    glm::vec3 proj = m_up * mouseOnBall.y;
+    proj += glm::normalize(glm::cross(m_up, eye)) * mouseOnBall.x;
+    proj += glm::normalize(eye) * mouseOnBall.z;
+    return proj;
 }
