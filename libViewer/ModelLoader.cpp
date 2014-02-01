@@ -60,19 +60,17 @@ size_t ModelLoader::VertexIndex::hash() const
 
 ModelLoader::ModelLoader()
 {
-    m_data = 0;
     m_loaded = false;
 }
 
 ModelLoader::~ModelLoader()
 {
-
+    clear();
 }
 
 bool ModelLoader::load(const char *data, size_t size)
 {
-    m_loaded = false;
-    m_data = data;
+    clear();
 
     P3D_LOGD("Loading %d bytes", size);
 
@@ -182,6 +180,18 @@ bool ModelLoader::load(const char *data, size_t size)
 
     m_loaded = true;
     return true;
+}
+
+void ModelLoader::clear()
+{
+    if(m_loaded)
+    {
+        m_loaded = false;
+        glDeleteBuffers(1, &m_pos_buffer_id);
+        glDeleteBuffers(1, &m_norm_buffer_id);
+        glDeleteBuffers(1, &m_uv_buffer_id);
+    }
+    m_vertex_map.clear();
 }
 
 float ModelLoader::boundingRadius()

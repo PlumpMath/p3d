@@ -24,6 +24,7 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
     }
 
     m_ProgramObject = 0;
+    m_ProgramObjectUv = 0;
     m_InitOk = false;
     m_ModelLoader = new ModelLoader();
     m_CameraNavigation = new CameraNavigation();
@@ -37,6 +38,14 @@ P3dViewer::~P3dViewer()
     delete m_ModelLoader;
 
     delete PlatformAdapter::adapter;
+}
+
+void P3dViewer::clear()
+{
+    // free shaders
+    if(m_ProgramObject) glDeleteProgram(m_ProgramObject);
+    if(m_ProgramObjectUv) glDeleteProgram(m_ProgramObjectUv);
+    m_InitOk = false;
 }
 
 GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc, size_t shaderSize, const char* shaderName)

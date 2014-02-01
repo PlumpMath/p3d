@@ -1,4 +1,4 @@
-package in.p3d.gltest;
+package in.p3d.mobile;
 
 import java.nio.ByteBuffer;
 
@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
@@ -18,9 +19,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
-	private static String TAG = "MainActivity";
-
+public class ViewerActivity extends Activity {
+	private static String TAG = "ViewerActivity";
+	public static final String ARG_SHORTID = "shortid";
+	
 	private GLSurfaceView glSurfaceView;
 	private boolean rendererSet;
 	private RendererWrapper renderer;
@@ -51,8 +53,15 @@ public class MainActivity extends Activity {
 	        rendererSet = true;
 	        setContentView(glSurfaceView);
 	        
-	        loadModel("Ui03b"); // horse
-	        //loadModel("TpN5G"); // large monkey
+	        Intent intent = getIntent();
+	        String shortid = intent.getStringExtra(ARG_SHORTID);
+	        
+	        if(shortid == null) {
+	        	shortid = "Ui03b"; // horse
+//	        	shortid = "TpN5G"; // large monkey
+	        }
+	        
+	        loadModel(shortid);
 	    } else {
 	        // Should never be seen in production, since the manifest filters
 	        // unsupported devices.

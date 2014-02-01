@@ -1,4 +1,4 @@
-package in.p3d.gltest;
+package in.p3d.mobile;
 
 import java.nio.ByteBuffer;
 

@@ -21,6 +21,7 @@ public:
     virtual ~ModelLoader();
     bool load(const char* data, size_t size);
     bool isLoaded() { return m_loaded; }
+    void clear();
     GLuint posBuffer() { return m_pos_buffer_id; }
     GLuint uvBuffer() { return m_uv_buffer_id; }
     GLuint normBuffer() { return m_norm_buffer_id; }
@@ -46,7 +47,6 @@ private:
     void generateNormals(uint32_t* new_faces, GLfloat* new_pos, GLfloat* new_norm);
 
     bool m_loaded;
-    const char* m_data;
 
     uint32_t m_pos_count;
     uint32_t m_norm_count;

@@ -23,6 +23,7 @@ public:
     //! \note P3dViewer takes ownership of adapter and will delete it in dtor
     P3dViewer(PlatformAdapter* adapter = 0);
     virtual ~P3dViewer();
+    void clear();
     void onSurfaceCreated();
     void onSurfaceChanged(int width, int height);
     void drawFrame();
