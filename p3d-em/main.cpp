@@ -3,6 +3,7 @@
 #include <GL/glfw.h>
 #include <emscripten/emscripten.h>
 #include "P3dViewer.h"
+#include "CameraNavigation.h"
 
 const int width = 853;
 const int height = 480;
@@ -63,4 +64,19 @@ void shutdown_gl()
 extern "C" void loadBinary(const char* data, int size)
 {
     viewer.loadModel(data, size);
+}
+
+extern "C" void startRotateCam(float x, float y)
+{
+    viewer.cameraNavigation()->startRotate(x, y);
+}
+
+extern "C" void rotateCam(float x, float y)
+{
+    viewer.cameraNavigation()->rotate(x, y);
+}
+
+extern "C" void resetCam()
+{
+    viewer.cameraNavigation()->reset();
 }

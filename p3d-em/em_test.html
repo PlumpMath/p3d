@@ -36,10 +36,43 @@
     <hr>
     <!-- script src="http://code.jquery.com/jquery-1.10.1.min.js"></script -->
     <script type='text/javascript'>
+      var canvas;
+
+      function mouseup( event ) {
+        event.preventDefault();
+        event.stopPropagation();
+        document.removeEventListener( 'mousemove', mousemove );
+        document.removeEventListener( 'mouseup', mouseup );
+      }
+
+      function mousemove(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
+        var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
+        //console.log("mouse move", x, y);
+        Module._rotateCam(x, y);
+
+      }
+
+      function mousedown(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
+        var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
+        //console.log("mouse down", x, y);
+        Module._startRotateCam(x, y);
+
+        document.addEventListener( 'mousemove', mousemove, false );
+        document.addEventListener( 'mouseup', mouseup, false );
+      }
+
       function postRun() {
         console.log("postRun");
-        //var binURL = "samples/captain.bin";
-        var binURL = "samples/monkey500k.bin";
+        var binURL = "samples/captain.bin";
+        //var binURL = "samples/monkey500k.bin";
 
         var xhr = new XMLHttpRequest();
         xhr.open('GET', binURL, true);
@@ -57,6 +90,11 @@
         };
 
         xhr.send();
+
+        // setup mouse handling
+        canvas = document.getElementById('canvas');
+        canvas.addEventListener( 'mousedown', mousedown, false );
+        canvas.addEventListener( 'dblclick', Module._resetCam, false);
       };
 
       // connect to canvas
