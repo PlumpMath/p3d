@@ -189,6 +189,9 @@ void P3dViewer::onSurfaceCreated() {
       glDeleteProgram(m_ProgramObjectUv);
     }
 
+    int depth;
+    glGetIntegerv(GL_DEPTH_BITS, &depth);
+    P3D_LOGD("Depth buffer: %d bits", depth);
     m_InitOk = true;
 }
 
@@ -207,16 +210,23 @@ void P3dViewer::drawFrame() {
     glViewport(0, 0, m_Width, m_Height);
 
     // Clear color, depth, stencil buffers
-    glClearColor(0.2f, 0.2f, 0.3f, 0.0f);
+    glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(true);
+
+    //glEnable(GL_CULL_FACE);
+    //glFrontFace(GL_CCW);
 
     if(m_ModelLoader->isLoaded() && m_ModelLoader->boundingRadius() > 0.0f)
     {
         // MVP
+        float near = m_ModelLoader->boundingRadius() * 2.2f;
+        float far = m_ModelLoader->boundingRadius() * 3.8f;
         glm::mat4 view = m_CameraNavigation->viewMatrix();
-        glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, 1.0f, m_ModelLoader->boundingRadius() * 10.0f);
+        glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, near, far);
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP = proj * view * model;
 

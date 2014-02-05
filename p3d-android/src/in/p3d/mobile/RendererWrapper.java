@@ -10,8 +10,32 @@ import android.opengl.GLSurfaceView.Renderer;
 public class RendererWrapper implements Renderer {
 	private ByteBuffer modelData = null;
 	
+	private Object rotateMutex = new Object();
+	private float rotateX;
+	private float rotateY;
+	private float startRotateX;
+	private float startRotateY;
+	private boolean doRotateCam = false;
+	private boolean doStartRotateCam = false;
+
 	public void loadModel(ByteBuffer data) {
 		modelData = data;
+	}
+	
+	public void startRotateCam(float x, float y) {
+		synchronized (rotateMutex) {
+			startRotateX = x;
+			startRotateY = y;
+			doStartRotateCam = true;
+		}
+	}
+
+	public void rotateCam(float x, float y) {
+		synchronized (rotateMutex) {
+			rotateX = x;
+			rotateY = y;
+			doRotateCam = true;
+		}
 	}
 	
     @Override
@@ -30,6 +54,16 @@ public class RendererWrapper implements Renderer {
     		P3dViewerJNIWrapper.load_binary(modelData, modelData.limit());
     		modelData = null;
     	}
+    	synchronized (rotateMutex) {
+    		if(doStartRotateCam) {
+    			doStartRotateCam = false;
+    			P3dViewerJNIWrapper.start_rotate_cam(startRotateX, startRotateY);
+    		}
+    		if(doRotateCam) {
+    			doRotateCam = false;
+    	    	P3dViewerJNIWrapper.rotate_cam(rotateX, rotateY);
+    		}
+		}
     	
         P3dViewerJNIWrapper.on_draw_frame();
     }

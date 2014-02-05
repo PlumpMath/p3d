@@ -11,7 +11,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
-import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,9 +23,8 @@ public class ViewerActivity extends Activity {
 	private static String TAG = "ViewerActivity";
 	public static final String ARG_SHORTID = "shortid";
 	
-	private GLSurfaceView glSurfaceView;
+	private P3dGLSurfaceView glSurfaceView;
 	private boolean rendererSet;
-	private RendererWrapper renderer;
 	private ProgressDialog loadingDialog;
 	
 	@Override
@@ -42,16 +40,7 @@ public class ViewerActivity extends Activity {
 	 
 	    if (supportsEs2) {
 	    	P3dViewerJNIWrapper.init_asset_manager(getAssets());
-	        glSurfaceView = new P3dGLSurfaceView(this);
-	 
-	        if (isProbablyEmulator()) {
-	            // Avoids crashes on startup with some emulator images.
-	            glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-	        }
-	 
-	        glSurfaceView.setEGLContextClientVersion(2);
-	        renderer = new RendererWrapper();
-	        glSurfaceView.setRenderer(renderer);
+	        glSurfaceView = new P3dGLSurfaceView(this);	 
 	        rendererSet = true;
 	        setContentView(glSurfaceView);
 	        
@@ -172,7 +161,7 @@ public class ViewerActivity extends Activity {
 				try {
 					Log.d(TAG, "Got binary: " + result.limit());
 					loadingDialog.cancel();
-					renderer.loadModel(result);
+					glSurfaceView.getRenderer().loadModel(result);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
