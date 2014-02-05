@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.net.Uri;
 import android.net.http.HttpResponseCache;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -150,6 +151,11 @@ public class MainActivity extends FragmentActivity implements
 		switch (item.getItemId()) {
 		case R.id.action_exit:
 			exitApp();
+			return true;
+		case R.id.action_update:
+			Intent intent = new Intent(Intent.ACTION_VIEW,
+					Uri.parse("http://p3d.in/"));
+			startActivity(intent);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
