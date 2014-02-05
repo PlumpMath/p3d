@@ -9,5 +9,7 @@
     <string name="loading">Loading &#8230;</string>
     <string name="action_exit">Exit</string>
     <string name="action_update">Update</string>
+    <string name="option_view">View</string>
+    <string name="option_view_in_browser">View in Browser</string>
     
 </resources>

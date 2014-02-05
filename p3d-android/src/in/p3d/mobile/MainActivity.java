@@ -21,12 +21,16 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnCreateContextMenuListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.TextView;
@@ -169,7 +173,7 @@ public class MainActivity extends FragmentActivity implements
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
+		
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
 	 * one of the sections/tabs/pages.
@@ -301,10 +305,6 @@ public class MainActivity extends FragmentActivity implements
 						int position, long id) {
 					Intent intent;
 					try {
-//						intent = new Intent(Intent.ACTION_VIEW, Uri
-//								.parse("http://p3d.in/"
-//										+ models.getJSONObject(position).getString(
-//												"shortid")));
 						intent = new Intent(getActivity(), ViewerActivity.class);
 						intent.putExtra(ViewerActivity.ARG_SHORTID,
 								models.getJSONObject(position).getString("shortid"));
@@ -312,6 +312,31 @@ public class MainActivity extends FragmentActivity implements
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					}
+				}
+			});
+			
+			gridView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+				
+				@Override
+				public void onCreateContextMenu(ContextMenu menu, View v,
+						ContextMenuInfo menuInfo) {
+					final int position = ((AdapterContextMenuInfo) menuInfo).position;
+					try {
+						Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+								Uri.parse("http://p3d.in/"
+										+ models.getJSONObject(position)
+												.getString("shortid")));
+						Intent intent = new Intent(getActivity(),
+								ViewerActivity.class);
+						intent.putExtra(ViewerActivity.ARG_SHORTID, models
+								.getJSONObject(position).getString("shortid"));
+
+						menu.setHeaderTitle(models.getJSONObject(position).getString("name"));
+						menu.add(0, 1, 0, R.string.option_view).setIntent(intent);
+						menu.add(0, 2, 0, R.string.option_view_in_browser).setIntent(browserIntent);
+					} catch (JSONException e) {
+						Log.e(TAG, "Error", e);
 					}
 				}
 			});
