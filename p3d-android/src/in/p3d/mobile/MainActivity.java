@@ -149,22 +149,25 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		default:
+			return handleGlobalMenu(item);
+		}
+	}
+	
+	public boolean handleGlobalMenu(MenuItem item) {
+		switch (item.getItemId()) {
 		case R.id.action_exit:
-			exitApp();
+			finish();
+	        System.exit(0);
 			return true;
 		case R.id.action_update:
 			Intent intent = new Intent(Intent.ACTION_VIEW,
-					Uri.parse("http://p3d.in/"));
+					Uri.parse("https://db.tt/vBVe93YA"));
 			startActivity(intent);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
-	}
-	
-	public void exitApp() {
-		finish();
-        System.exit(0);
 	}
 	
 	/**

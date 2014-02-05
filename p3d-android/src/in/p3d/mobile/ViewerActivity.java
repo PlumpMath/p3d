@@ -65,11 +65,8 @@ public class ViewerActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_exit:
-			MainActivity.getInstance().exitApp();
-			return true;
 		default:
-			return super.onOptionsItemSelected(item);
+			return MainActivity.getInstance().handleGlobalMenu(item);
 		}
 	}
 
