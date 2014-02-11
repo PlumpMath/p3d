@@ -213,15 +213,19 @@ void P3dViewer::drawFrame() {
     glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(true);
-
-    //glEnable(GL_CULL_FACE);
-    //glFrontFace(GL_CCW);
-
     if(m_ModelLoader->isLoaded() && m_ModelLoader->boundingRadius() > 0.0f)
     {
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(true);
+
+        glDisable(GL_CULL_FACE);
+        //glEnable(GL_CULL_FACE);
+        //glFrontFace(GL_CCW);
+
+        glDisable(GL_SCISSOR_TEST);
+
         // MVP
         float near = m_ModelLoader->boundingRadius() * 2.2f;
         float far = m_ModelLoader->boundingRadius() * 3.8f;
@@ -250,7 +254,7 @@ void P3dViewer::drawFrame() {
             glUseProgram(m_ProgramObjectUv);
             glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM),
-                           GL_UNSIGNED_INT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV_NORM));
+                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV_NORM));
         }
         if(m_ModelLoader->indexCount(ModelLoader::VT_POS_UV))
         {
@@ -258,7 +262,7 @@ void P3dViewer::drawFrame() {
             glUseProgram(m_ProgramObjectUv);
             glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV),
-                           GL_UNSIGNED_INT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV));
+                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV));
         }
         if(m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM))
         {
@@ -266,7 +270,7 @@ void P3dViewer::drawFrame() {
             glUseProgram(m_ProgramObject);
             glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM),
-                           GL_UNSIGNED_INT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_NORM));
+                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_NORM));
         }
         if(m_ModelLoader->indexCount(ModelLoader::VT_POS))
         {
@@ -274,7 +278,7 @@ void P3dViewer::drawFrame() {
             glUseProgram(m_ProgramObject);
             glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
             glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS),
-                           GL_UNSIGNED_INT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS));
+                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS));
         }
     }
 }
@@ -284,6 +288,7 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size)
     bool res = m_ModelLoader->load(binaryData, size);
     if(res)
     {
+    	P3D_LOGD("bounding radius %f", m_ModelLoader->boundingRadius());
         m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
         m_CameraNavigation->reset();
     }

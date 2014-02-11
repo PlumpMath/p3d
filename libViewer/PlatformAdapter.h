@@ -7,6 +7,8 @@
 #define  P3D_LOGD(...) PlatformAdapter::adapter->logFunc(PlatformAdapter::LOG_DEBUG, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define  P3D_LOGE(...) PlatformAdapter::adapter->logFunc(PlatformAdapter::LOG_ERROR, __PRETTY_FUNCTION__, __VA_ARGS__)
 
+#define GL_CHECK_ERROR {GLenum err = glGetError(); if(err != GL_NO_ERROR) P3D_LOGE("%s:%d ogl error: 0x%x", __FILE__, __LINE__, err);}
+
 class PlatformAdapter
 {
 public:

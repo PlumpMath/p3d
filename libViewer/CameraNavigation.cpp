@@ -60,6 +60,7 @@ void CameraNavigation::rotate(float x, float y)
     m_up = quat * m_up;
     m_rotateEnd = quat * m_rotateEnd;
     m_rotateStart = m_rotateEnd;
+    //P3D_LOGD("cam pos: %f, %f, %f", m_pos.x, m_pos.y, m_pos.z);
 }
 
 glm::vec3 CameraNavigation::getArcballVector(float x, float y)

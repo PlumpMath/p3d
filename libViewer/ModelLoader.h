@@ -42,9 +42,9 @@ private:
     };
 
     size_t addPadding(size_t size);
-    void deindex(const char *data);
-    void deindexType(VertexType vtype, const char* data, uint32_t *new_faces, uint16_t *new_mats);
-    void generateNormals(uint32_t* new_faces, GLfloat* new_pos, GLfloat* new_norm);
+    bool deindex(const char *data);
+    void deindexType(VertexType vtype, const char* data, uint16_t *new_faces, uint16_t *new_mats);
+    void generateNormals(uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
 
     bool m_loaded;
 

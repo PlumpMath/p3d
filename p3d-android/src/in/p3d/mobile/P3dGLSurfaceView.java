@@ -28,7 +28,7 @@ public class P3dGLSurfaceView extends GLSurfaceView {
 			@Override
 			public boolean onDoubleTap(MotionEvent e) {
 				P3dViewerJNIWrapper.reset_cam();
-				return false;
+				return true;
 			}
 		});
 		
@@ -40,7 +40,7 @@ public class P3dGLSurfaceView extends GLSurfaceView {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
-		detector.onTouchEvent(e);
+		if(detector.onTouchEvent(e)) return true;
 		float x = e.getX() * 2.0f / getWidth() - 1.0f;
 	    float y = -e.getY() * 2.0f / getHeight() + 1.0f;
 	    switch (e.getAction()) {
@@ -153,8 +153,11 @@ public class P3dGLSurfaceView extends GLSurfaceView {
                 int a = findConfigAttrib(egl, display, config,
                         EGL10.EGL_ALPHA_SIZE, 0);
 
-                if (r == mRedSize && g == mGreenSize && b == mBlueSize && a == mAlphaSize)
+                if (r == mRedSize && g == mGreenSize && b == mBlueSize && a == mAlphaSize) {
+                	Log.d(TAG, "Chose config:");
+                	printConfig(egl, display, config);
                     return config;
+                }
             }
             return null;
         }

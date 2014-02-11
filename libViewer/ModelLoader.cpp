@@ -174,10 +174,9 @@ bool ModelLoader::load(const char *data, size_t size)
         return false;
     }
 
-    deindex(data);
+    m_loaded = deindex(data);
 
-    m_loaded = true;
-    return true;
+    return m_loaded;
 }
 
 void ModelLoader::clear()
@@ -208,7 +207,7 @@ size_t ModelLoader::addPadding(size_t size)
     return size + ( ( size % 4 ) ? ( 4 - size % 4 ) : 0 );
 }
 
-void ModelLoader::deindex(const char* data)
+bool ModelLoader::deindex(const char* data)
 {
     static const float norm_scale = 1.0f / 127.0f;
 
@@ -234,7 +233,12 @@ void ModelLoader::deindex(const char* data)
         m_total_index_count += m_index_count[vtype];
     }
 
-    uint32_t* new_faces = new uint32_t[m_total_index_count];
+    if(m_total_index_count > 65536)
+    {
+        return false;
+    }
+
+    uint16_t* new_faces = new uint16_t[m_total_index_count];
     uint16_t* new_mats = new uint16_t[m_total_index_count / 3];
 
     m_vertex_map.clear();
@@ -250,7 +254,7 @@ void ModelLoader::deindex(const char* data)
     P3D_LOGD("new uv size: %d", m_new_uv_count);
     P3D_LOGD("new norm size: %d", m_new_norm_count);
 
-    P3D_LOGD("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 4);
+    P3D_LOGD("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 2);
 
 
     GLfloat* new_pos = new GLfloat[m_new_pos_count];
@@ -333,7 +337,8 @@ void ModelLoader::deindex(const char* data)
 
     glGenBuffers(1, &m_index_buffer_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint32_t), new_faces, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), new_faces, GL_STATIC_DRAW);
+    GL_CHECK_ERROR;
 
     delete [] new_norm;
     delete [] new_uv;
@@ -341,9 +346,11 @@ void ModelLoader::deindex(const char* data)
 
     delete [] new_mats;
     delete [] new_faces;
+
+    return true;
 }
 
-void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, uint32_t* new_faces, uint16_t* new_mats)
+void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, uint16_t* new_faces, uint16_t* new_mats)
 {
     uint32_t pos_offset;
     uint32_t uv_offset;
@@ -461,7 +468,7 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
     }
 }
 
-void ModelLoader::generateNormals(uint32_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
+void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
 {
     uint32_t i;
     uint32_t il;
