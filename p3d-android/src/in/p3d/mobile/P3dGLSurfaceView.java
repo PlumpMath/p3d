@@ -133,15 +133,19 @@ public class P3dGLSurfaceView extends GLSurfaceView {
 
         public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display,
                 EGLConfig[] configs) {
+        	EGLConfig fallback = null;
+        	int fallbackR = 0;
+        	int fallbackG = 0;
+        	int fallbackB = 0;
+        	int fallbackA = 0;
+        	int fallbackD = 0;
+        	int fallbackS = 0;
+        	
             for(EGLConfig config : configs) {
                 int d = findConfigAttrib(egl, display, config,
                         EGL10.EGL_DEPTH_SIZE, 0);
                 int s = findConfigAttrib(egl, display, config,
                         EGL10.EGL_STENCIL_SIZE, 0);
-
-                // We need at least mDepthSize and mStencilSize bits
-                if (d < mDepthSize || s < mStencilSize)
-                    continue;
 
                 // We want an *exact* match for red/green/blue/alpha
                 int r = findConfigAttrib(egl, display, config,
@@ -152,6 +156,35 @@ public class P3dGLSurfaceView extends GLSurfaceView {
                             EGL10.EGL_BLUE_SIZE, 0);
                 int a = findConfigAttrib(egl, display, config,
                         EGL10.EGL_ALPHA_SIZE, 0);
+                
+                boolean betterFallback = false;
+                if (mDepthSize > 0) {
+                	if(fallbackD < mDepthSize && d > fallbackD) {
+                    	betterFallback = true;
+                    }
+                	if(d == fallbackD && r > fallbackR && g > fallbackG && b > fallbackB) {
+                		betterFallback = true;
+                	}
+                } else {
+                	if(r > fallbackR && g > fallbackG && b > fallbackB) {
+                		betterFallback = true;
+                	}
+                }
+                
+                
+                if (betterFallback) {
+                	fallback = config;
+                	fallbackR = r;
+                	fallbackG = g;
+                	fallbackB = b;
+                	fallbackA = a;
+                	fallbackD = d;
+                	fallbackS = s;
+                }
+                
+                // We need at least mDepthSize and mStencilSize bits
+                if (d < mDepthSize || s < mStencilSize)
+                    continue;
 
                 if (r == mRedSize && g == mGreenSize && b == mBlueSize && a == mAlphaSize) {
                 	Log.d(TAG, "Chose config:");
@@ -159,7 +192,10 @@ public class P3dGLSurfaceView extends GLSurfaceView {
                     return config;
                 }
             }
-            return null;
+            
+        	Log.d(TAG, "Fallback config:");
+        	printConfig(egl, display, fallback);
+            return fallback;
         }
 
         private int findConfigAttrib(EGL10 egl, EGLDisplay display,
