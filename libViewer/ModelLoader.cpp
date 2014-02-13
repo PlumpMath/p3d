@@ -2,7 +2,12 @@
 #include "PlatformAdapter.h"
 #include "glwrapper.h"
 #include <cstring>
+#if defined(_WIN32) || defined(_WIN64)
+static inline uint32_t le32toh(uint32_t x) {return x;}
+static inline uint16_t le16toh(uint16_t x) {return x;}
+#else
 #include <endian.h>
+#endif
 
 #include "P3dVector.h"
 
