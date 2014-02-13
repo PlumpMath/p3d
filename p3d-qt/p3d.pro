@@ -40,7 +40,8 @@ HEADERS += \
     ../libViewer/ModelLoader.h \
     ../libViewer/P3dMap.h \
     ../libViewer/P3dVector.h \
-    ../libViewer/CameraNavigation.h
+    ../libViewer/CameraNavigation.h \
+    ../libViewer/glext.h
 
 android {
     shaders.path = /assets/shaders
