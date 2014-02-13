@@ -174,6 +174,13 @@ GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, 
 
 void P3dViewer::onSurfaceCreated() {
     m_InitOk = false;
+#if defined(QT_GUI_LIB) && !defined(QT_OPENGL_ES_2)
+    if(gl3wInit())
+    {
+        P3D_LOGE("Unable to initialize OpenGL");
+        return;
+    }
+#endif
 
     m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
     m_UniformMVP = glGetUniformLocation(m_ProgramObject, "uMVP");
