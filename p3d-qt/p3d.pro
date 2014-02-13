@@ -50,7 +50,12 @@ android {
     INSTALLS += shaders
 } else {
     shaders.target = shaders
-    shaders.commands = ln -sf $$PWD/../libViewer/shaders $$OUT_PWD/shaders
+    windows {
+        shaders.commands = xcopy /S /Y /I \"$$shell_path($$PWD/../libViewer/shaders)\" \"$$shell_path($$OUT_PWD/shaders)\"
+        shaders.depends = FORCE
+    } else {
+        shaders.commands = ln -sf $$PWD/../libViewer/shaders $$OUT_PWD/shaders
+    }
     QMAKE_EXTRA_TARGETS += shaders
     PRE_TARGETDEPS += shaders
 }
