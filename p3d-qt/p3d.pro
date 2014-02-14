@@ -12,14 +12,19 @@ INCLUDEPATH += ../libViewer
 INCLUDEPATH += ../ext/glm
 
 # The .cpp file which was generated for your project. Feel free to hack it.
-SOURCES += main.cpp \
+SOURCES += \
+    main.cpp \
     ../libViewer/P3dViewer.cpp \
     QmlAppViewer.cpp \
     ../libViewer/PlatformAdapter.cpp \
     QtPlatformAdapter.cpp \
     ../libViewer/ModelLoader.cpp \
-    ../libViewer/CameraNavigation.cpp \
+    ../libViewer/CameraNavigation.cpp
+
+!android {
+SOURCES += \
     ../libViewer/gl3w.c
+}
 
 # Installation path
 # target.path =
