@@ -230,12 +230,14 @@ bool ModelLoader::deindex(const char* data)
 
     m_total_index_count = 0;
 
+    int chunk = 0;
+
     for(int vtype = 0; vtype < 4; vtype++)
     {
-        m_index_count[vtype] = m_f3_count[vtype] * 3 + m_f4_count[vtype] * 6;
-        m_new_f3_start[vtype] = m_total_index_count;
-        m_new_f4_start[vtype] = m_total_index_count + m_f3_count[vtype] * 3;
-        m_total_index_count += m_index_count[vtype];
+        m_index_count[chunk][vtype] = m_f3_count[vtype] * 3 + m_f4_count[vtype] * 6;
+        m_new_f3_start[chunk][vtype] = m_total_index_count;
+        m_new_f4_start[chunk][vtype] = m_total_index_count + m_f3_count[vtype] * 3;
+        m_total_index_count += m_index_count[chunk][vtype];
     }
 
     if(m_total_index_count > 65536)
@@ -326,28 +328,23 @@ bool ModelLoader::deindex(const char* data)
         }
     }
 
-    generateNormals(new_faces, new_pos, new_norm);
+    generateNormals(chunk, new_faces, new_pos, new_norm);
 
-    GLuint buf;
-    glGenBuffers(1, &buf);
-    glBindBuffer(GL_ARRAY_BUFFER, buf);
+    glGenBuffers(1, &m_pos_buffer_id[chunk]);
+    glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id[chunk]);
     glBufferData(GL_ARRAY_BUFFER, m_new_pos_count * sizeof(GLfloat), new_pos, GL_STATIC_DRAW);
-    m_pos_buffer_id.push_back(buf);
 
-    glGenBuffers(1, &buf);
-    glBindBuffer(GL_ARRAY_BUFFER, buf);
+    glGenBuffers(1, &m_uv_buffer_id[chunk]);
+    glBindBuffer(GL_ARRAY_BUFFER, m_uv_buffer_id[chunk]);
     glBufferData(GL_ARRAY_BUFFER, m_new_uv_count * sizeof(GLfloat), new_uv, GL_STATIC_DRAW);
-    m_uv_buffer_id.push_back(buf);
 
-    glGenBuffers(1, &buf);
-    glBindBuffer(GL_ARRAY_BUFFER, buf);
+    glGenBuffers(1, &m_norm_buffer_id[chunk]);
+    glBindBuffer(GL_ARRAY_BUFFER, m_norm_buffer_id[chunk]);
     glBufferData(GL_ARRAY_BUFFER, m_new_norm_count * sizeof(GLfloat), new_norm, GL_STATIC_DRAW);
-    m_norm_buffer_id.push_back(buf);
 
-    glGenBuffers(1, &buf);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf);
+    glGenBuffers(1, &m_index_buffer_id[chunk]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id[chunk]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), new_faces, GL_STATIC_DRAW);
-    m_index_buffer_id.push_back(buf);
     GL_CHECK_ERROR;
 
     delete [] new_norm;
@@ -367,10 +364,10 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
     uint32_t norm_offset;
     uint32_t mat_offset;
     uint16_t mat;
-    uint32_t i;
-    uint32_t il;
     uint32_t f;
-    uint32_t faces;
+    uint32_t fl;
+    uint32_t v;
+    uint32_t verts;
     uint32_t new_offset;
     uint32_t new_mat_offset;
     uint32_t f4_offset;
@@ -397,9 +394,9 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
     new_offset = 0;
     new_mat_offset = 0;
     f4_offset = m_f3_count[vtype];
-    for(i = 0, il = f4_offset + m_f4_count[vtype]; i < il; ++i)
+    for(f = 0, fl = f4_offset + m_f4_count[vtype]; f < fl; ++f)
     {
-        if(i == f4_offset)
+        if(f == f4_offset)
         {
             // quads
             pos_offset = m_f4_start[vtype];
@@ -418,8 +415,8 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
             }
         }
 
-        faces = i < f4_offset ? 3 : 4;
-        for(f = 0; f < faces; ++f)
+        verts = f < f4_offset ? 3 : 4;
+        for(v = 0; v < verts; ++v)
         {
             index.pos = READ_U32(data[pos_offset]);
             pos_offset += 4;
@@ -466,7 +463,7 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
         }
 
         // extra tri for quads
-        if(faces == 4)
+        if(verts == 4)
         {
             new_faces[new_offset] = new_faces[new_offset - 4];
             ++new_offset;
@@ -478,7 +475,7 @@ void ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, u
     }
 }
 
-void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
+void ModelLoader::generateNormals(int chunk, uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
 {
     uint32_t i;
     uint32_t il;
@@ -494,7 +491,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     maxIndex = 0;
 
     // pos
-    for(i = m_new_f3_start[VT_POS], il = m_index_count[VT_POS]; i < il;)
+    for(i = m_new_f3_start[chunk][VT_POS], il = m_index_count[chunk][VT_POS]; i < il;)
     {
         a = new_faces[i++];
         b = new_faces[i++];
@@ -521,7 +518,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     }
 
     // pos uv
-    for(i = m_new_f3_start[VT_POS_UV], il = m_index_count[VT_POS_UV]; i < il;)
+    for(i = m_new_f3_start[chunk][VT_POS_UV], il = m_index_count[chunk][VT_POS_UV]; i < il;)
     {
         a = new_faces[i++];
         b = new_faces[i++];

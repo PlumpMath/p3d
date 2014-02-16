@@ -34,8 +34,11 @@ public:
 
     void reserve(size_t capacity)
     {
-        m_data = static_cast<T*>(realloc(m_data, sizeof(T) * capacity));
-        m_capacity = capacity;
+        if(capacity > m_capacity)
+        {
+            m_data = static_cast<T*>(realloc(m_data, sizeof(T) * capacity));
+            m_capacity = capacity;
+        }
     }
 
     void clear()
@@ -48,7 +51,7 @@ public:
 
     void push_back(const T& val)
     {
-        if(m_size + 1 > m_capacity)
+        if(m_size >= m_capacity)
         {
             size_t new_size = m_capacity * 5 / 4;
             // always add at least 8
@@ -61,11 +64,21 @@ public:
 
     T& operator[] (size_t index)
     {
+        if(index >= m_size)
+        {
+            reserve(index + 1);
+            m_size = index + 1;
+        }
         return m_data[index];
     }
 
     const T& operator[] (size_t index) const
     {
+        if(index >= m_size)
+        {
+            reserve(index + 1);
+            m_size = index + 1;
+        }
         return m_data[index];
     }
 
