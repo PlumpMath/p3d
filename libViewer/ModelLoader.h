@@ -22,12 +22,13 @@ public:
     bool load(const char* data, size_t size);
     bool isLoaded() { return m_loaded; }
     void clear();
-    GLuint posBuffer() { return m_pos_buffer_id; }
-    GLuint uvBuffer() { return m_uv_buffer_id; }
-    GLuint normBuffer() { return m_norm_buffer_id; }
-    GLuint indexBuffer() { return m_index_buffer_id; }
-    uint32_t indexCount(VertexType vtype) { return m_index_count[vtype]; }
-    uint32_t indexOffset(VertexType vtype) { return m_new_f3_start[vtype]; }
+    int chunkCount() { return 1; }
+    GLuint posBuffer(int chunk) { return m_pos_buffer_id[chunk]; }
+    GLuint uvBuffer(int chunk) { return m_uv_buffer_id[chunk]; }
+    GLuint normBuffer(int chunk) { return m_norm_buffer_id[chunk]; }
+    GLuint indexBuffer(int chunk) { return m_index_buffer_id[chunk]; }
+    uint32_t indexCount(int chunk, VertexType vtype) { return m_index_count[vtype]; }
+    uint32_t indexOffset(int chunk, VertexType vtype) { return m_new_f3_start[vtype]; }
     float boundingRadius();
 
 private:
@@ -77,10 +78,10 @@ private:
     uint32_t m_new_uv_count;
 
     // OpenGL
-    GLuint m_pos_buffer_id;
-    GLuint m_uv_buffer_id;
-    GLuint m_norm_buffer_id;
-    GLuint m_index_buffer_id;
+    P3dVector<GLuint> m_pos_buffer_id;
+    P3dVector<GLuint> m_uv_buffer_id;
+    P3dVector<GLuint> m_norm_buffer_id;
+    P3dVector<GLuint> m_index_buffer_id;
 
     // bounding box
     float m_maxX;

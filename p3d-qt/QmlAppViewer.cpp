@@ -29,6 +29,7 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
 //    loadModel("eqPpp"); // stone only pos
 //    loadModel("Pbx7k"); // stone only pos uv
 //    loadModel("R7wFq"); // captain
+//    loadModel("zclcJ"); // witch doctor
     loadModel("v5JcV");
 }
 

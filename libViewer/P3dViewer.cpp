@@ -241,51 +241,54 @@ void P3dViewer::drawFrame() {
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 MVP = proj * view * model;
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer());
-        glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(ATTRIB_POSITION);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->normBuffer());
-        glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(ATTRIB_NORMAL);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->uvBuffer());
-        glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(ATTRIB_UV);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
-
-        if(m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM))
+        for(int chunk = 0, chunkl = m_ModelLoader->chunkCount(); chunk < chunkl; ++chunk)
         {
-            // pos uv norm
-            glUseProgram(m_ProgramObjectUv);
-            glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV_NORM),
-                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV_NORM));
-        }
-        if(m_ModelLoader->indexCount(ModelLoader::VT_POS_UV))
-        {
-            // pos uv norm
-            glUseProgram(m_ProgramObjectUv);
-            glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_UV),
-                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_UV));
-        }
-        if(m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM))
-        {
-            // pos norm
-            glUseProgram(m_ProgramObject);
-            glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS_NORM),
-                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS_NORM));
-        }
-        if(m_ModelLoader->indexCount(ModelLoader::VT_POS))
-        {
-            // pos norm
-            glUseProgram(m_ProgramObject);
-            glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(ModelLoader::VT_POS),
-                           GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(ModelLoader::VT_POS));
+            glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer(chunk));
+            glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(ATTRIB_POSITION);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->normBuffer(chunk));
+            glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(ATTRIB_NORMAL);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->uvBuffer(chunk));
+            glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(ATTRIB_UV);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer(chunk));
+
+            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV_NORM))
+            {
+                // pos uv norm
+                glUseProgram(m_ProgramObjectUv);
+                glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
+                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV_NORM),
+                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV_NORM));
+            }
+            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV))
+            {
+                // pos uv norm
+                glUseProgram(m_ProgramObjectUv);
+                glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
+                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV),
+                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV));
+            }
+            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_NORM))
+            {
+                // pos norm
+                glUseProgram(m_ProgramObject);
+                glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
+                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_NORM),
+                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_NORM));
+            }
+            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS))
+            {
+                // pos norm
+                glUseProgram(m_ProgramObject);
+                glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
+                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS),
+                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS));
+            }
         }
     }
 }

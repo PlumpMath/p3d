@@ -189,9 +189,9 @@ void ModelLoader::clear()
     if(m_loaded)
     {
         m_loaded = false;
-        glDeleteBuffers(1, &m_pos_buffer_id);
-        glDeleteBuffers(1, &m_norm_buffer_id);
-        glDeleteBuffers(1, &m_uv_buffer_id);
+        glDeleteBuffers(m_pos_buffer_id.size(), m_pos_buffer_id.data());
+        glDeleteBuffers(m_norm_buffer_id.size(), m_norm_buffer_id.data());
+        glDeleteBuffers(m_uv_buffer_id.size(), m_uv_buffer_id.data());
     }
     m_vertex_map.clear();
 }
@@ -328,21 +328,26 @@ bool ModelLoader::deindex(const char* data)
 
     generateNormals(new_faces, new_pos, new_norm);
 
-    glGenBuffers(1, &m_pos_buffer_id);
-    glBindBuffer(GL_ARRAY_BUFFER, m_pos_buffer_id);
+    GLuint buf;
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ARRAY_BUFFER, buf);
     glBufferData(GL_ARRAY_BUFFER, m_new_pos_count * sizeof(GLfloat), new_pos, GL_STATIC_DRAW);
+    m_pos_buffer_id.push_back(buf);
 
-    glGenBuffers(1, &m_uv_buffer_id);
-    glBindBuffer(GL_ARRAY_BUFFER, m_uv_buffer_id);
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ARRAY_BUFFER, buf);
     glBufferData(GL_ARRAY_BUFFER, m_new_uv_count * sizeof(GLfloat), new_uv, GL_STATIC_DRAW);
+    m_uv_buffer_id.push_back(buf);
 
-    glGenBuffers(1, &m_norm_buffer_id);
-    glBindBuffer(GL_ARRAY_BUFFER, m_norm_buffer_id);
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ARRAY_BUFFER, buf);
     glBufferData(GL_ARRAY_BUFFER, m_new_norm_count * sizeof(GLfloat), new_norm, GL_STATIC_DRAW);
+    m_norm_buffer_id.push_back(buf);
 
-    glGenBuffers(1, &m_index_buffer_id);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_id);
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), new_faces, GL_STATIC_DRAW);
+    m_index_buffer_id.push_back(buf);
     GL_CHECK_ERROR;
 
     delete [] new_norm;
