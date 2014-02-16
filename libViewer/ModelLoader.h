@@ -44,7 +44,8 @@ private:
 
     size_t addPadding(size_t size);
     bool deindex(const char *data);
-    void deindexType(VertexType vtype, const char* data, uint16_t *new_faces, uint16_t *new_mats);
+    uint32_t deindexType(VertexType vtype, const char* data, uint16_t *new_faces, uint16_t *new_mats,
+                         uint32_t foffset, uint32_t *new_offset_count);
     void generateNormals(int chunk, uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
 
     bool m_loaded;
