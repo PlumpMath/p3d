@@ -212,61 +212,9 @@ size_t ModelLoader::addPadding(size_t size)
     return size + ( ( size % 4 ) ? ( 4 - size % 4 ) : 0 );
 }
 
-bool ModelLoader::deindex(const char* data)
+void ModelLoader::copyVertData(const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos)
 {
     static const float norm_scale = 1.0f / 127.0f;
-
-    m_mat_count = 1;
-    m_maxX = 0.0f;
-    m_minX = 0.0f;
-    m_maxY = 0.0f;
-    m_minY = 0.0f;
-    m_maxZ = 0.0f;
-    m_minZ = 0.0f;
-
-    m_new_pos_count = 0;
-    m_new_norm_count = 0;
-    m_new_uv_count = 0;
-
-    m_total_index_count = 0;
-
-    int chunk = 0;
-
-    for(int vtype = 0; vtype < 4; vtype++)
-    {
-        m_index_count[chunk][vtype] = m_f3_count[vtype] * 3 + m_f4_count[vtype] * 6;
-        m_new_f3_start[chunk][vtype] = m_total_index_count;
-        m_new_f4_start[chunk][vtype] = m_total_index_count + m_f3_count[vtype] * 3;
-        m_total_index_count += m_index_count[chunk][vtype];
-    }
-
-    uint16_t* new_faces = new uint16_t[m_total_index_count];
-    uint16_t* new_mats = new uint16_t[m_total_index_count / 3];
-
-    m_vertex_map.clear();
-
-    uint32_t face_offset = 0;
-    uint32_t new_index_count;
-    face_offset = deindexType(VT_POS_UV_NORM, data, new_faces, new_mats, face_offset, &new_index_count);
-    if(face_offset)
-    {
-        m_index_count[chunk][VT_POS_UV_NORM] = new_index_count;
-    }
-    face_offset = deindexType(VT_POS_UV, data, new_faces, new_mats, face_offset, &new_index_count);
-    face_offset = deindexType(VT_POS_NORM, data, new_faces, new_mats, face_offset, &new_index_count);
-    face_offset = deindexType(VT_POS, data, new_faces, new_mats, face_offset, &new_index_count);
-
-    P3D_LOGD("mat count: %d", m_mat_count);
-    P3D_LOGD("new pos size: %d", m_new_pos_count);
-    P3D_LOGD("new uv size: %d", m_new_uv_count);
-    P3D_LOGD("new norm size: %d", m_new_norm_count);
-
-    P3D_LOGD("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 2);
-
-
-    GLfloat* new_pos = new GLfloat[m_new_pos_count];
-    GLfloat* new_uv = new GLfloat[m_new_uv_count];
-    GLfloat* new_norm = new GLfloat[m_new_norm_count];
     uint32_t new_offset;
     uint32_t vert_offset;
     float x;
@@ -327,6 +275,57 @@ bool ModelLoader::deindex(const char* data)
             new_norm[new_offset++] = 0.0f;
         }
     }
+}
+
+bool ModelLoader::deindex(const char* data)
+{
+    m_mat_count = 1;
+    m_maxX = 0.0f;
+    m_minX = 0.0f;
+    m_maxY = 0.0f;
+    m_minY = 0.0f;
+    m_maxZ = 0.0f;
+    m_minZ = 0.0f;
+
+    m_new_pos_count = 0;
+    m_new_norm_count = 0;
+    m_new_uv_count = 0;
+
+    m_total_index_count = 0;
+
+    int chunk = 0;
+
+    for(int vtype = 0; vtype < 4; vtype++)
+    {
+        m_index_count[chunk][vtype] = m_f3_count[vtype] * 3 + m_f4_count[vtype] * 6;
+        m_new_f3_start[chunk][vtype] = m_total_index_count;
+        m_new_f4_start[chunk][vtype] = m_total_index_count + m_f3_count[vtype] * 3;
+        m_total_index_count += m_index_count[chunk][vtype];
+    }
+
+    uint16_t* new_faces = new uint16_t[m_total_index_count];
+    uint16_t* new_mats = new uint16_t[m_total_index_count / 3];
+
+    m_vertex_map.clear();
+
+    deindexType(chunk, VT_POS_UV_NORM, data, new_faces, new_mats);
+    deindexType(chunk, VT_POS_UV, data, new_faces, new_mats);
+    deindexType(chunk, VT_POS_NORM, data, new_faces, new_mats);
+    deindexType(chunk, VT_POS, data, new_faces, new_mats);
+
+    P3D_LOGD("mat count: %d", m_mat_count);
+    P3D_LOGD("new pos size: %d", m_new_pos_count);
+    P3D_LOGD("new uv size: %d", m_new_uv_count);
+    P3D_LOGD("new norm size: %d", m_new_norm_count);
+
+    P3D_LOGD("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 2);
+
+
+    GLfloat* new_pos = new GLfloat[m_new_pos_count];
+    GLfloat* new_uv = new GLfloat[m_new_uv_count];
+    GLfloat* new_norm = new GLfloat[m_new_norm_count];
+
+    copyVertData(data, new_norm, new_uv, new_pos);
 
     generateNormals(chunk, new_faces, new_pos, new_norm);
 
@@ -357,8 +356,8 @@ bool ModelLoader::deindex(const char* data)
     return true;
 }
 
-uint32_t ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *data, uint16_t* new_faces,
-                              uint16_t* new_mats, uint32_t foffset, uint32_t* new_offset_count)
+uint32_t ModelLoader::deindexType(int& chunk, ModelLoader::VertexType vtype, const char *data,
+                                  uint16_t* new_faces, uint16_t* new_mats)
 {
     uint32_t pos_offset;
     uint32_t uv_offset;
@@ -398,7 +397,7 @@ uint32_t ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *dat
     new_mat_offset = 0;
     f4_offset = m_f3_count[vtype];
 
-    for(f = foffset, fl = f4_offset + m_f4_count[vtype]; f < fl; ++f)
+    for(f = 0, fl = f4_offset + m_f4_count[vtype]; f < fl; ++f)
     {
         if(!in_f4 && f >= f4_offset)
         {
@@ -441,6 +440,11 @@ uint32_t ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *dat
             }
             else
             {
+                if(m_vertex_map.size() > 65530)
+                {
+                    //TODO: next chunk
+                }
+
                 new_index = m_vertex_map.size();
                 m_vertex_map.insert(index, new_index);
 
@@ -477,14 +481,7 @@ uint32_t ModelLoader::deindexType(ModelLoader::VertexType vtype, const char *dat
 
             new_mats[new_mat_offset++] = mat;
         }
-
-        if(m_vertex_map.size() > 65530)
-        {
-            result = f;
-            break;
-        }
     }
-    *new_offset_count = new_offset;
     return result;
 }
 

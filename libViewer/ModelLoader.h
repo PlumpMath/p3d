@@ -31,6 +31,7 @@ public:
     uint32_t indexOffset(int chunk, VertexType vtype) { return m_new_f3_start[chunk][vtype]; }
     float boundingRadius();
 
+    void copyVertData(const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
 private:
     struct VertexIndex
     {
@@ -44,8 +45,8 @@ private:
 
     size_t addPadding(size_t size);
     bool deindex(const char *data);
-    uint32_t deindexType(VertexType vtype, const char* data, uint16_t *new_faces, uint16_t *new_mats,
-                         uint32_t foffset, uint32_t *new_offset_count);
+    uint32_t deindexType(int &chunk, VertexType vtype, const char* data,
+                         uint16_t *new_faces, uint16_t *new_mats);
     void generateNormals(int chunk, uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
 
     bool m_loaded;

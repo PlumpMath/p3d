@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QTimer>
+#include <QFile>
 
 #include "P3dViewer.h"
 #include "CameraNavigation.h"
@@ -22,15 +23,6 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetMgr = new QNetworkAccessManager(this);
     m_NetInfoReply = 0;
     m_NetDataReply = 0;
-
-//    loadModel("TpN5G"); // large monkey
-//    loadModel("Ui03b"); // horse
-//    loadModel("Xczep"); // stone
-//    loadModel("eqPpp"); // stone only pos
-//    loadModel("Pbx7k"); // stone only pos uv
-//    loadModel("R7wFq"); // captain
-//    loadModel("zclcJ"); // witch doctor
-    loadModel("v5JcV");
 }
 
 QmlAppViewer::~QmlAppViewer()
@@ -40,6 +32,21 @@ QmlAppViewer::~QmlAppViewer()
 
 void QmlAppViewer::loadModel(const QString &shortid)
 {
+    if(shortid.endsWith(".bin"))
+    {
+        // this is a local binary file
+        QFile file(shortid);
+        if(!file.exists())
+        {
+            qWarning() << "File doesn't exist:" << shortid;
+            return;
+        }
+        file.open(QFile::ReadOnly);
+        m_ModelData = file.readAll();
+        qDebug() << "loaded" << m_ModelData.size() << "bytes";
+        window->update();
+        return;
+    }
     if(m_NetInfoReply)
     {
         m_NetInfoReply->abort();
