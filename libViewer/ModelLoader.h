@@ -3,9 +3,29 @@
 
 #include <cstdlib>
 #include <cstdint>
+#include <cstring>
 #include "P3dVector.h"
 #include "P3dMap.h"
 #include "glwrapper.h"
+
+struct MeshChunk
+{
+    MeshChunk()
+    {
+        memset(this, 0, sizeof(MeshChunk));
+    }
+
+    GLuint posBuffer;
+    GLuint uvBuffer;
+    GLuint normBuffer;
+    GLuint indexBuffer;
+
+    uint32_t index_count[4];
+    uint32_t f3_start[4];
+    uint32_t f4_start[4];
+
+    uint16_t mat;
+};
 
 class ModelLoader
 {
@@ -22,16 +42,16 @@ public:
     bool load(const char* data, size_t size);
     bool isLoaded() { return m_loaded; }
     void clear();
-    int chunkCount() { return m_pos_buffer_id.size(); }
-    GLuint posBuffer(int chunk) { return m_pos_buffer_id[chunk]; }
-    GLuint uvBuffer(int chunk) { return m_uv_buffer_id[chunk]; }
-    GLuint normBuffer(int chunk) { return m_norm_buffer_id[chunk]; }
-    GLuint indexBuffer(int chunk) { return m_index_buffer_id[chunk]; }
-    uint32_t indexCount(int chunk, VertexType vtype) { return m_index_count[chunk][vtype]; }
-    uint32_t indexOffset(int chunk, VertexType vtype) { return m_new_f3_start[chunk][vtype]; }
+    int chunkCount() { return m_chunks.size(); }
+    GLuint posBuffer(uint32_t chunk) { return m_chunks[chunk].posBuffer; }
+    GLuint uvBuffer(uint32_t chunk) { return m_chunks[chunk].uvBuffer; }
+    GLuint normBuffer(uint32_t chunk) { return m_chunks[chunk].normBuffer; }
+    GLuint indexBuffer(uint32_t chunk) { return m_chunks[chunk].indexBuffer; }
+    uint32_t indexCount(uint32_t chunk, VertexType vtype) { return m_chunks[chunk].index_count[vtype]; }
+    uint32_t indexOffset(uint32_t chunk, VertexType vtype) { return m_chunks[chunk].f3_start[vtype]; }
     float boundingRadius();
 
-    void copyVertData(const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
+    void copyVertData(uint32_t chunk, const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
 private:
     struct VertexIndex
     {
@@ -45,9 +65,9 @@ private:
 
     size_t addPadding(size_t size);
     bool deindex(const char *data);
-    uint32_t deindexType(int &chunk, VertexType vtype, const char* data,
+    uint32_t deindexType(uint32_t &chunk, VertexType vtype, const char* data,
                          uint16_t *new_faces, uint16_t *new_mats);
-    void generateNormals(int chunk, uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
+    void generateNormals(uint32_t chunk, uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
 
     bool m_loaded;
 
@@ -68,22 +88,21 @@ private:
     uint16_t m_mat_count;
 
     // new data
-    P3dMap<VertexIndex, uint32_t> m_vertex_map;
+    P3dVector<MeshChunk> m_chunks;
+
+    P3dVector<P3dMap<VertexIndex, uint32_t>*> m_vertex_maps;
+
+    P3dVector<uint32_t> m_new_pos_offsets;
+    P3dVector<uint32_t> m_new_norm_offsets;
+    P3dVector<uint32_t> m_new_uv_offsets;
 
     size_t m_total_index_count;
-    P3dVector<uint32_t[4]> m_index_count;
-    P3dVector<uint32_t[4]> m_new_f3_start;
-    P3dVector<uint32_t[4]> m_new_f4_start;
 
     uint32_t m_new_pos_count;
     uint32_t m_new_norm_count;
     uint32_t m_new_uv_count;
 
     // OpenGL
-    P3dVector<GLuint> m_pos_buffer_id;
-    P3dVector<GLuint> m_uv_buffer_id;
-    P3dVector<GLuint> m_norm_buffer_id;
-    P3dVector<GLuint> m_index_buffer_id;
 
     // bounding box
     float m_maxX;
