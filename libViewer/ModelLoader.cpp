@@ -602,7 +602,8 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
                 vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
                 vec3key posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
                 vec3key posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
-                glm::vec3 fnormal = glm::normalize(glm::cross(posa - posb, posb - posc));
+                glm::vec3 fnormal = glm::cross(posa - posb, posb - posc);
+                if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
                 normalsMap[posa] += fnormal;
                 normalsMap[posb] += fnormal;
                 normalsMap[posc] += fnormal;
