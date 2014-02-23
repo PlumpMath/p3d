@@ -197,13 +197,16 @@ void ModelLoader::clear()
             glDeleteBuffers(1, &m_chunks[i].uvBuffer);
             glDeleteBuffers(1, &m_chunks[i].normBuffer);
         }
+        m_chunks.clear();
+
         glDeleteBuffers(1, &m_index_buffer);
+
+        for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
+        {
+            m_vertex_maps[i]->clear();
+        }
+        m_vertex_maps.clear();
     }
-    for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
-    {
-        m_vertex_maps[i]->clear();
-    }
-    //TODO clear chunk lists
 }
 
 float ModelLoader::boundingRadius()
@@ -341,10 +344,12 @@ bool ModelLoader::reindex(const char* data)
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
         copyVertData(chunk, data, new_norm, new_uv, new_pos);
+    }
 
-        //TODO
-        //generateNormals(chunk, new_faces, new_pos, new_norm);
+    generateNormals(new_faces, new_pos, new_norm);
 
+    for(chunk = 0; chunk < m_chunks.size(); ++chunk)
+    {
         glGenBuffers(1, &m_chunks[chunk].posBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].posBuffer);
         glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
@@ -378,6 +383,12 @@ bool ModelLoader::reindex(const char* data)
 
     delete [] new_mats;
     delete [] new_faces;
+
+    for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
+    {
+        m_vertex_maps[i]->clear();
+    }
+    m_vertex_maps.clear();
 
     return true;
 }
@@ -523,7 +534,6 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             oldChunk.index_count[vtype] = new_offset - oldChunk.f3_start[vtype];
             oldChunk.vertCount = (m_new_pos_count - m_new_pos_offsets[chunk - 1]) / 3;
 
-            //TODO other vtypes
             for(int t = vtype + 1; t < 4; ++t)
             {
                 newChunk.index_count[t] = oldChunk.index_count[t];
@@ -542,8 +552,24 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
     return result;
 }
 
-void ModelLoader::generateNormals(uint32_t chunk, uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
+void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
 {
+    class vec3key : public glm::vec3
+    {
+    public:
+        vec3key() : glm::vec3() {}
+        vec3key(float x, float y, float z) : glm::vec3(x, y, z) {}
+        size_t hash() const
+        {
+            size_t h1 = *((uint32_t*) &x);
+            size_t h2 = *((uint32_t*) &y);
+            h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
+            h2 = *((uint32_t*) &z);
+            h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
+            return h1;
+        }
+    };
+
     uint32_t i;
     uint32_t il;
 
@@ -551,74 +577,62 @@ void ModelLoader::generateNormals(uint32_t chunk, uint16_t *new_faces, GLfloat *
     uint32_t b;
     uint32_t c;
 
-    uint32_t minIndex;
-    uint32_t maxIndex;
+    uint32_t a_offset;
+    uint32_t b_offset;
+    uint32_t c_offset;
 
-    minIndex = m_new_norm_count;
-    maxIndex = 0;
+    P3dMap<vec3key, glm::vec3> normalsMap;
+    static const VertexType vtypes[] = {VT_POS, VT_POS_UV};
 
-    // pos
-    for(i = m_chunks[chunk].f3_start[VT_POS], il = m_chunks[chunk].index_count[VT_POS]; i < il;)
+    for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
     {
-        a = new_faces[i++];
-        b = new_faces[i++];
-        c = new_faces[i++];
-        if(a > maxIndex) maxIndex = a;
-        if(a < minIndex) minIndex = a;
-        if(b > maxIndex) maxIndex = b;
-        if(b < minIndex) minIndex = b;
-        if(c > maxIndex) maxIndex = c;
-        if(c < minIndex) minIndex = c;
-        glm::vec3 posa(new_pos[a * 3], new_pos[a * 3 + 1], new_pos[a * 3 + 2]);
-        glm::vec3 posb(new_pos[b * 3], new_pos[b * 3 + 1], new_pos[b * 3 + 2]);
-        glm::vec3 posc(new_pos[c * 3], new_pos[a * 3 + 1], new_pos[c * 3 + 2]);
-        glm::vec3 normal = glm::normalize(glm::cross(posa - posb, posb - posc));
-        new_norm[a * 3 + 0] += normal.x;
-        new_norm[a * 3 + 1] += normal.y;
-        new_norm[a * 3 + 2] += normal.z;
-        new_norm[b * 3 + 0] += normal.x;
-        new_norm[b * 3 + 1] += normal.y;
-        new_norm[b * 3 + 2] += normal.z;
-        new_norm[c * 3 + 0] += normal.x;
-        new_norm[c * 3 + 1] += normal.y;
-        new_norm[c * 3 + 2] += normal.z;
-    }
+        for(int t = 0; t < 2; t++) {
+            VertexType vtype = vtypes[t];
 
-    // pos uv
-    for(i = m_chunks[chunk].f3_start[VT_POS_UV], il = m_chunks[chunk].index_count[VT_POS_UV]; i < il;)
-    {
-        a = new_faces[i++];
-        b = new_faces[i++];
-        c = new_faces[i++];
-        if(a > maxIndex) maxIndex = a;
-        if(a < minIndex) minIndex = a;
-        if(b > maxIndex) maxIndex = b;
-        if(b < minIndex) minIndex = b;
-        if(c > maxIndex) maxIndex = c;
-        if(c < minIndex) minIndex = c;
-        glm::vec3 posa(new_pos[a * 3], new_pos[a * 3 + 1], new_pos[a * 3 + 2]);
-        glm::vec3 posb(new_pos[b * 3], new_pos[b * 3 + 1], new_pos[b * 3 + 2]);
-        glm::vec3 posc(new_pos[c * 3], new_pos[a * 3 + 1], new_pos[c * 3 + 2]);
-        glm::vec3 normal = glm::normalize(glm::cross(posa - posb, posb - posc));
-        new_norm[a * 3 + 0] += normal.x;
-        new_norm[a * 3 + 1] += normal.y;
-        new_norm[a * 3 + 2] += normal.z;
-        new_norm[b * 3 + 0] += normal.x;
-        new_norm[b * 3 + 1] += normal.y;
-        new_norm[b * 3 + 2] += normal.z;
-        new_norm[c * 3 + 0] += normal.x;
-        new_norm[c * 3 + 1] += normal.y;
-        new_norm[c * 3 + 2] += normal.z;
+            for(i = m_chunks[chunk].f3_start[vtype], il = m_chunks[chunk].index_count[vtype]; i < il;)
+            {
+                a = new_faces[i++];
+                b = new_faces[i++];
+                c = new_faces[i++];
+                a_offset = 3 * a + m_new_pos_offsets[chunk];
+                b_offset = 3 * b + m_new_pos_offsets[chunk];
+                c_offset = 3 * c + m_new_pos_offsets[chunk];
+                vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
+                vec3key posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
+                vec3key posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
+                glm::vec3 fnormal = glm::normalize(glm::cross(posa - posb, posb - posc));
+                normalsMap[posa] += fnormal;
+                normalsMap[posb] += fnormal;
+                normalsMap[posc] += fnormal;
+            }
+        }
     }
 
     // normalize
-    for(i = minIndex; i <= maxIndex; ++i)
+    for(P3dMap<vec3key, glm::vec3>::iterator itr = normalsMap.begin(); itr.hasNext(); ++itr)
     {
-        glm::vec3 normal(new_norm[i * 3], new_norm[i * 3 + 1], new_norm[i * 3 + 2]);
+        glm::vec3& normal = itr.value();
         normal = glm::normalize(normal);
-        new_norm[i * 3 + 0] += normal.x;
-        new_norm[i * 3 + 1] += normal.y;
-        new_norm[i * 3 + 2] += normal.z;
+    }
+
+    // store new normals
+    for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
+    {
+        for(int t = 0; t < 2; t++) {
+            VertexType vtype = vtypes[t];
+
+            for(i = m_chunks[chunk].f3_start[vtype], il = m_chunks[chunk].index_count[vtype]; i < il; ++i)
+            {
+                a = new_faces[i];
+                a_offset = 3 * a + m_new_pos_offsets[chunk];
+                vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
+                const glm::vec3& normal = normalsMap[posa];
+                a_offset = 3 * a + m_new_norm_offsets[chunk];
+                new_norm[a_offset] = normal.x;
+                new_norm[a_offset + 1] = normal.y;
+                new_norm[a_offset + 2] = normal.z;
+            }
+        }
     }
 }
 
