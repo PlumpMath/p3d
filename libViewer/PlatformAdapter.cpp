@@ -55,7 +55,7 @@ void PlatformAdapter::logFunc(LogLevel level, const char *func, const char *form
     if(pos)
     {
         *pos = 0;
-        pos = strrchr(tag, ' ');
+        pos = strchr(tag, ' ');
         if(pos)
         {
             tag = ++pos;

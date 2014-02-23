@@ -370,6 +370,7 @@ bool ModelLoader::reindex(const char* data)
         P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
         P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start[VT_POS_UV_NORM]);
         P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start[VT_POS_UV_NORM]);
+        m_vertex_maps[chunk]->dumpBucketLoad();
     }
 
     glGenBuffers(1, &m_index_buffer);
@@ -554,6 +555,7 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
 
 void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
 {
+    P3D_LOGD("Generating normals");
     class vec3key : public glm::vec3
     {
     public:
@@ -589,7 +591,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
         for(int t = 0; t < 2; t++) {
             VertexType vtype = vtypes[t];
 
-            for(i = m_chunks[chunk].f3_start[vtype], il = m_chunks[chunk].index_count[vtype]; i < il;)
+            for(i = m_chunks[chunk].f3_start[vtype], il =  i + m_chunks[chunk].index_count[vtype]; i < il;)
             {
                 a = new_faces[i++];
                 b = new_faces[i++];
@@ -621,7 +623,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
         for(int t = 0; t < 2; t++) {
             VertexType vtype = vtypes[t];
 
-            for(i = m_chunks[chunk].f3_start[vtype], il = m_chunks[chunk].index_count[vtype]; i < il; ++i)
+            for(i = m_chunks[chunk].f3_start[vtype], il = i + m_chunks[chunk].index_count[vtype]; i < il; ++i)
             {
                 a = new_faces[i];
                 a_offset = 3 * a + m_new_pos_offsets[chunk];
@@ -634,5 +636,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             }
         }
     }
+    P3D_LOGD("Calculated %d new normals", normalsMap.size());
+    normalsMap.dumpBucketLoad();
 }
 

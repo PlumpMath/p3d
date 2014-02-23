@@ -2,6 +2,7 @@
 #define P3DMAP_H
 
 #include "P3dVector.h"
+#include "PlatformAdapter.h"
 
 //! \brief Replacement for std::unordered_map which makes code size too big (emscripten)
 //! Very limited compared to std::unordered_map
@@ -96,6 +97,22 @@ public:
     }
 
     iterator begin() { return iterator(this); }
+
+    // for debugging
+    void dumpBucketLoad() {
+        size_t maxSize = 0;
+        size_t minSize = size();
+        size_t totalSize = 0;
+        for(size_t i = 0; i < m_buckets->size(); ++i)
+        {
+            totalSize += m_buckets[i].size();
+            if(maxSize < m_buckets[i].size()) maxSize = m_buckets[i].size();
+            if(minSize > m_buckets[i].size()) minSize = m_buckets[i].size();
+        }
+        size_t avgSize = 0;
+        if(m_buckets->size()) avgSize = totalSize / m_buckets->size();
+        P3D_LOGD("Bucket sizes min/max/avg: %d/%d/%d", minSize, maxSize, avgSize);
+    }
 
 private:
     // disable copy ctor
