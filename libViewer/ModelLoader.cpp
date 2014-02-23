@@ -181,7 +181,7 @@ bool ModelLoader::load(const char *data, size_t size)
         return false;
     }
 
-    m_loaded = deindex(data);
+    m_loaded = reindex(data);
 
     return m_loaded;
 }
@@ -196,8 +196,8 @@ void ModelLoader::clear()
             glDeleteBuffers(1, &m_chunks[i].posBuffer);
             glDeleteBuffers(1, &m_chunks[i].uvBuffer);
             glDeleteBuffers(1, &m_chunks[i].normBuffer);
-            glDeleteBuffers(1, &m_chunks[i].indexBuffer);
         }
+        glDeleteBuffers(1, &m_index_buffer);
     }
     for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
     {
@@ -287,7 +287,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
     }
 }
 
-bool ModelLoader::deindex(const char* data)
+bool ModelLoader::reindex(const char* data)
 {
     m_mat_count = 1;
     m_maxX = 0.0f;
@@ -321,10 +321,10 @@ bool ModelLoader::deindex(const char* data)
     uint16_t* new_faces = new uint16_t[m_total_index_count];
     uint16_t* new_mats = new uint16_t[m_total_index_count / 3];
 
-    deindexType(chunk, VT_POS_UV_NORM, data, new_faces, new_mats);
-    deindexType(chunk, VT_POS_UV, data, new_faces, new_mats);
-    deindexType(chunk, VT_POS_NORM, data, new_faces, new_mats);
-    deindexType(chunk, VT_POS, data, new_faces, new_mats);
+    reindexType(chunk, VT_POS_UV_NORM, data, new_faces, new_mats);
+    reindexType(chunk, VT_POS_UV, data, new_faces, new_mats);
+    reindexType(chunk, VT_POS_NORM, data, new_faces, new_mats);
+    reindexType(chunk, VT_POS, data, new_faces, new_mats);
 
     P3D_LOGD("mat count: %d", m_mat_count);
     P3D_LOGD("new pos size: %d", m_new_pos_count);
@@ -347,26 +347,30 @@ bool ModelLoader::deindex(const char* data)
 
         glGenBuffers(1, &m_chunks[chunk].posBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].posBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_new_pos_count * sizeof(GLfloat), &new_pos[m_new_pos_offsets[chunk]], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                     new_pos + m_new_pos_offsets[chunk], GL_STATIC_DRAW);
 
         glGenBuffers(1, &m_chunks[chunk].uvBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_new_uv_count * sizeof(GLfloat), &new_uv[m_new_uv_offsets[chunk]], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 2 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                     new_uv + m_new_uv_offsets[chunk], GL_STATIC_DRAW);
 
         glGenBuffers(1, &m_chunks[chunk].normBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].normBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_new_norm_count * sizeof(GLfloat), &new_norm[m_new_norm_offsets[chunk]], GL_STATIC_DRAW);
-
-        //TODO: only use 1 index buf
-        glGenBuffers(1, &m_chunks[chunk].indexBuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_chunks[chunk].indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), new_faces, GL_STATIC_DRAW);
-        GL_CHECK_ERROR;
+        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                     new_norm + m_new_norm_offsets[chunk], GL_STATIC_DRAW);
 
         P3D_LOGD("chunk: %d", chunk);
         P3D_LOGD(" index count: %d", m_chunks[chunk].index_count[VT_POS_UV_NORM]);
+        P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
         P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start[VT_POS_UV_NORM]);
+        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start[VT_POS_UV_NORM]);
     }
+
+    glGenBuffers(1, &m_index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), new_faces, GL_STATIC_DRAW);
+    GL_CHECK_ERROR;
 
     delete [] new_norm;
     delete [] new_uv;
@@ -378,7 +382,7 @@ bool ModelLoader::deindex(const char* data)
     return true;
 }
 
-uint32_t ModelLoader::deindexType(uint32_t &chunk, ModelLoader::VertexType vtype, const char *data,
+uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype, const char *data,
                                   uint16_t* new_faces, uint16_t* new_mats)
 {
     uint32_t pos_offset;
@@ -501,7 +505,7 @@ uint32_t ModelLoader::deindexType(uint32_t &chunk, ModelLoader::VertexType vtype
 
         if(m_vertex_maps[chunk]->size() > 65530)
         {
-            //TODO: next chunk
+            // next chunk
             ++chunk;
             m_chunks[chunk] = MeshChunk();
             MeshChunk& newChunk = m_chunks[chunk];
@@ -517,8 +521,15 @@ uint32_t ModelLoader::deindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             }
             newChunk.index_count[vtype] = oldChunk.index_count[vtype] - (new_offset - oldChunk.f3_start[vtype]);
             oldChunk.index_count[vtype] = new_offset - oldChunk.f3_start[vtype];
+            oldChunk.vertCount = (m_new_pos_count - m_new_pos_offsets[chunk - 1]) / 3;
 
             //TODO other vtypes
+            for(int t = vtype + 1; t < 4; ++t)
+            {
+                newChunk.index_count[t] = oldChunk.index_count[t];
+                newChunk.f3_start[t] = oldChunk.f3_start[t];
+                newChunk.f4_start[t] = oldChunk.f4_start[t];
+            }
 
             m_vertex_maps[chunk] = new P3dMap<VertexIndex, uint32_t>();
             m_new_pos_offsets[chunk] = m_new_pos_count;
@@ -526,6 +537,8 @@ uint32_t ModelLoader::deindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             m_new_norm_offsets[chunk] = m_new_norm_count;
         }
     }
+
+    m_chunks[chunk].vertCount = (m_new_pos_count - m_new_pos_offsets[chunk]) / 3;
     return result;
 }
 

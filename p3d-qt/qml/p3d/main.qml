@@ -5,8 +5,8 @@ import QtQuick.Layouts 1.1
 ApplicationWindow {
     id: window
     title: qsTr("p3d.in")
-    width: 640
-    height: 480
+    width: 960
+    height: 640
     color: "#f2f2f2"
 
     menuBar: MenuBar {

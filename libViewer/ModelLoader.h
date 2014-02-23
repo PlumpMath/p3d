@@ -18,13 +18,14 @@ struct MeshChunk
     GLuint posBuffer;
     GLuint uvBuffer;
     GLuint normBuffer;
-    GLuint indexBuffer;
 
     uint32_t index_count[4];
     uint32_t f3_start[4];
     uint32_t f4_start[4];
 
     uint16_t mat;
+
+    uint32_t vertCount;
 };
 
 class ModelLoader
@@ -46,7 +47,7 @@ public:
     GLuint posBuffer(uint32_t chunk) { return m_chunks[chunk].posBuffer; }
     GLuint uvBuffer(uint32_t chunk) { return m_chunks[chunk].uvBuffer; }
     GLuint normBuffer(uint32_t chunk) { return m_chunks[chunk].normBuffer; }
-    GLuint indexBuffer(uint32_t chunk) { return m_chunks[chunk].indexBuffer; }
+    GLuint indexBuffer() { return m_index_buffer; }
     uint32_t indexCount(uint32_t chunk, VertexType vtype) { return m_chunks[chunk].index_count[vtype]; }
     uint32_t indexOffset(uint32_t chunk, VertexType vtype) { return m_chunks[chunk].f3_start[vtype]; }
     float boundingRadius();
@@ -64,8 +65,8 @@ private:
     };
 
     size_t addPadding(size_t size);
-    bool deindex(const char *data);
-    uint32_t deindexType(uint32_t &chunk, VertexType vtype, const char* data,
+    bool reindex(const char *data);
+    uint32_t reindexType(uint32_t &chunk, VertexType vtype, const char* data,
                          uint16_t *new_faces, uint16_t *new_mats);
     void generateNormals(uint32_t chunk, uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
 
@@ -103,6 +104,7 @@ private:
     uint32_t m_new_uv_count;
 
     // OpenGL
+    GLuint m_index_buffer;
 
     // bounding box
     float m_maxX;

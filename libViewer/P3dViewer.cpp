@@ -255,7 +255,7 @@ void P3dViewer::drawFrame() {
             glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(ATTRIB_UV);
 
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer(chunk));
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
             if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV_NORM))
             {
@@ -263,7 +263,8 @@ void P3dViewer::drawFrame() {
                 glUseProgram(m_ProgramObjectUv);
                 glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
                 glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV_NORM),
-                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV_NORM));
+                               GL_UNSIGNED_SHORT,
+                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV_NORM)));
             }
             if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV))
             {
@@ -271,7 +272,8 @@ void P3dViewer::drawFrame() {
                 glUseProgram(m_ProgramObjectUv);
                 glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
                 glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV),
-                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV));
+                               GL_UNSIGNED_SHORT,
+                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV)));
             }
             if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_NORM))
             {
@@ -279,7 +281,8 @@ void P3dViewer::drawFrame() {
                 glUseProgram(m_ProgramObject);
                 glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
                 glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_NORM),
-                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_NORM));
+                               GL_UNSIGNED_SHORT,
+                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_NORM)));
             }
             if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS))
             {
@@ -287,7 +290,8 @@ void P3dViewer::drawFrame() {
                 glUseProgram(m_ProgramObject);
                 glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
                 glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS),
-                               GL_UNSIGNED_SHORT, (GLvoid*)(size_t)m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS));
+                               GL_UNSIGNED_SHORT,
+                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS)));
             }
         }
     }
