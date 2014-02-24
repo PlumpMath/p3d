@@ -2,6 +2,7 @@
 #define PLATFORMADAPTER_H
 
 #include <cstdlib>
+#include <cstdint>
 #include <stdarg.h>
 
 #define  P3D_LOGD(...) PlatformAdapter::adapter->logFunc(PlatformAdapter::LOG_DEBUG, __PRETTY_FUNCTION__, __VA_ARGS__)
@@ -36,9 +37,20 @@ public:
 
     virtual void logTag(LogLevel level, const char* tag, const char* format, va_list args);
 
+    //! \brief get current timestamp in milliseconds
+    //! useful for profiling
+    static uint64_t currentMillis();
+
+    //! \brief get duration since timestamp
+    //! useful for profiling
+    static uint64_t durationMillis(uint64_t timestamp);
+
     //! \brief the PlatformAdapter instance
     //! \note this can't be done as normal singleton because it is initialized from user of the lib
     static PlatformAdapter* adapter;
+
+protected:
+    virtual uint64_t _currentMillis();
 };
 
 #endif // PLATFORMADAPTER_H

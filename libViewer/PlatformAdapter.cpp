@@ -2,6 +2,9 @@
 #include <cstdio>
 #include <cstring>
 
+//TODO: windows
+#include <sys/time.h>
+
 PlatformAdapter* PlatformAdapter::adapter = 0;
 
 PlatformAdapter::PlatformAdapter()
@@ -90,4 +93,22 @@ void PlatformAdapter::logTag(LogLevel level, const char *tag, const char *format
     vfprintf(out, format, args);
     fprintf(out, "\n");
     fflush(out);
+}
+
+//TODO: windows
+uint64_t PlatformAdapter::currentMillis()
+{
+    return adapter->_currentMillis();
+}
+
+uint64_t PlatformAdapter::durationMillis(uint64_t timestamp)
+{
+    return adapter->_currentMillis() - timestamp;
+}
+
+uint64_t PlatformAdapter::_currentMillis()
+{
+    struct timeval res;
+    gettimeofday(&res, NULL);
+    return res.tv_sec * 1000 + res.tv_usec / 1000;
 }

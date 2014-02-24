@@ -203,7 +203,7 @@ void ModelLoader::clear()
 
         for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
         {
-            m_vertex_maps[i]->clear();
+            delete m_vertex_maps[i];
         }
         m_vertex_maps.clear();
     }
@@ -343,8 +343,18 @@ bool ModelLoader::reindex(const char* data)
 
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
+        P3D_LOGD("chunk: %d", chunk);
+        P3D_LOGD(" index count: %d", m_chunks[chunk].index_count[VT_POS_UV_NORM]);
+        P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
+        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start[VT_POS_UV_NORM]);
+        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start[VT_POS_UV_NORM]);
+        m_vertex_maps[chunk]->dumpBucketLoad();
+
         copyVertData(chunk, data, new_norm, new_uv, new_pos);
+
+        delete m_vertex_maps[chunk];
     }
+    m_vertex_maps.clear();
 
     generateNormals(new_faces, new_pos, new_norm);
 
@@ -364,13 +374,6 @@ bool ModelLoader::reindex(const char* data)
         glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].normBuffer);
         glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
                      new_norm + m_new_norm_offsets[chunk], GL_STATIC_DRAW);
-
-        P3D_LOGD("chunk: %d", chunk);
-        P3D_LOGD(" index count: %d", m_chunks[chunk].index_count[VT_POS_UV_NORM]);
-        P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
-        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start[VT_POS_UV_NORM]);
-        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start[VT_POS_UV_NORM]);
-        m_vertex_maps[chunk]->dumpBucketLoad();
     }
 
     glGenBuffers(1, &m_index_buffer);
@@ -384,12 +387,6 @@ bool ModelLoader::reindex(const char* data)
 
     delete [] new_mats;
     delete [] new_faces;
-
-    for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
-    {
-        m_vertex_maps[i]->clear();
-    }
-    m_vertex_maps.clear();
 
     return true;
 }
@@ -556,6 +553,8 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
 void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm)
 {
     P3D_LOGD("Generating normals");
+    uint64_t start = PlatformAdapter::currentMillis();
+
     class vec3key : public glm::vec3
     {
     public:
@@ -586,6 +585,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     P3dMap<vec3key, glm::vec3> normalsMap;
     static const VertexType vtypes[] = {VT_POS, VT_POS_UV};
 
+    // calc
     for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
     {
         for(int t = 0; t < 2; t++) {
@@ -610,14 +610,18 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             }
         }
     }
+    P3D_LOGD("calc took: %lld", PlatformAdapter::durationMillis(start));
 
+    start = PlatformAdapter::currentMillis();
     // normalize
     for(P3dMap<vec3key, glm::vec3>::iterator itr = normalsMap.begin(); itr.hasNext(); ++itr)
     {
         glm::vec3& normal = itr.value();
         normal = glm::normalize(normal);
     }
+    P3D_LOGD("normalize took: %lld", PlatformAdapter::durationMillis(start));
 
+    start = PlatformAdapter::currentMillis();
     // store new normals
     for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
     {
@@ -637,6 +641,8 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             }
         }
     }
+    P3D_LOGD("store took: %lld", PlatformAdapter::durationMillis(start));
+
     P3D_LOGD("Calculated %d new normals", normalsMap.size());
     normalsMap.dumpBucketLoad();
 }
