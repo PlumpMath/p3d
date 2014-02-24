@@ -60,6 +60,13 @@ public:
         m_buckets = new Bucket[m_bucketCount];
     }
 
+    explicit P3dMap(size_t bucketCount)
+    {
+        m_size = 0;
+        m_bucketCount = bucketCount;
+        m_buckets = new Bucket[m_bucketCount];
+    }
+
     ~P3dMap()
     {
         delete [] m_buckets;

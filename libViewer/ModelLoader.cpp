@@ -582,7 +582,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     uint32_t b_offset;
     uint32_t c_offset;
 
-    P3dMap<vec3key, glm::vec3> normalsMap;
+    P3dMap<vec3key, glm::vec3> normalsMap(m_new_pos_count / 64);
     static const VertexType vtypes[] = {VT_POS, VT_POS_UV};
 
     // calc
