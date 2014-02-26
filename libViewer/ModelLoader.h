@@ -101,6 +101,7 @@ private:
 
     uint32_t m_new_pos_count;
     uint32_t m_new_norm_count;
+    uint32_t m_new_empty_norm_count;
     uint32_t m_new_uv_count;
 
     // OpenGL
