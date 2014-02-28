@@ -110,7 +110,7 @@ public:
         size_t maxSize = 0;
         size_t minSize = size();
         size_t totalSize = 0;
-        for(size_t i = 0; i < m_buckets->size(); ++i)
+        for(size_t i = 0; i < m_bucketCount; ++i)
         {
             totalSize += m_buckets[i].size();
             if(maxSize < m_buckets[i].size()) maxSize = m_buckets[i].size();
