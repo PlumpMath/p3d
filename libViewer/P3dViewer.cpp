@@ -257,41 +257,23 @@ void P3dViewer::drawFrame() {
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
-            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV_NORM))
+            if(m_ModelLoader->indexCount(chunk))
             {
-                // pos uv norm
+            if(m_ModelLoader->hasUvs(chunk))
+            {
+                // has uvs
                 glUseProgram(m_ProgramObjectUv);
                 glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV_NORM),
-                               GL_UNSIGNED_SHORT,
-                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV_NORM)));
             }
-            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV))
+            else
             {
-                // pos uv norm
-                glUseProgram(m_ProgramObjectUv);
-                glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_UV),
-                               GL_UNSIGNED_SHORT,
-                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_UV)));
-            }
-            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_NORM))
-            {
-                // pos norm
+                // no uvs
                 glUseProgram(m_ProgramObject);
                 glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS_NORM),
-                               GL_UNSIGNED_SHORT,
-                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS_NORM)));
             }
-            if(m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS))
-            {
-                // pos norm
-                glUseProgram(m_ProgramObject);
-                glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk, ModelLoader::VT_POS),
-                               GL_UNSIGNED_SHORT,
-                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk, ModelLoader::VT_POS)));
+            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk),
+                           GL_UNSIGNED_SHORT,
+                           (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk)));
             }
         }
     }

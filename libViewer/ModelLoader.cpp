@@ -310,18 +310,13 @@ bool ModelLoader::reindex(const char* data)
     m_total_index_count = 0;
 
     uint32_t chunk = 0;
-    m_chunks[chunk] = MeshChunk();
-    m_vertex_maps[chunk] = new P3dMap<VertexIndex, uint32_t>(8192);
-    m_new_pos_offsets[chunk] = 0;
-    m_new_uv_offsets[chunk] = 0;
-    m_new_norm_offsets[chunk] = 0;
 
     for(int vtype = 0; vtype < 4; vtype++)
     {
-        m_chunks[chunk].index_count[vtype] = m_f3_count[vtype] * 3 + m_f4_count[vtype] * 6;
-        m_chunks[chunk].f3_start[vtype] = m_total_index_count;
-        m_chunks[chunk].f4_start[vtype] = m_total_index_count + m_f3_count[vtype] * 3;
-        m_total_index_count += m_chunks[chunk].index_count[vtype];
+        m_new_index_count[vtype] = m_f3_count[vtype] * 3 + m_f4_count[vtype] * 6;
+        m_new_f3_start[vtype] = m_total_index_count;
+        m_new_f4_start[vtype] = m_total_index_count + m_f3_count[vtype] * 3;
+        m_total_index_count += m_new_index_count[vtype];
     }
 
     uint16_t* new_faces = new uint16_t[m_total_index_count];
@@ -347,10 +342,10 @@ bool ModelLoader::reindex(const char* data)
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
         P3D_LOGD("chunk: %d", chunk);
-        P3D_LOGD(" index count: %d", m_chunks[chunk].index_count[VT_POS_UV_NORM]);
+        P3D_LOGD(" index count: %d", m_chunks[chunk].index_count);
         P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
-        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start[VT_POS_UV_NORM]);
-        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start[VT_POS_UV_NORM]);
+        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start);
+        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start);
         m_vertex_maps[chunk]->dumpBucketLoad();
 
         copyVertData(chunk, data, new_norm, new_uv, new_pos);
@@ -395,6 +390,44 @@ bool ModelLoader::reindex(const char* data)
     return true;
 }
 
+void ModelLoader::nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset, bool firstOfType)
+{
+    if(m_chunks.size() != 0)
+    {
+        ++chunk;
+    }
+    m_chunks[chunk] = MeshChunk();
+    MeshChunk& newChunk = m_chunks[chunk];
+    newChunk.f3_start = new_offset;
+    newChunk.f4_start = new_offset;
+
+    newChunk.validNormals = vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM;
+    newChunk.hasUvs = vtype == VT_POS_UV || vtype == VT_POS_UV_NORM;
+
+    if(firstOfType)
+    {
+        newChunk.index_count = m_new_index_count[vtype];
+        newChunk.f3_start = m_new_f3_start[vtype];
+        newChunk.f4_start = m_new_f4_start[vtype];
+    }
+    else
+    {
+        MeshChunk& oldChunk = m_chunks[chunk - 1];
+        if(!in_f4)
+        {
+            newChunk.f4_start = oldChunk.f4_start - new_offset;
+        }
+        newChunk.index_count = oldChunk.index_count - (new_offset - oldChunk.f3_start);
+        oldChunk.index_count = new_offset - oldChunk.f3_start;
+        oldChunk.vertCount = (m_new_pos_count - m_new_pos_offsets[chunk - 1]) / 3;
+    }
+
+    m_vertex_maps[chunk] = new P3dMap<VertexIndex, uint32_t>(8192);
+    m_new_pos_offsets[chunk] = m_new_pos_count;
+    m_new_uv_offsets[chunk] = m_new_uv_count;
+    m_new_norm_offsets[chunk] = m_new_norm_count;
+}
+
 uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype, const char *data,
                                   uint16_t* new_faces, uint16_t* new_mats)
 {
@@ -404,7 +437,7 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
     uint32_t mat_offset;
     uint16_t mat;
     uint32_t f;
-    uint32_t fl;
+    uint32_t fcount;
     uint32_t v;
     uint32_t verts;
     uint32_t new_offset;
@@ -412,6 +445,14 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
     uint32_t f4_offset;
     uint32_t result = 0;
     bool in_f4 = false;
+
+    f4_offset = m_f3_count[vtype];
+    fcount = f4_offset + m_f4_count[vtype];
+    if(fcount == 0)
+    {
+        // no faces of this type
+        return result;
+    }
 
     // tris
     pos_offset = m_f3_start[vtype];
@@ -432,11 +473,10 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
     VertexIndex index;
     index.type = vtype;
     uint32_t new_index;
-    new_offset = 0;
+    new_offset = 0; //TODO: should be passed in?
     new_mat_offset = 0;
-    f4_offset = m_f3_count[vtype];
 
-    for(f = 0, fl = f4_offset + m_f4_count[vtype]; f < fl; ++f)
+    for(f = 0; f < fcount; ++f)
     {
         if(!in_f4 && f >= f4_offset)
         {
@@ -456,6 +496,11 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             } else {
                 mat_offset = uv_offset;
             }
+        }
+
+        if(f == 0)
+        {
+            nextChunk(chunk, vtype, in_f4, new_offset, true);
         }
 
         verts = in_f4 ? 4 : 3;
@@ -523,34 +568,7 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
         if(m_vertex_maps[chunk]->size() > 65530)
         {
             // next chunk
-            ++chunk;
-            m_chunks[chunk] = MeshChunk();
-            MeshChunk& newChunk = m_chunks[chunk];
-            MeshChunk& oldChunk = m_chunks[chunk - 1];
-            newChunk.f3_start[vtype] = new_offset;
-            if(in_f4)
-            {
-                newChunk.f4_start[vtype] = new_offset;
-            }
-            else
-            {
-                newChunk.f4_start[vtype] = oldChunk.f4_start[vtype] - new_offset;
-            }
-            newChunk.index_count[vtype] = oldChunk.index_count[vtype] - (new_offset - oldChunk.f3_start[vtype]);
-            oldChunk.index_count[vtype] = new_offset - oldChunk.f3_start[vtype];
-            oldChunk.vertCount = (m_new_pos_count - m_new_pos_offsets[chunk - 1]) / 3;
-
-            for(int t = vtype + 1; t < 4; ++t)
-            {
-                newChunk.index_count[t] = oldChunk.index_count[t];
-                newChunk.f3_start[t] = oldChunk.f3_start[t];
-                newChunk.f4_start[t] = oldChunk.f4_start[t];
-            }
-
-            m_vertex_maps[chunk] = new P3dMap<VertexIndex, uint32_t>(8192);
-            m_new_pos_offsets[chunk] = m_new_pos_count;
-            m_new_uv_offsets[chunk] = m_new_uv_count;
-            m_new_norm_offsets[chunk] = m_new_norm_count;
+            nextChunk(chunk, vtype, in_f4, new_offset);
         }
     }
 
@@ -591,31 +609,31 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     uint32_t c_offset;
 
     P3dMap<vec3key, glm::vec3> normalsMap(m_new_empty_norm_count / 128);
-    static const VertexType vtypes[] = {VT_POS, VT_POS_UV};
 
     // calc
     for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
     {
-        for(int t = 0; t < 2; t++) {
-            VertexType vtype = vtypes[t];
+        if(m_chunks[chunk].validNormals)
+        {
+            continue;
+        }
 
-            for(i = m_chunks[chunk].f3_start[vtype], il =  i + m_chunks[chunk].index_count[vtype]; i < il;)
-            {
-                a = new_faces[i++];
-                b = new_faces[i++];
-                c = new_faces[i++];
-                a_offset = 3 * a + m_new_pos_offsets[chunk];
-                b_offset = 3 * b + m_new_pos_offsets[chunk];
-                c_offset = 3 * c + m_new_pos_offsets[chunk];
-                vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
-                vec3key posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
-                vec3key posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
-                glm::vec3 fnormal = glm::cross(posa - posb, posb - posc);
-                if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
-                normalsMap[posa] += fnormal;
-                normalsMap[posb] += fnormal;
-                normalsMap[posc] += fnormal;
-            }
+        for(i = m_chunks[chunk].f3_start, il =  i + m_chunks[chunk].index_count; i < il;)
+        {
+            a = new_faces[i++];
+            b = new_faces[i++];
+            c = new_faces[i++];
+            a_offset = 3 * a + m_new_pos_offsets[chunk];
+            b_offset = 3 * b + m_new_pos_offsets[chunk];
+            c_offset = 3 * c + m_new_pos_offsets[chunk];
+            vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
+            vec3key posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
+            vec3key posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
+            glm::vec3 fnormal = glm::cross(posa - posb, posb - posc);
+            if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
+            normalsMap[posa] += fnormal;
+            normalsMap[posb] += fnormal;
+            normalsMap[posc] += fnormal;
         }
     }
     P3D_LOGD("calc took: %lldms", PlatformAdapter::durationMillis(start));
@@ -633,21 +651,24 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     // store new normals
     for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
     {
-        for(int t = 0; t < 2; t++) {
-            VertexType vtype = vtypes[t];
-
-            for(i = m_chunks[chunk].f3_start[vtype], il = i + m_chunks[chunk].index_count[vtype]; i < il; ++i)
-            {
-                a = new_faces[i];
-                a_offset = 3 * a + m_new_pos_offsets[chunk];
-                vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
-                const glm::vec3& normal = normalsMap[posa];
-                a_offset = 3 * a + m_new_norm_offsets[chunk];
-                new_norm[a_offset] = normal.x;
-                new_norm[a_offset + 1] = normal.y;
-                new_norm[a_offset + 2] = normal.z;
-            }
+        if(m_chunks[chunk].validNormals)
+        {
+            continue;
         }
+
+        for(i = m_chunks[chunk].f3_start, il = i + m_chunks[chunk].index_count; i < il; ++i)
+        {
+            a = new_faces[i];
+            a_offset = 3 * a + m_new_pos_offsets[chunk];
+            vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
+            const glm::vec3& normal = normalsMap[posa];
+            a_offset = 3 * a + m_new_norm_offsets[chunk];
+            new_norm[a_offset] = normal.x;
+            new_norm[a_offset + 1] = normal.y;
+            new_norm[a_offset + 2] = normal.z;
+        }
+
+        m_chunks[chunk].validNormals = true;
     }
     P3D_LOGD("store took: %lldms", PlatformAdapter::durationMillis(start));
 

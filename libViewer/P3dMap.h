@@ -117,7 +117,7 @@ public:
             if(minSize > m_buckets[i].size()) minSize = m_buckets[i].size();
         }
         size_t avgSize = 0;
-        if(m_buckets->size()) avgSize = totalSize / m_buckets->size();
+        if(m_bucketCount) avgSize = totalSize / m_bucketCount;
         P3D_LOGD("Bucket sizes min/max/avg: %d/%d/%d", minSize, maxSize, avgSize);
     }
 
