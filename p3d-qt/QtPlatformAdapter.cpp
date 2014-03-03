@@ -14,13 +14,12 @@ QtPlatformAdapter::~QtPlatformAdapter()
 
 const char *QtPlatformAdapter::loadAsset(const char *filename, size_t *size)
 {
-#ifdef Q_OS_ANDROID
-    QFile file(QStringLiteral("assets:/") + filename);
-#else
-    QFile file(filename);
-#endif
+    QFile file(QStringLiteral(":/") + filename);
     if (!file.open(QIODevice::ReadOnly))
+    {
+        P3D_LOGE("Can't open asset: %s", filename);
         return 0;
+    }
     QByteArray data = file.readAll();
     char *result;
     if(size)
