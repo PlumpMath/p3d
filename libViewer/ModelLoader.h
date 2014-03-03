@@ -20,15 +20,16 @@ struct MeshChunk
     GLuint normBuffer;
 
     uint32_t vertCount;
+    uint32_t vertOffset;
 
     bool validNormals;
     bool hasUvs;
 
-    uint32_t index_count;
-    uint32_t f3_start;
-    uint32_t f4_start;
+    uint32_t indexCount;
+    uint32_t f3Offset;
+    uint32_t f4Offset;
 
-    uint16_t mat;
+    uint16_t material;
 
 };
 
@@ -52,13 +53,17 @@ public:
     GLuint uvBuffer(uint32_t chunk) { return m_chunks[chunk].uvBuffer; }
     GLuint normBuffer(uint32_t chunk) { return m_chunks[chunk].normBuffer; }
     GLuint indexBuffer() { return m_index_buffer; }
-    uint32_t indexCount(uint32_t chunk) { return m_chunks[chunk].index_count; }
-    uint32_t indexOffset(uint32_t chunk) { return m_chunks[chunk].f3_start; }
+    uint32_t indexCount(uint32_t chunk) { return m_chunks[chunk].indexCount; }
+    uint32_t indexOffset(uint32_t chunk) { return m_chunks[chunk].f3Offset; }
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
 
     void copyVertData(uint32_t chunk, const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
     void nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset, bool firstOfType = false);
+
+    void setModelData(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
+        uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks);
+
 private:
     struct VertexIndex
     {
@@ -102,11 +107,6 @@ private:
     uint32_t m_new_index_count[4];
     uint32_t m_new_f3_start[4];
     uint32_t m_new_f4_start[4];
-
-
-    P3dVector<uint32_t> m_new_pos_offsets;
-    P3dVector<uint32_t> m_new_norm_offsets;
-    P3dVector<uint32_t> m_new_uv_offsets;
 
     size_t m_total_index_count;
 

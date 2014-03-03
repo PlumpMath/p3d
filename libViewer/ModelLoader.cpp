@@ -242,7 +242,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
 
         ++vertCount;
         // pos
-        new_offset = new_index * 3 + m_new_pos_offsets[chunk];
+        new_offset = (new_index + m_chunks[chunk].vertOffset) * 3;
         vert_offset = m_pos_start + 4 * (3 * index.pos);
         x = READ_FLOAT(data[vert_offset]);
         vert_offset += 4;
@@ -262,7 +262,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
         // uv
         if(index.type == VT_POS_UV || index.type == VT_POS_UV_NORM)
         {
-            new_offset = new_index * 2 + m_new_uv_offsets[chunk];
+            new_offset = (new_index + m_chunks[chunk].vertOffset) * 2;
             vert_offset = m_tex_start + 4 * (2 * index.uv);
             new_uv[new_offset++] = READ_FLOAT(data[vert_offset]);
             vert_offset += 4;
@@ -270,7 +270,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
         }
 
         // norm
-        new_offset = new_index * 3 + m_new_norm_offsets[chunk];
+        new_offset = (new_index + m_chunks[chunk].vertOffset) * 3;
         if(index.type == VT_POS_NORM || index.type == VT_POS_UV_NORM)
         {
             vert_offset = m_norm_start + (3 * index.norm);
@@ -288,6 +288,44 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
             new_norm[new_offset++] = 0.0f;
         }
     }
+}
+
+void ModelLoader::setModelData(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
+                               uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks)
+{
+    generateNormals(indexBuffer, posBuffer, normBuffer);
+    uint32_t chunk;
+
+    if(chunks)
+    {
+        for(chunk = 0; chunk < chunkCount; ++chunk)
+        {
+            m_chunks.push_back(chunks[chunk]);
+        }
+    }
+
+    for(chunk = 0; chunk < m_chunks.size(); ++chunk)
+    {
+        glGenBuffers(1, &m_chunks[chunk].posBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].posBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                     posBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+
+        glGenBuffers(1, &m_chunks[chunk].uvBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].uvBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 2 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                     uvBuffer + 2 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+
+        glGenBuffers(1, &m_chunks[chunk].normBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].normBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                     normBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+    }
+
+    glGenBuffers(1, &m_index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), indexBuffer, GL_STATIC_DRAW);
+    GL_CHECK_ERROR;
 }
 
 bool ModelLoader::reindex(const char* data)
@@ -342,10 +380,10 @@ bool ModelLoader::reindex(const char* data)
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
         P3D_LOGD("chunk: %d", chunk);
-        P3D_LOGD(" index count: %d", m_chunks[chunk].index_count);
+        P3D_LOGD(" index count: %d", m_chunks[chunk].indexCount);
         P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
-        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3_start);
-        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4_start);
+        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3Offset);
+        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4Offset);
         m_vertex_maps[chunk]->dumpBucketLoad();
 
         copyVertData(chunk, data, new_norm, new_uv, new_pos);
@@ -354,30 +392,7 @@ bool ModelLoader::reindex(const char* data)
     }
     m_vertex_maps.clear();
 
-    generateNormals(new_faces, new_pos, new_norm);
-
-    for(chunk = 0; chunk < m_chunks.size(); ++chunk)
-    {
-        glGenBuffers(1, &m_chunks[chunk].posBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].posBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                     new_pos + m_new_pos_offsets[chunk], GL_STATIC_DRAW);
-
-        glGenBuffers(1, &m_chunks[chunk].uvBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 2 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                     new_uv + m_new_uv_offsets[chunk], GL_STATIC_DRAW);
-
-        glGenBuffers(1, &m_chunks[chunk].normBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].normBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                     new_norm + m_new_norm_offsets[chunk], GL_STATIC_DRAW);
-    }
-
-    glGenBuffers(1, &m_index_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), new_faces, GL_STATIC_DRAW);
-    GL_CHECK_ERROR;
+    setModelData(0, new_pos, new_norm, new_uv, m_total_index_count, new_faces, m_chunks.size(), 0);
 
     delete [] new_norm;
     delete [] new_uv;
@@ -398,34 +413,33 @@ void ModelLoader::nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool
     }
     m_chunks[chunk] = MeshChunk();
     MeshChunk& newChunk = m_chunks[chunk];
-    newChunk.f3_start = new_offset;
-    newChunk.f4_start = new_offset;
+    newChunk.f3Offset = new_offset;
+    newChunk.f4Offset = new_offset;
 
     newChunk.validNormals = vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM;
     newChunk.hasUvs = vtype == VT_POS_UV || vtype == VT_POS_UV_NORM;
 
+    newChunk.vertOffset = m_new_pos_count / 3;
+
     if(firstOfType)
     {
-        newChunk.index_count = m_new_index_count[vtype];
-        newChunk.f3_start = m_new_f3_start[vtype];
-        newChunk.f4_start = m_new_f4_start[vtype];
+        newChunk.indexCount = m_new_index_count[vtype];
+        newChunk.f3Offset = m_new_f3_start[vtype];
+        newChunk.f4Offset = m_new_f4_start[vtype];
     }
     else
     {
         MeshChunk& oldChunk = m_chunks[chunk - 1];
         if(!in_f4)
         {
-            newChunk.f4_start = oldChunk.f4_start - new_offset;
+            newChunk.f4Offset = oldChunk.f4Offset - new_offset;
         }
-        newChunk.index_count = oldChunk.index_count - (new_offset - oldChunk.f3_start);
-        oldChunk.index_count = new_offset - oldChunk.f3_start;
-        oldChunk.vertCount = (m_new_pos_count - m_new_pos_offsets[chunk - 1]) / 3;
+        newChunk.indexCount = oldChunk.indexCount - (new_offset - oldChunk.f3Offset);
+        oldChunk.indexCount = new_offset - oldChunk.f3Offset;
+        oldChunk.vertCount = (m_new_pos_count - oldChunk.vertOffset * 3) / 3;
     }
 
     m_vertex_maps[chunk] = new P3dMap<VertexIndex, uint32_t>(8192);
-    m_new_pos_offsets[chunk] = m_new_pos_count;
-    m_new_uv_offsets[chunk] = m_new_uv_count;
-    m_new_norm_offsets[chunk] = m_new_norm_count;
 }
 
 uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype, const char *data,
@@ -572,7 +586,7 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
         }
     }
 
-    m_chunks[chunk].vertCount = (m_new_pos_count - m_new_pos_offsets[chunk]) / 3;
+    m_chunks[chunk].vertCount = (m_new_pos_count - 3 * m_chunks[chunk].vertOffset) / 3;
     return result;
 }
 
@@ -618,14 +632,14 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             continue;
         }
 
-        for(i = m_chunks[chunk].f3_start, il =  i + m_chunks[chunk].index_count; i < il;)
+        for(i = m_chunks[chunk].f3Offset, il =  i + m_chunks[chunk].indexCount; i < il;)
         {
             a = new_faces[i++];
             b = new_faces[i++];
             c = new_faces[i++];
-            a_offset = 3 * a + m_new_pos_offsets[chunk];
-            b_offset = 3 * b + m_new_pos_offsets[chunk];
-            c_offset = 3 * c + m_new_pos_offsets[chunk];
+            a_offset = 3 * (a + m_chunks[chunk].vertOffset);
+            b_offset = 3 * (b + m_chunks[chunk].vertOffset);
+            c_offset = 3 * (c + m_chunks[chunk].vertOffset);
             vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
             vec3key posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
             vec3key posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
@@ -656,13 +670,13 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             continue;
         }
 
-        for(i = m_chunks[chunk].f3_start, il = i + m_chunks[chunk].index_count; i < il; ++i)
+        for(i = m_chunks[chunk].f3Offset, il = i + m_chunks[chunk].indexCount; i < il; ++i)
         {
             a = new_faces[i];
-            a_offset = 3 * a + m_new_pos_offsets[chunk];
+            a_offset = 3 * (a + m_chunks[chunk].vertOffset);
             vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
             const glm::vec3& normal = normalsMap[posa];
-            a_offset = 3 * a + m_new_norm_offsets[chunk];
+            a_offset = 3 * (a + m_chunks[chunk].vertOffset);
             new_norm[a_offset] = normal.x;
             new_norm[a_offset + 1] = normal.y;
             new_norm[a_offset + 2] = normal.z;
