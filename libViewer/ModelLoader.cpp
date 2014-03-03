@@ -29,6 +29,13 @@ float READ_FLOAT(const char& x) {
     return *((float*) &val);
 }
 
+struct GLBuffers
+{
+    GLuint posBuffer;
+    GLuint uvBuffer;
+    GLuint normBuffer;
+};
+
 bool ModelLoader::VertexIndex::operator==(const VertexIndex &other) const
 {
     if(type != other.type) return false;
@@ -62,6 +69,20 @@ size_t ModelLoader::VertexIndex::hash() const
     return h1;
 }
 
+template<>
+class P3dHasher<glm::vec3>
+{
+public:
+    size_t static hash(const glm::vec3& k)
+    {
+        size_t h1 = *((uint32_t*) &k.x);
+        size_t h2 = *((uint32_t*) &k.y);
+        h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
+        h2 = *((uint32_t*) &k.z);
+        h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
+        return h1;
+    }
+};
 
 ModelLoader::ModelLoader()
 {
@@ -191,12 +212,15 @@ void ModelLoader::clear()
     if(m_loaded)
     {
         m_loaded = false;
-        for(int i = 0, il = m_chunks.size(); i < il; ++i)
+        for(P3dMap<uint32_t, GLBuffers*>::iterator itr = m_gl_buffers.begin(); itr.hasNext(); ++itr)
         {
-            glDeleteBuffers(1, &m_chunks[i].posBuffer);
-            glDeleteBuffers(1, &m_chunks[i].uvBuffer);
-            glDeleteBuffers(1, &m_chunks[i].normBuffer);
+            glDeleteBuffers(1, &itr.value()->posBuffer);
+            glDeleteBuffers(1, &itr.value()->uvBuffer);
+            glDeleteBuffers(1, &itr.value()->normBuffer);
+            delete itr.value();
         }
+        m_gl_buffers.clear();
+
         m_chunks.clear();
 
         glDeleteBuffers(1, &m_index_buffer);
@@ -207,6 +231,21 @@ void ModelLoader::clear()
         }
         m_vertex_maps.clear();
     }
+}
+
+GLuint ModelLoader::posBuffer(uint32_t chunk)
+{
+    return m_gl_buffers[m_chunks[chunk].vertOffset]->posBuffer;
+}
+
+GLuint ModelLoader::uvBuffer(uint32_t chunk)
+{
+    return m_gl_buffers[m_chunks[chunk].vertOffset]->uvBuffer;
+}
+
+GLuint ModelLoader::normBuffer(uint32_t chunk)
+{
+    return m_gl_buffers[m_chunks[chunk].vertOffset]->normBuffer;
 }
 
 float ModelLoader::boundingRadius()
@@ -306,20 +345,26 @@ void ModelLoader::setModelData(uint32_t vertCount, float* posBuffer, float* norm
 
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
-        glGenBuffers(1, &m_chunks[chunk].posBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].posBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                     posBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+        if(m_gl_buffers.count(m_chunks[chunk].vertOffset) == 0)
+        {
+            GLBuffers* glbufs = new GLBuffers();
+            m_gl_buffers.insert(m_chunks[chunk].vertOffset, glbufs);
 
-        glGenBuffers(1, &m_chunks[chunk].uvBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 2 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                     uvBuffer + 2 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+            glGenBuffers(1, &glbufs->posBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, glbufs->posBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                         posBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
 
-        glGenBuffers(1, &m_chunks[chunk].normBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_chunks[chunk].normBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                     normBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+            glGenBuffers(1, &glbufs->uvBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, glbufs->uvBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 2 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                         uvBuffer + 2 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+
+            glGenBuffers(1, &glbufs->normBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, glbufs->normBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
+                         normBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
+        }
     }
 
     glGenBuffers(1, &m_index_buffer);
@@ -595,22 +640,6 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     P3D_LOGD("Generating normals");
     uint64_t start = PlatformAdapter::currentMillis();
 
-    class vec3key : public glm::vec3
-    {
-    public:
-        vec3key() : glm::vec3() {}
-        vec3key(float x, float y, float z) : glm::vec3(x, y, z) {}
-        size_t hash() const
-        {
-            size_t h1 = *((uint32_t*) &x);
-            size_t h2 = *((uint32_t*) &y);
-            h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
-            h2 = *((uint32_t*) &z);
-            h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
-            return h1;
-        }
-    };
-
     uint32_t i;
     uint32_t il;
 
@@ -622,7 +651,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     uint32_t b_offset;
     uint32_t c_offset;
 
-    P3dMap<vec3key, glm::vec3> normalsMap(m_new_empty_norm_count / 128);
+    P3dMap<glm::vec3, glm::vec3> normalsMap(m_new_empty_norm_count / 128);
 
     // calc
     for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)
@@ -640,9 +669,9 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             a_offset = 3 * (a + m_chunks[chunk].vertOffset);
             b_offset = 3 * (b + m_chunks[chunk].vertOffset);
             c_offset = 3 * (c + m_chunks[chunk].vertOffset);
-            vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
-            vec3key posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
-            vec3key posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
+            glm::vec3 posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
+            glm::vec3 posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
+            glm::vec3 posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
             glm::vec3 fnormal = glm::cross(posa - posb, posb - posc);
             if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
             normalsMap[posa] += fnormal;
@@ -654,7 +683,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
 
     start = PlatformAdapter::currentMillis();
     // normalize
-    for(P3dMap<vec3key, glm::vec3>::iterator itr = normalsMap.begin(); itr.hasNext(); ++itr)
+    for(P3dMap<glm::vec3, glm::vec3>::iterator itr = normalsMap.begin(); itr.hasNext(); ++itr)
     {
         glm::vec3& normal = itr.value();
         normal = glm::normalize(normal);
@@ -674,7 +703,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
         {
             a = new_faces[i];
             a_offset = 3 * (a + m_chunks[chunk].vertOffset);
-            vec3key posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
+            glm::vec3 posa(new_pos[a_offset], new_pos[a_offset + 1], new_pos[a_offset + 2]);
             const glm::vec3& normal = normalsMap[posa];
             a_offset = 3 * (a + m_chunks[chunk].vertOffset);
             new_norm[a_offset] = normal.x;

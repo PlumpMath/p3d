@@ -15,10 +15,6 @@ struct MeshChunk
         memset(this, 0, sizeof(MeshChunk));
     }
 
-    GLuint posBuffer;
-    GLuint uvBuffer;
-    GLuint normBuffer;
-
     uint32_t vertCount;
     uint32_t vertOffset;
 
@@ -30,8 +26,9 @@ struct MeshChunk
     uint32_t f4Offset;
 
     uint16_t material;
-
 };
+
+struct GLBuffers;
 
 class ModelLoader
 {
@@ -49,9 +46,9 @@ public:
     bool isLoaded() { return m_loaded; }
     void clear();
     int chunkCount() { return m_chunks.size(); }
-    GLuint posBuffer(uint32_t chunk) { return m_chunks[chunk].posBuffer; }
-    GLuint uvBuffer(uint32_t chunk) { return m_chunks[chunk].uvBuffer; }
-    GLuint normBuffer(uint32_t chunk) { return m_chunks[chunk].normBuffer; }
+    GLuint posBuffer(uint32_t chunk);
+    GLuint uvBuffer(uint32_t chunk);
+    GLuint normBuffer(uint32_t chunk);
     GLuint indexBuffer() { return m_index_buffer; }
     uint32_t indexCount(uint32_t chunk) { return m_chunks[chunk].indexCount; }
     uint32_t indexOffset(uint32_t chunk) { return m_chunks[chunk].f3Offset; }
@@ -117,6 +114,7 @@ private:
 
     // OpenGL
     GLuint m_index_buffer;
+    P3dMap<uint32_t, GLBuffers*> m_gl_buffers;
 
     // bounding box
     float m_maxX;

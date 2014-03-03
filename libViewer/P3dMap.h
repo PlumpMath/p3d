@@ -4,6 +4,20 @@
 #include "P3dVector.h"
 #include "PlatformAdapter.h"
 
+template<typename K>
+class P3dHasher
+{
+public:
+    size_t static hash(const K& k) {return k.hash();}
+};
+
+template<>
+class P3dHasher<uint32_t>
+{
+public:
+    size_t static hash(const uint32_t& k) {return k;}
+};
+
 //! \brief Replacement for std::unordered_map which makes code size too big (emscripten)
 //! Very limited compared to std::unordered_map
 template<typename K, typename T>
@@ -143,14 +157,14 @@ private:
 
     Item* find(const K& key)
     {
-        size_t hash = key.hash();
+        size_t hash = P3dHasher<K>::hash(key);
         Bucket& buck = m_buckets[hash % m_bucketCount];
         return findInBucket(buck, key);
     }
 
     Item* insertItem(const K& key, const T& val)
     {
-        size_t hash = key.hash();
+        size_t hash = P3dHasher<K>::hash(key);
         Bucket& buck = m_buckets[hash % m_bucketCount];
         Item* itm = findInBucket(buck, key);
         if(itm)
