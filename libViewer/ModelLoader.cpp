@@ -329,7 +329,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
     }
 }
 
-void ModelLoader::setModelData(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
+void ModelLoader::createModel(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
                                uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks)
 {
     generateNormals(indexBuffer, posBuffer, normBuffer);
@@ -369,7 +369,7 @@ void ModelLoader::setModelData(uint32_t vertCount, float* posBuffer, float* norm
 
     glGenBuffers(1, &m_index_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_total_index_count * sizeof(uint16_t), indexBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint16_t), indexBuffer, GL_STATIC_DRAW);
     GL_CHECK_ERROR;
 }
 
@@ -429,6 +429,7 @@ bool ModelLoader::reindex(const char* data)
         P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
         P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3Offset);
         P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4Offset);
+        P3D_LOGD(" material: %d", m_chunks[chunk].material);
         m_vertex_maps[chunk]->dumpBucketLoad();
 
         copyVertData(chunk, data, new_norm, new_uv, new_pos);
@@ -437,7 +438,7 @@ bool ModelLoader::reindex(const char* data)
     }
     m_vertex_maps.clear();
 
-    setModelData(0, new_pos, new_norm, new_uv, m_total_index_count, new_faces, m_chunks.size(), 0);
+    createModel(0, new_pos, new_norm, new_uv, m_total_index_count, new_faces, m_chunks.size(), 0);
 
     delete [] new_norm;
     delete [] new_uv;
@@ -557,9 +558,24 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             }
         }
 
+        // material
+        mat = READ_U16(data[mat_offset]);
+        mat_offset += 2;
+        new_mats[new_mat_offset++] = mat;
+        if(mat + 1> m_mat_count)
+        {
+            m_mat_count = mat + 1;
+        }
+
         if(f == 0)
         {
             nextChunk(chunk, vtype, in_f4, new_offset, true);
+            m_chunks[chunk].material = mat;
+        }
+        else if(mat != m_chunks[chunk].material)
+        {
+            nextChunk(chunk, vtype, in_f4, new_offset, false);
+            m_chunks[chunk].material = mat;
         }
 
         verts = in_f4 ? 4 : 3;
@@ -604,15 +620,6 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             ++new_offset;
         }
 
-        // material
-        mat = READ_U16(data[mat_offset]);
-        mat_offset += 2;
-        new_mats[new_mat_offset++] = mat;
-        if(mat + 1> m_mat_count)
-        {
-            m_mat_count = mat + 1;
-        }
-
         // extra tri for quads
         if(verts == 4)
         {
@@ -628,6 +635,7 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
         {
             // next chunk
             nextChunk(chunk, vtype, in_f4, new_offset);
+            m_chunks[chunk].material = mat;
         }
     }
 

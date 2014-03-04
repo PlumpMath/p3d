@@ -243,38 +243,54 @@ void P3dViewer::drawFrame() {
 
         for(int chunk = 0, chunkl = m_ModelLoader->chunkCount(); chunk < chunkl; ++chunk)
         {
-            glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer(chunk));
-            glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
-            glEnableVertexAttribArray(ATTRIB_POSITION);
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->normBuffer(chunk));
-            glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
-            glEnableVertexAttribArray(ATTRIB_NORMAL);
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->uvBuffer(chunk));
-            glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
-            glEnableVertexAttribArray(ATTRIB_UV);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
-
             if(m_ModelLoader->indexCount(chunk))
             {
-            if(m_ModelLoader->hasUvs(chunk))
-            {
-                // has uvs
-                glUseProgram(m_ProgramObjectUv);
-                glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-            }
-            else
-            {
-                // no uvs
-                glUseProgram(m_ProgramObject);
-                glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-            }
-            glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk),
-                           GL_UNSIGNED_SHORT,
-                           (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk)));
-            }
+                glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer(chunk));
+                glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
+                glEnableVertexAttribArray(ATTRIB_POSITION);
+
+                glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->normBuffer(chunk));
+                glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
+                glEnableVertexAttribArray(ATTRIB_NORMAL);
+
+                glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->uvBuffer(chunk));
+                glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
+                glEnableVertexAttribArray(ATTRIB_UV);
+
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
+
+                GLuint uDiffuse = 0;
+                if(m_ModelLoader->hasUvs(chunk))
+                {
+                    // has uvs
+                    glUseProgram(m_ProgramObjectUv);
+                    glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
+
+                    uDiffuse = glGetUniformLocation(m_ProgramObjectUv, "uDiffuse");
+                }
+                else
+                {
+                    // no uvs
+                    glUseProgram(m_ProgramObject);
+                    glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
+
+                    uDiffuse = glGetUniformLocation(m_ProgramObject, "uDiffuse");
+                }
+
+                static glm::vec3 colors[] = {
+                    glm::vec3(1.0f, 1.0f, 1.0f),
+                    glm::vec3(1.0f, 0.0f, 0.0f),
+                    glm::vec3(0.0f, 1.0f, 0.0f),
+                    glm::vec3(0.0f, 0.0f, 1.0f),
+                };
+
+                glm::vec3& color = colors[m_ModelLoader->material(chunk) % (sizeof(colors) / sizeof(colors[0]))];
+                glUniform3f(uDiffuse, color.r, color.g, color.b);
+
+                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk),
+                               GL_UNSIGNED_SHORT,
+                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk)));
+                }
         }
     }
 }

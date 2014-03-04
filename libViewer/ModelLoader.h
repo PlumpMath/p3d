@@ -52,13 +52,14 @@ public:
     GLuint indexBuffer() { return m_index_buffer; }
     uint32_t indexCount(uint32_t chunk) { return m_chunks[chunk].indexCount; }
     uint32_t indexOffset(uint32_t chunk) { return m_chunks[chunk].f3Offset; }
+    uint16_t material(uint32_t chunk) { return m_chunks[chunk].material; }
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
 
     void copyVertData(uint32_t chunk, const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
     void nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset, bool firstOfType = false);
 
-    void setModelData(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
+    void createModel(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
         uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks);
 
 private:
