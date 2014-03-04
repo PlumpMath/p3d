@@ -31,9 +31,15 @@ float READ_FLOAT(const char& x) {
 
 struct GLBuffers
 {
+    GLBuffers()
+    {
+        memset(this, 0, sizeof(GLBuffers));
+    }
+
     GLuint posBuffer;
     GLuint uvBuffer;
     GLuint normBuffer;
+    uint32_t vertCount;
 };
 
 bool ModelLoader::VertexIndex::operator==(const VertexIndex &other) const
@@ -348,23 +354,39 @@ void ModelLoader::createModel(uint32_t vertCount, float* posBuffer, float* normB
         if(m_gl_buffers.count(m_chunks[chunk].vertOffset) == 0)
         {
             GLBuffers* glbufs = new GLBuffers();
+            glbufs->vertCount = m_chunks[chunk].vertCount;
             m_gl_buffers.insert(m_chunks[chunk].vertOffset, glbufs);
-
-            glGenBuffers(1, &glbufs->posBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, glbufs->posBuffer);
-            glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                         posBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
-
-            glGenBuffers(1, &glbufs->uvBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, glbufs->uvBuffer);
-            glBufferData(GL_ARRAY_BUFFER, 2 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                         uvBuffer + 2 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
-
-            glGenBuffers(1, &glbufs->normBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, glbufs->normBuffer);
-            glBufferData(GL_ARRAY_BUFFER, 3 * m_chunks[chunk].vertCount * sizeof(GLfloat),
-                         normBuffer + 3 * m_chunks[chunk].vertOffset, GL_STATIC_DRAW);
         }
+        else
+        {
+            GLBuffers* glbufs = m_gl_buffers[m_chunks[chunk].vertOffset];
+            if(m_chunks[chunk].vertCount > glbufs->vertCount)
+            {
+                glbufs->vertCount = m_chunks[chunk].vertCount;
+            }
+        }
+    }
+
+    for(P3dMap<uint32_t, GLBuffers*>::iterator itr = m_gl_buffers.begin(); itr.hasNext(); ++itr)
+    {
+        GLBuffers* glbufs = itr.value();
+
+        P3D_LOGD("Creating gl buf, vertOffset: %d, vertCount: %d", itr.key(), glbufs->vertCount);
+
+        glGenBuffers(1, &glbufs->posBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, glbufs->posBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
+                     posBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+
+        glGenBuffers(1, &glbufs->uvBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, glbufs->uvBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 2 * glbufs->vertCount * sizeof(GLfloat),
+                     uvBuffer + 2 * itr.key(), GL_STATIC_DRAW);
+
+        glGenBuffers(1, &glbufs->normBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, glbufs->normBuffer);
+        glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
+                     normBuffer + 3 * itr.key(), GL_STATIC_DRAW);
     }
 
     glGenBuffers(1, &m_index_buffer);
