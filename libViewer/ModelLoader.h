@@ -55,8 +55,9 @@ public:
     uint16_t material(uint32_t chunk) { return m_chunks[chunk].material; }
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
-    void createModel(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
-        uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks);
+    void createModel(uint32_t posCount, uint32_t normCount, uint32_t uvCount,
+                     float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
+                     uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks);
 
 private:
     struct VertexIndex

@@ -70,7 +70,7 @@ public class MainActivity extends FragmentActivity implements
 		try {
 			File httpCacheDir = new File(getApplicationContext().getCacheDir(),
 					"http");
-			long httpCacheSize = 10 * 1024 * 1024; // 10 MiB
+			long httpCacheSize = 20 * 1024 * 1024; // 20 MiB
 			HttpResponseCache.install(httpCacheDir, httpCacheSize);
 		} catch (IOException e) {
 			Log.i(TAG, "HTTP response cache installation failed:" + e);

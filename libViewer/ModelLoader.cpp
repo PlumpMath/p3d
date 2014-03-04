@@ -336,8 +336,9 @@ void ModelLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
     }
 }
 
-void ModelLoader::createModel(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
-                               uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks)
+void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t uvCount,
+                              float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
+                              uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks)
 {
     generateNormals(indexBuffer, posBuffer, normBuffer);
     uint32_t chunk;
@@ -374,20 +375,29 @@ void ModelLoader::createModel(uint32_t vertCount, float* posBuffer, float* normB
 
         P3D_LOGD("Creating gl buf, vertOffset: %d, vertCount: %d", itr.key(), glbufs->vertCount);
 
-        glGenBuffers(1, &glbufs->posBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, glbufs->posBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
-                     posBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+        if(3 * (itr.key() + glbufs->vertCount) <= posCount)
+        {
+            glGenBuffers(1, &glbufs->posBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, glbufs->posBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
+                         posBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+        }
 
-        glGenBuffers(1, &glbufs->uvBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, glbufs->uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 2 * glbufs->vertCount * sizeof(GLfloat),
-                     uvBuffer + 2 * itr.key(), GL_STATIC_DRAW);
+        if(2 * (itr.key() + glbufs->vertCount) <= uvCount)
+        {
+            glGenBuffers(1, &glbufs->uvBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, glbufs->uvBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 2 * glbufs->vertCount * sizeof(GLfloat),
+                         uvBuffer + 2 * itr.key(), GL_STATIC_DRAW);
+        }
 
-        glGenBuffers(1, &glbufs->normBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, glbufs->normBuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
-                     normBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+        if(3 * (itr.key() + glbufs->vertCount) <= normCount)
+        {
+            glGenBuffers(1, &glbufs->normBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, glbufs->normBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
+                         normBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+        }
     }
 
     glGenBuffers(1, &m_index_buffer);
@@ -466,7 +476,9 @@ bool ModelLoader::reindex(const char* data)
     }
     m_vertex_maps.clear();
 
-    createModel(0, new_pos, new_norm, new_uv, m_total_index_count, new_faces, m_chunks.size(), 0);
+    createModel(m_new_pos_count, m_new_norm_count, m_new_uv_count,
+                new_pos, new_norm, new_uv, m_total_index_count,
+                new_faces, m_chunks.size(), 0);
 
     delete [] new_norm;
     delete [] new_uv;
