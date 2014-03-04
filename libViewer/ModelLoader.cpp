@@ -231,9 +231,9 @@ void ModelLoader::clear()
 
         glDeleteBuffers(1, &m_index_buffer);
 
-        for(int i = 0, il = m_vertex_maps.size(); i < il; ++i)
+        for(P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*>::iterator itr = m_vertex_maps.begin(); itr.hasNext(); ++itr)
         {
-            delete m_vertex_maps[i];
+            delete itr.value();
         }
         m_vertex_maps.clear();
     }
@@ -270,7 +270,8 @@ size_t ModelLoader::addPadding(size_t size)
     return size + ( ( size % 4 ) ? ( 4 - size % 4 ) : 0 );
 }
 
-void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos)
+void ModelLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const char* data,
+                               GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos)
 {
     static const float norm_scale = 1.0f / 127.0f;
     uint32_t new_offset;
@@ -279,7 +280,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
     float y;
     float z;
     int vertCount = 0;
-    for(P3dMap<VertexIndex, uint32_t>::iterator itr = m_vertex_maps[chunk]->begin(); itr.hasNext(); ++itr)
+    for(P3dMap<VertexIndex, uint32_t>::iterator itr = vertexMap->begin(); itr.hasNext(); ++itr)
     {
         const VertexIndex& index = itr.key();
         uint32_t new_index = itr.value();
@@ -287,7 +288,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
 
         ++vertCount;
         // pos
-        new_offset = (new_index + m_chunks[chunk].vertOffset) * 3;
+        new_offset = (new_index + vertOffset) * 3;
         vert_offset = m_pos_start + 4 * (3 * index.pos);
         x = READ_FLOAT(data[vert_offset]);
         vert_offset += 4;
@@ -307,7 +308,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
         // uv
         if(index.type == VT_POS_UV || index.type == VT_POS_UV_NORM)
         {
-            new_offset = (new_index + m_chunks[chunk].vertOffset) * 2;
+            new_offset = (new_index + vertOffset) * 2;
             vert_offset = m_tex_start + 4 * (2 * index.uv);
             new_uv[new_offset++] = READ_FLOAT(data[vert_offset]);
             vert_offset += 4;
@@ -315,7 +316,7 @@ void ModelLoader::copyVertData(uint32_t chunk, const char* data, GLfloat* new_no
         }
 
         // norm
-        new_offset = (new_index + m_chunks[chunk].vertOffset) * 3;
+        new_offset = (new_index + vertOffset) * 3;
         if(index.type == VT_POS_NORM || index.type == VT_POS_UV_NORM)
         {
             vert_offset = m_norm_start + (3 * index.norm);
@@ -452,11 +453,16 @@ bool ModelLoader::reindex(const char* data)
         P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3Offset);
         P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4Offset);
         P3D_LOGD(" material: %d", m_chunks[chunk].material);
-        m_vertex_maps[chunk]->dumpBucketLoad();
+    }
 
-        copyVertData(chunk, data, new_norm, new_uv, new_pos);
-
-        delete m_vertex_maps[chunk];
+    for(P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*>::iterator itr = m_vertex_maps.begin(); itr.hasNext(); ++itr)
+    {
+        P3D_LOGD("vertex bank:");
+        P3D_LOGD(" offset: %d", itr.key());
+        P3D_LOGD(" count: %d", itr.value()->size());
+        copyVertData(itr.key(), itr.value(), data, new_norm, new_uv, new_pos);
+        itr.value()->dumpBucketLoad();
+        delete itr.value();
     }
     m_vertex_maps.clear();
 
@@ -473,7 +479,8 @@ bool ModelLoader::reindex(const char* data)
     return true;
 }
 
-void ModelLoader::nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset, bool firstOfType)
+void ModelLoader::nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+                            uint32_t vertOffset, bool firstOfType)
 {
     if(m_chunks.size() != 0)
     {
@@ -487,7 +494,7 @@ void ModelLoader::nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool
     newChunk.validNormals = vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM;
     newChunk.hasUvs = vtype == VT_POS_UV || vtype == VT_POS_UV_NORM;
 
-    newChunk.vertOffset = m_new_pos_count / 3;
+    newChunk.vertOffset = vertOffset;
 
     if(firstOfType)
     {
@@ -507,7 +514,10 @@ void ModelLoader::nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool
         oldChunk.vertCount = (m_new_pos_count - oldChunk.vertOffset * 3) / 3;
     }
 
-    m_vertex_maps[chunk] = new P3dMap<VertexIndex, uint32_t>(8192);
+    if(m_vertex_maps.count(newChunk.vertOffset) == 0)
+    {
+        m_vertex_maps[newChunk.vertOffset] = new P3dMap<VertexIndex, uint32_t>(8192);
+    }
 }
 
 uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype, const char *data,
@@ -526,6 +536,7 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
     uint32_t new_mat_offset;
     uint32_t f4_offset;
     uint32_t result = 0;
+    P3dMap<VertexIndex, uint32_t>* vertexMap = 0;
     bool in_f4 = false;
 
     f4_offset = m_f3_count[vtype];
@@ -591,13 +602,23 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
 
         if(f == 0)
         {
-            nextChunk(chunk, vtype, in_f4, new_offset, true);
+            nextChunk(chunk, vtype, in_f4, new_offset, m_new_pos_count / 3, true);
             m_chunks[chunk].material = mat;
+            vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
         }
         else if(mat != m_chunks[chunk].material)
         {
-            nextChunk(chunk, vtype, in_f4, new_offset, false);
+            nextChunk(chunk, vtype, in_f4, new_offset, m_chunks[chunk].vertOffset, false);
             m_chunks[chunk].material = mat;
+            vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
+        }
+
+        if(vertexMap->size() > 65530)
+        {
+            // next chunk
+            nextChunk(chunk, vtype, in_f4, new_offset, m_new_pos_count / 3, false);
+            m_chunks[chunk].material = mat;
+            vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
         }
 
         verts = in_f4 ? 4 : 3;
@@ -615,14 +636,14 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
                 index.norm = READ_U32(data[norm_offset]);
                 norm_offset += 4;
             }
-            if(m_vertex_maps[chunk]->count(index))
+            if(vertexMap->count(index))
             {
-                new_index = (*m_vertex_maps[chunk])[index];
+                new_index = (*vertexMap)[index];
             }
             else
             {
-                new_index = m_vertex_maps[chunk]->size();
-                m_vertex_maps[chunk]->insert(index, new_index);
+                new_index = vertexMap->size();
+                vertexMap->insert(index, new_index);
 
                 m_new_pos_count += 3;
 
@@ -651,13 +672,6 @@ uint32_t ModelLoader::reindexType(uint32_t &chunk, ModelLoader::VertexType vtype
             ++new_offset;
 
             new_mats[new_mat_offset++] = mat;
-        }
-
-        if(m_vertex_maps[chunk]->size() > 65530)
-        {
-            // next chunk
-            nextChunk(chunk, vtype, in_f4, new_offset);
-            m_chunks[chunk].material = mat;
         }
     }
 

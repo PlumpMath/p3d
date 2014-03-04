@@ -55,10 +55,6 @@ public:
     uint16_t material(uint32_t chunk) { return m_chunks[chunk].material; }
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
-
-    void copyVertData(uint32_t chunk, const char* data, GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
-    void nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset, bool firstOfType = false);
-
     void createModel(uint32_t vertCount, float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
         uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks);
 
@@ -72,12 +68,15 @@ private:
         bool operator==(const VertexIndex &other) const;
         size_t hash() const;
     };
-
     size_t addPadding(size_t size);
     bool reindex(const char *data);
     uint32_t reindexType(uint32_t &chunk, VertexType vtype, const char* data,
                          uint16_t *new_faces, uint16_t *new_mats);
     void generateNormals(uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
+    void copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const char* data,
+                      GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
+    void nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+                   uint32_t vertOffset, bool firstOfType = false);
 
     bool m_loaded;
 
@@ -100,7 +99,7 @@ private:
     // new data
     P3dVector<MeshChunk> m_chunks;
 
-    P3dVector<P3dMap<VertexIndex, uint32_t>*> m_vertex_maps;
+    P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*> m_vertex_maps;
 
     uint32_t m_new_index_count[4];
     uint32_t m_new_f3_start[4];
