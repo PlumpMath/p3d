@@ -21,7 +21,7 @@ SOURCES += \
     ../libViewer/ModelLoader.cpp \
     ../libViewer/CameraNavigation.cpp
 
-!android {
+windows {
 SOURCES += \
     ../libViewer/gl3w.c
 }

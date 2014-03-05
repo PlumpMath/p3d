@@ -174,7 +174,7 @@ GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, 
 
 void P3dViewer::onSurfaceCreated() {
     m_InitOk = false;
-#if defined(QT_GUI_LIB) && !defined(QT_OPENGL_ES_2)
+#ifdef __gl3w_h_
     if(gl3wInit())
     {
         P3D_LOGE("Unable to initialize OpenGL");
