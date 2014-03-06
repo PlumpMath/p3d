@@ -27,7 +27,7 @@ public:
     ModelState modelState() const {return m_ModelState;}
     void setModelState(ModelState newValue);
 
-    Q_INVOKABLE void loadModel(const QString& shortid);
+    Q_INVOKABLE void loadModel(const QUrl &model);
     Q_INVOKABLE void clearModel();
 
     Q_INVOKABLE void startRotateCamera(float x, float y);

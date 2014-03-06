@@ -1,6 +1,7 @@
 import QtQuick 2.1
 import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.0
 
 import p3d.p3dviewer 1.0
 
@@ -15,6 +16,10 @@ ApplicationWindow {
         Menu {
             title: qsTr("File")
             MenuItem {
+                text: qsTr("Open...")
+                onTriggered: fileDialog.open();
+            }
+            MenuItem {
                 text: qsTr("Update")
                 onTriggered: Qt.openUrlExternally("https://db.tt/4RRONHzp");
             }
@@ -22,6 +27,18 @@ ApplicationWindow {
                 text: qsTr("Exit")
                 onTriggered: Qt.quit();
             }
+        }
+    }
+
+    FileDialog {
+        id: fileDialog
+        title: "Please choose a file"
+        onAccepted: {
+            console.log("You chose: " + fileDialog.fileUrl)
+            viewer.loadModel(fileDialog.fileUrl)
+        }
+        onRejected: {
+            console.log("Canceled")
         }
     }
 

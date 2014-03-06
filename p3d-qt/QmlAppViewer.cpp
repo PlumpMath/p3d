@@ -45,16 +45,16 @@ void QmlAppViewer::setModelState(ModelState newValue)
     }
 }
 
-void QmlAppViewer::loadModel(const QString &shortid)
+void QmlAppViewer::loadModel(const QUrl &model)
 {
     setModelState(MS_LOADING);
-    if(shortid.endsWith(".bin"))
+    if(model.fileName().endsWith(".bin"))
     {
         // this is a local binary file
-        QFile file(shortid);
+        QFile file(model.toLocalFile());
         if(!file.exists())
         {
-            qWarning() << "File doesn't exist:" << shortid;
+            qWarning() << "File doesn't exist:" << model;
             return;
         }
         file.open(QFile::ReadOnly);
@@ -80,7 +80,7 @@ void QmlAppViewer::loadModel(const QString &shortid)
 
     m_ModelData.clear();
 
-    m_NetInfoReply = m_NetMgr->get(QNetworkRequest(QUrl("http://p3d.in/api/viewer_models/" + shortid)));
+    m_NetInfoReply = m_NetMgr->get(QNetworkRequest(QUrl("http://p3d.in/api/viewer_models/" + model.fileName())));
     connect(m_NetInfoReply, SIGNAL(finished()), SLOT(onModelInfoReplyDone()));
 }
 
