@@ -2,6 +2,8 @@ import QtQuick 2.1
 import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
 
+import p3d.p3dviewer 1.0
+
 ApplicationWindow {
     id: window
     title: qsTr("p3d.in")
@@ -51,14 +53,34 @@ ApplicationWindow {
     }
 
     Rectangle {
-        visible: false
+        visible: viewer.modelState === Viewer.MS_READY
+        width: 100
+        height: 32
+        color: "#888"
+
+        Text {
+            anchors.centerIn: parent
+            text: "< BACK"
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                console.log("clearModel")
+                viewer.clearModel()
+            }
+        }
+    }
+
+    Rectangle {
+        visible: viewer.modelState === Viewer.MS_NONE
         anchors.fill: parent
         color: "#f2f2f2"
     }
 
 
     TabView {
-        visible: false
+        visible: viewer.modelState === Viewer.MS_NONE
         anchors.fill: parent
         Tab {
             title: "Staff picks"
@@ -87,5 +109,4 @@ ApplicationWindow {
             }
         }
     }
-
 }

@@ -91,6 +91,9 @@ Rectangle {
                         anchors.fill: parent
                         onClicked: {
                             console.log("Click: " + name);
+                            viewer.loadModel(shortid);
+                        }
+                        onDoubleClicked: {
                             Qt.openUrlExternally('http://p3d.in/' + shortid);
                         }
                     }

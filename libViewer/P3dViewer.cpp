@@ -307,3 +307,8 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size)
     return res;
 }
 
+void P3dViewer::clearModel()
+{
+    m_ModelLoader->clear();
+}
+

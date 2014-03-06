@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
 
     if(!model.isEmpty())
     {
+        viewer.window->update();
+        app.processEvents();
         viewer.loadModel(model);
     }
 

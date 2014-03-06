@@ -28,6 +28,7 @@ public:
     void onSurfaceChanged(int width, int height);
     void drawFrame();
     bool loadModel(const char* binaryData, size_t size);
+    void clearModel();
     CameraNavigation* cameraNavigation() {return m_CameraNavigation;}
 
 private:

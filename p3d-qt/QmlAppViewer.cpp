@@ -1,6 +1,7 @@
 #include "QmlAppViewer.h"
 #include <QDebug>
 #include <QQmlContext>
+#include <QtQml>
 #include <QOpenGLContext>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -18,11 +19,16 @@
 QmlAppViewer::QmlAppViewer(QObject *parent) :
     QtQuick2ControlsApplicationViewer(parent)
 {
+    qmlRegisterUncreatableType<QmlAppViewer>("p3d.p3dviewer", 1, 0, "Viewer", "Uncreatable");
+    engine.rootContext()->setContextProperty("viewer", this);
+
     connect(this, SIGNAL(windowReady()), SLOT(onWindowReady()));
     m_P3dViewer = new P3dViewer(new QtPlatformAdapter());
     m_NetMgr = new QNetworkAccessManager(this);
     m_NetInfoReply = 0;
     m_NetDataReply = 0;
+    m_ModelState = MS_NONE;
+    m_ClearModel = false;
 }
 
 QmlAppViewer::~QmlAppViewer()
@@ -30,8 +36,18 @@ QmlAppViewer::~QmlAppViewer()
     delete m_P3dViewer;
 }
 
+void QmlAppViewer::setModelState(ModelState newValue)
+{
+    if(newValue != m_ModelState)
+    {
+        m_ModelState = newValue;
+        emit modelStateChanged();
+    }
+}
+
 void QmlAppViewer::loadModel(const QString &shortid)
 {
+    setModelState(MS_LOADING);
     if(shortid.endsWith(".bin"))
     {
         // this is a local binary file
@@ -44,6 +60,7 @@ void QmlAppViewer::loadModel(const QString &shortid)
         file.open(QFile::ReadOnly);
         m_ModelData = file.readAll();
         qDebug() << "loaded" << m_ModelData.size() << "bytes";
+        setModelState(MS_PROCESSING);
         window->update();
         return;
     }
@@ -67,6 +84,12 @@ void QmlAppViewer::loadModel(const QString &shortid)
     connect(m_NetInfoReply, SIGNAL(finished()), SLOT(onModelInfoReplyDone()));
 }
 
+void QmlAppViewer::clearModel()
+{
+    m_ClearModel = true;
+    window->update();
+}
+
 void QmlAppViewer::startRotateCamera(float x, float y)
 {
     m_P3dViewer->cameraNavigation()->startRotate(x, y);
@@ -86,7 +109,6 @@ void QmlAppViewer::resetCamera()
 
 void QmlAppViewer::onWindowReady()
 {
-    engine.rootContext()->setContextProperty("viewer", this);
     connect(window, SIGNAL(beforeRendering()), SLOT(onGLRender()), Qt::DirectConnection);
     connect(window, SIGNAL(sceneGraphInitialized()), SLOT(onGLInit()), Qt::DirectConnection);
     connect(window, SIGNAL(widthChanged(int)), SLOT(onGLResize()), Qt::DirectConnection);
@@ -114,9 +136,16 @@ void QmlAppViewer::onGLRender()
     //TODO: threading
     if(!m_ModelData.isEmpty())
     {
-        //TODO: load the model
+        setModelState(MS_PROCESSING);
         m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size());
         m_ModelData.clear();
+        setModelState(MS_READY);
+    }
+    if(m_ClearModel)
+    {
+        m_ClearModel = false;
+        m_P3dViewer->clearModel();
+        setModelState(MS_NONE);
     }
     window->resetOpenGLState();
     m_P3dViewer->drawFrame();
@@ -149,5 +178,6 @@ void QmlAppViewer::onModelDataReplyDone()
     //TODO: threading
     m_ModelData = m_NetDataReply->readAll();
     qDebug() << m_NetDataReply->url() << "returned" << m_ModelData.size() << "bytes";
+    setModelState(MS_PROCESSING);
     window->update();
 }
