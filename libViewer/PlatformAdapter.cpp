@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstring>
 
-//TODO: windows
 #include <sys/time.h>
 
 PlatformAdapter* PlatformAdapter::adapter = 0;
@@ -77,12 +76,26 @@ void PlatformAdapter::logTag(LogLevel level, const char *tag, const char *format
 
     switch(level)
     {
+    case LOG_VERBOSE:
+        fprintf(out, "V ");
+        break;
     case LOG_DEBUG:
         fprintf(out, "D ");
+        break;
+    case LOG_INFO:
+        fprintf(out, "I ");
+        break;
+    case LOG_WARN:
+        out = stderr;
+        fprintf(out, "W ");
         break;
     case LOG_ERROR:
         out = stderr;
         fprintf(out, "E ");
+        break;
+    case LOG_FATAL:
+        out = stderr;
+        fprintf(out, "F ");
         break;
     default:
         fprintf(out, "U ");
@@ -95,7 +108,6 @@ void PlatformAdapter::logTag(LogLevel level, const char *tag, const char *format
     fflush(out);
 }
 
-//TODO: windows
 uint64_t PlatformAdapter::currentMillis()
 {
     return adapter->_currentMillis();

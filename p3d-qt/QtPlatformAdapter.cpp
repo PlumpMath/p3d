@@ -43,11 +43,14 @@ void QtPlatformAdapter::logTag(PlatformAdapter::LogLevel level, const char *tag,
 
     switch(level)
     {
-    case LOG_INFO:
-        qDebug() << "I" << tag << buf;
+    case LOG_VERBOSE:
+        qDebug() << "V" << tag << buf;
         break;
     case LOG_DEBUG:
         qDebug() << "D" << tag << buf;
+        break;
+    case LOG_INFO:
+        qDebug() << "I" << tag << buf;
         break;
     case LOG_WARN:
         qWarning() << "W" << tag << buf;
