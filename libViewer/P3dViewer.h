@@ -11,6 +11,8 @@ class PlatformAdapter;
 class ModelLoader;
 class CameraNavigation;
 
+class BlendData;
+
 const GLuint ATTRIB_POSITION = 0;
 const GLuint ATTRIB_NORMAL = 1;
 const GLuint ATTRIB_UV = 2;
@@ -29,6 +31,7 @@ public:
     void drawFrame();
     bool loadModel(const char* binaryData, size_t size);
     void clearModel();
+    bool loadModel(const BlendData *blendData);
     CameraNavigation* cameraNavigation() {return m_CameraNavigation;}
 
 private:

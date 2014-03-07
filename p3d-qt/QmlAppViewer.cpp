@@ -1,3 +1,4 @@
+#include "p3dConvert.h"
 #include "QmlAppViewer.h"
 #include <QDebug>
 #include <QQmlContext>
@@ -12,6 +13,7 @@
 #include <QTimer>
 #include <QFile>
 
+#include "ModelLoader.h"
 #include "P3dViewer.h"
 #include "CameraNavigation.h"
 #include "QtPlatformAdapter.h"
@@ -29,10 +31,12 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetDataReply = 0;
     m_ModelState = MS_NONE;
     m_ClearModel = false;
+    m_BlendData = new BlendData();
 }
 
 QmlAppViewer::~QmlAppViewer()
 {
+    delete m_BlendData;
     delete m_P3dViewer;
 }
 
@@ -48,6 +52,42 @@ void QmlAppViewer::setModelState(ModelState newValue)
 void QmlAppViewer::loadModel(const QUrl &model)
 {
     setModelState(MS_LOADING);
+    if(model.fileName().endsWith(".blend"))
+    {
+        // loading a .blend
+        QFile file(model.toLocalFile());
+        if(!file.exists())
+        {
+            qWarning() << "File doesn't exist: " << model.toLocalFile();
+            return;
+        }
+
+        parse_blend(model.fileName().toLocal8Bit().data());
+
+        size_t totmesh = 0;
+        P3dMesh *pme = extract_all_geometry(&totmesh);
+        P3dMesh *curpme = pme;
+
+        qDebug() << "loaded " << model.toLocalFile() << " and found " << totmesh << " meshes.";
+
+        for(uint i = 0; i < totmesh; i++, curpme++)
+        {
+            P3D_LOGD("init blend data");
+            m_BlendData->clearBlendData();
+            m_BlendData->initBlendData(curpme->chunks[0].totvert, curpme->chunks[0].totface, curpme->chunks[0].v, curpme->chunks[0].f);
+            P3D_LOGD("done init blend data");
+            free_p3d_mesh_data(curpme);
+        }
+        free(pme);
+
+        P3D_LOGD("blender geom size %d", m_BlendData->vertbytes + m_BlendData->facebytes);
+        setModelState(MS_PROCESSING);
+        window->update();
+
+        return;
+
+    }
+
     if(model.fileName().endsWith(".bin"))
     {
         // this is a local binary file
@@ -141,6 +181,13 @@ void QmlAppViewer::onGLRender()
         m_ModelData.clear();
         setModelState(MS_READY);
     }
+    if(m_BlendData->isLoaded()) {
+        setModelState(MS_PROCESSING);
+        m_P3dViewer->loadModel(m_BlendData);
+        m_BlendData->clearBlendData();
+        setModelState(MS_READY);
+    }
+
     if(m_ClearModel)
     {
         m_ClearModel = false;

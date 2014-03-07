@@ -7,6 +7,7 @@ class QNetworkAccessManager;
 class QNetworkReply;
 
 class P3dViewer;
+class BlendData;
 
 class QmlAppViewer : public QtQuick2ControlsApplicationViewer
 {
@@ -55,6 +56,7 @@ private:
     QByteArray m_ModelData;
     ModelState m_ModelState;
     bool m_ClearModel;
+    BlendData *m_BlendData;
 };
 
 #endif // QMLAPPVIEWER_H

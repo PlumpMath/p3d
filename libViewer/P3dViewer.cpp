@@ -312,3 +312,15 @@ void P3dViewer::clearModel()
     m_ModelLoader->clear();
 }
 
+bool P3dViewer::loadModel(const BlendData *blendData)
+{
+    P3D_LOGD("ready to load %d bytes, blend", blendData->size());
+    bool res = m_ModelLoader->load(blendData);
+    if(res)
+    {
+        P3D_LOGD("bounding radius %f", m_ModelLoader->boundingRadius());
+        m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
+        m_CameraNavigation->reset();
+    }
+    return res;
+}

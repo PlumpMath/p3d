@@ -28,6 +28,87 @@ struct MeshChunk
     uint16_t material;
 };
 
+#define STRIDE 3
+/** Class to pass around data buffers from Blender files */
+class BlendData {
+public:
+    BlendData()
+    {
+        totvert = 0;
+        totface = 0;
+        vertbytes = 0;
+        facebytes = 0;
+        verts = 0;
+        faces = 0;
+        isloaded = false;
+    }
+    ~BlendData()
+    {
+        clearBlendData();
+    }
+
+    /** Data is expected to be triangulated before being passed in here. */
+    void initBlendData(uint32_t tv, uint32_t tf, float *vs, uint32_t *fs) {
+        isloaded = false;
+        if(verts != 0) delete [] verts;
+        if(faces != 0) delete [] faces;
+
+        totvert = tv;
+        totface = tf;
+
+        vertbytes = totvert * sizeof(float) * STRIDE;
+        facebytes = totface * sizeof(uint32_t) * STRIDE;
+
+        verts = new float[totvert*STRIDE];
+        faces = new uint32_t[totface*STRIDE];
+
+        float *v, *vnew;
+        uint32_t *f, *fnew;
+        uint i;
+        for(i=0, v = vs, vnew = verts; i < tv*STRIDE; i++, v++, vnew++) {
+            *vnew = *v;
+            P3D_LOGD("v %f\n", *vnew);
+        }
+
+        for(i=0, f = fs, fnew = faces; i < tf*STRIDE; i++, f++, fnew++) {
+            *fnew = *f;
+            P3D_LOGD("f %u\n", *fnew);
+        }
+
+        if(totvert>0 && verts!=NULL) {
+            isloaded = true;
+        } else {
+            clearBlendData();
+        }
+    }
+
+    void clearBlendData() {
+        isloaded = false;
+        delete [] verts;
+        delete [] faces;
+        verts = 0;
+        faces = 0;
+        totvert = 0;
+        totface = 0;
+        vertbytes = 0;
+        facebytes = 0;
+    }
+
+    size_t size() const { return vertbytes + facebytes; }
+
+    bool isLoaded() { return isloaded; }
+
+    uint32_t totvert;
+    float *verts;
+    size_t vertbytes;
+
+    uint32_t totface;
+    uint32_t *faces;
+    size_t facebytes;
+
+    bool isloaded;
+};
+
 struct GLBuffers;
 
 class ModelLoader
@@ -43,6 +124,7 @@ public:
     ModelLoader();
     virtual ~ModelLoader();
     bool load(const char* data, size_t size);
+    bool load(const BlendData *blendData); // << load blender data
     bool isLoaded() { return m_loaded; }
     void clear();
     int chunkCount() { return m_chunks.size(); }
@@ -70,6 +152,7 @@ private:
         size_t hash() const;
     };
     size_t addPadding(size_t size);
+
     bool reindex(const char *data);
     uint32_t reindexType(uint32_t &chunk, VertexType vtype, const char* data,
                          uint16_t *new_faces, uint16_t *new_mats);
@@ -78,6 +161,13 @@ private:
                       GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
     void nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
                    uint32_t vertOffset, bool firstOfType = false);
+
+    uint32_t reindexTypeBlender(uint32_t &chunk, VertexType vtype, const BlendData *blendData,
+                         uint16_t *new_faces); // << reindex blender data for specified vertex type
+    void copyVertDataBlender(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData* data,
+                      GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos); // << copy blender vertex data into GLfloat buffers
+    void nextChunkBlender(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+                   uint32_t vertOffset, bool firstOfType = false); // << create a new chunk, blender specific
 
     bool m_loaded;
 
