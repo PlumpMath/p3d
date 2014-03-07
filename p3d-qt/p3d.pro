@@ -16,9 +16,9 @@ INCLUDEPATH += ../P3dConverter/P3dConvert
 INCLUDEPATH += ../P3dConverter/File
 INCLUDEPATH += ../P3dConverter/FileFormats/Blend
 
-QMAKE_LFLAGS += -Wl,-rpath,/home/nathan/dev/cpp-viewer/build/p3dconverter/File
-QMAKE_LFLAGS += -Wl,-rpath,/home/nathan/dev/cpp-viewer/build/p3dconverter/FileFormats/Blend
-QMAKE_LFLAGS += -Wl,-rpath,/home/nathan/dev/cpp-viewer/build/p3dconverter/P3dConvert
+QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/File", $$PWD)
+QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/FileFormats/Blend", $$PWD)
+QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/P3dConvert", $$PWD)
 
 LIBS += -L../p3dconverter/File
 LIBS += -L../p3dconverter/FileFormats/Blend
