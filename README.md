@@ -6,6 +6,21 @@ This is using git submodules for external libs (glm, P3dConverter), so:
     $git submodule init
     $git submodule update
 
+Building with P3dConverter
+==========================
+
+Initialize and update submodules as per first section.
+
+In QtCreator with p3d project open add a new project. Select the CMakeLists.txt
+file from the P3dConverter directory.
+
+As build directory make sure you use ./build/p3dconverter (seen from README.md).
+
+Set this new project to be the dependency for the p3d project.
+
+Structure
+=========
+
 Contains following projects:
 
  - libViewer: the viewer library
