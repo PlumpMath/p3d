@@ -11,6 +11,21 @@ QMAKE_CXXFLAGS += -std=c++0x
 INCLUDEPATH += ../libViewer
 INCLUDEPATH += ../ext/glm
 
+# converter paths
+INCLUDEPATH += ../P3dConverter/P3dConvert
+INCLUDEPATH += ../P3dConverter/File
+INCLUDEPATH += ../P3dConverter/FileFormats/Blend
+
+QMAKE_LFLAGS += -Wl,-rpath,/home/nathan/dev/cpp-viewer/build/p3dconverter/File
+QMAKE_LFLAGS += -Wl,-rpath,/home/nathan/dev/cpp-viewer/build/p3dconverter/FileFormats/Blend
+QMAKE_LFLAGS += -Wl,-rpath,/home/nathan/dev/cpp-viewer/build/p3dconverter/P3dConvert
+
+LIBS += -L../p3dconverter/File
+LIBS += -L../p3dconverter/FileFormats/Blend
+LIBS += -L../p3dconverter/P3dConvert
+LIBS += -L../p3dconverter/zlib
+LIBS += -lzlibstatic -lp3dConvert -lfbtFile -lbfBlend
+
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += \
     main.cpp \
