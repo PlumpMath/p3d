@@ -51,24 +51,28 @@ void QmlAppViewer::setModelState(ModelState newValue)
 
 void QmlAppViewer::loadModel(const QUrl &model)
 {
+    QString fileName = model.fileName();
+    QString path = model.toLocalFile()!="" ? model.toLocalFile() : model.path();
+
     setModelState(MS_LOADING);
-    if(model.fileName().endsWith(".blend"))
+    if(fileName.endsWith(".blend"))
     {
+        qDebug() << "found a blend file: " << path;
         // loading a .blend
-        QFile file(model.toLocalFile());
+        QFile file(path);
         if(!file.exists())
         {
-            qWarning() << "File doesn't exist: " << model.toLocalFile();
+            qWarning() << "File doesn't exist: " << model;
             return;
         }
 
-        parse_blend(model.fileName().toLocal8Bit().data());
+        parse_blend(path.toLocal8Bit().data());
 
         size_t totmesh = 0;
         P3dMesh *pme = extract_all_geometry(&totmesh);
         P3dMesh *curpme = pme;
 
-        qDebug() << "loaded " << model.toLocalFile() << " and found " << totmesh << " meshes.";
+        qDebug() << "loaded " << path << " and found " << totmesh << " meshes.";
 
         for(uint i = 0; i < totmesh; i++, curpme++)
         {
@@ -88,10 +92,10 @@ void QmlAppViewer::loadModel(const QUrl &model)
 
     }
 
-    if(model.fileName().endsWith(".bin"))
+    if(fileName.endsWith(".bin"))
     {
         // this is a local binary file
-        QFile file(model.toLocalFile());
+        QFile file(path);
         if(!file.exists())
         {
             qWarning() << "File doesn't exist:" << model;
@@ -120,7 +124,7 @@ void QmlAppViewer::loadModel(const QUrl &model)
 
     m_ModelData.clear();
 
-    m_NetInfoReply = m_NetMgr->get(QNetworkRequest(QUrl("http://p3d.in/api/viewer_models/" + model.fileName())));
+    m_NetInfoReply = m_NetMgr->get(QNetworkRequest(QUrl("http://p3d.in/api/viewer_models/" + fileName)));
     connect(m_NetInfoReply, SIGNAL(finished()), SLOT(onModelInfoReplyDone()));
 }
 
