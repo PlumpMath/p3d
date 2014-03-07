@@ -1048,9 +1048,12 @@ void ModelLoader::copyVertDataBlender(uint32_t vertOffset, P3dMap<VertexIndex, u
         new_offset = (new_index + vertOffset) * STRIDE;
         // store empty normal
         // TODO: actual normal storage if present in BlendData
-        new_norm[new_offset] = new_uv[new_offset++] = 0.0f;
-        new_norm[new_offset] = new_uv[new_offset++] = 0.0f;
-        new_norm[new_offset] = new_uv[new_offset++] = 0.0f;
+        new_norm[new_offset] = 0.0f;
+        new_uv[new_offset++] = 0.0f;
+        new_norm[new_offset] = 0.0f;
+        new_uv[new_offset++] = 0.0f;
+        new_norm[new_offset] = 0.0f;
+        new_uv[new_offset] = 0.0f;
     }
 
     P3D_LOGD("BB: %f:%f %f:%f %f:%f", m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
