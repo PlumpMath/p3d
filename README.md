@@ -1,7 +1,7 @@
 p3d.in c++ viewer
 =================
 
-This is using git submodules for external libs (glm), so:
+This is using git submodules for external libs (glm, P3dConverter), so:
 
     $git submodule init
     $git submodule update
