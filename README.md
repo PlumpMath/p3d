@@ -16,6 +16,11 @@ file from the P3dConverter directory.
 
 As build directory make sure you use ./build/p3dconverter (seen from README.md).
 
+In project settings for P3dConverter go to Build and Run settings. From that
+choose Build. Set the Build Steps for P3dConverter to:
+
+   make zlibstatic fbtFile bfBlend p3dConvert
+
 Set this new project to be the dependency for the p3d project.
 
 Structure
