@@ -157,7 +157,6 @@ void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t em
                               float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
                               uint16_t* indexBuffer, uint32_t chunkCount, const MeshChunk* chunks)
 {
-    generateNormals(indexBuffer, posBuffer, normBuffer, emptyNormCount);
     uint32_t chunk;
 
     if(chunks)
@@ -167,6 +166,8 @@ void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t em
             m_chunks.push_back(chunks[chunk]);
         }
     }
+
+    generateNormals(indexBuffer, posBuffer, normBuffer, emptyNormCount);
 
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
