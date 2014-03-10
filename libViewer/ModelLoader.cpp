@@ -858,6 +858,7 @@ bool ModelLoader::load(const BlendData *blendData)
     delete [] new_faces;
 
     P3D_LOGD("reindex took %lldms", PlatformAdapter::durationMillis(start));
+    m_loaded = true;
     return true;
 
 }
