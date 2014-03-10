@@ -2,19 +2,13 @@
 #include "PlatformAdapter.h"
 #include "glwrapper.h"
 #include <cstring>
+
 #if defined(_WIN32) || defined(_WIN64)
 static inline uint32_t le32toh(uint32_t x) {return x;}
 static inline uint16_t le16toh(uint16_t x) {return x;}
 #else
 #include <endian.h>
 #endif
-
-#include "P3dVector.h"
-
-#include "P3dMap.h"
-
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
 
 #ifdef __ANDROID__
 #define READ_U32(x) (letoh32(*((uint32_t*) &x)))
@@ -23,6 +17,10 @@ static inline uint16_t le16toh(uint16_t x) {return x;}
 #define READ_U32(x) (le32toh(*((uint32_t*) &x)))
 #define READ_U16(x) (le16toh(*((uint16_t*) &x)))
 #endif
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+
 
 #define STRIDE 3
 
@@ -273,6 +271,16 @@ float ModelLoader::boundingRadius()
     return result;
 }
 
+void ModelLoader::setBoundingBox(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
+{
+    m_minX = minX;
+    m_maxX = maxX;
+    m_minY = minY;
+    m_maxY = maxY;
+    m_minZ = minZ;
+    m_maxZ = maxZ;
+}
+
 size_t ModelLoader::addPadding(size_t size)
 {
     return size + ( ( size % 4 ) ? ( 4 - size % 4 ) : 0 );
@@ -346,7 +354,7 @@ void ModelLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
 
 void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t uvCount,
                               float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
-                              uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks)
+                              uint16_t* indexBuffer, uint32_t chunkCount, const MeshChunk* chunks)
 {
     generateNormals(indexBuffer, posBuffer, normBuffer);
     uint32_t chunk;

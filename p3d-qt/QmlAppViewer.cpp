@@ -52,7 +52,7 @@ void QmlAppViewer::setModelState(ModelState newValue)
 void QmlAppViewer::loadModel(const QUrl &model)
 {
     QString fileName = model.fileName();
-    QString path = model.toLocalFile()!="" ? model.toLocalFile() : model.path();
+    QString path = model.isLocalFile() ? model.toLocalFile() : model.path();
 
     setModelState(MS_LOADING);
     if(fileName.endsWith(".blend"))

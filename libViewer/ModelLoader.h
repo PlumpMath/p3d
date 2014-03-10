@@ -8,25 +8,7 @@
 #include "P3dMap.h"
 #include "glwrapper.h"
 
-struct MeshChunk
-{
-    MeshChunk()
-    {
-        memset(this, 0, sizeof(MeshChunk));
-    }
-
-    uint32_t vertCount;
-    uint32_t vertOffset;
-
-    bool validNormals;
-    bool hasUvs;
-
-    uint32_t indexCount;
-    uint32_t f3Offset;
-    uint32_t f4Offset;
-
-    uint16_t material;
-};
+#include "BaseLoader.h"
 
 #define STRIDE 3
 /** Class to pass around data buffers from Blender files */
@@ -126,6 +108,7 @@ public:
     bool load(const char* data, size_t size);
     bool load(const BlendData *blendData); // << load blender data
     bool isLoaded() { return m_loaded; }
+    void setIsLoaded(bool newValue) { m_loaded = newValue; }
     void clear();
     int chunkCount() { return m_chunks.size(); }
     GLuint posBuffer(uint32_t chunk);
@@ -137,9 +120,10 @@ public:
     uint16_t material(uint32_t chunk) { return m_chunks[chunk].material; }
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
+    void setBoundingBox(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
     void createModel(uint32_t posCount, uint32_t normCount, uint32_t uvCount,
                      float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
-                     uint16_t* indexBuffer, uint32_t chunkCount, MeshChunk* chunks);
+                     uint16_t* indexBuffer, uint32_t chunkCount, const MeshChunk *chunks);
 
 private:
     struct VertexIndex

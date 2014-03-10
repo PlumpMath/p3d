@@ -34,7 +34,9 @@ SOURCES += \
     ../libViewer/PlatformAdapter.cpp \
     QtPlatformAdapter.cpp \
     ../libViewer/ModelLoader.cpp \
-    ../libViewer/CameraNavigation.cpp
+    ../libViewer/CameraNavigation.cpp \
+    ../libViewer/BaseLoader.cpp \
+    ../libViewer/BinLoader.cpp
 
 windows {
 SOURCES += \
@@ -63,7 +65,9 @@ HEADERS += \
     ../libViewer/P3dVector.h \
     ../libViewer/CameraNavigation.h \
     ../libViewer/GL/gl3w.h \
-    ../libViewer/GL/glcorearb.h
+    ../libViewer/GL/glcorearb.h \
+    ../libViewer/BaseLoader.h \
+    ../libViewer/BinLoader.h
 
 RESOURCES += \
     resources.qrc
