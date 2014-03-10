@@ -300,7 +300,6 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size)
 {
     BinLoader loader;
     loader.setModelLoader(m_ModelLoader);
-    //bool res = m_ModelLoader->load(binaryData, size);
     bool res = loader.load(binaryData, size);
     if(res)
     {

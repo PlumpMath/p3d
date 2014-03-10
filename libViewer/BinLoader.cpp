@@ -230,7 +230,7 @@ bool BinLoader::reindex(const char *data)
     }
     m_vertex_maps.clear();
 
-    m_modelLoader->createModel(m_new_pos_count, m_new_norm_count, m_new_uv_count,
+    m_modelLoader->createModel(m_new_pos_count, m_new_norm_count, m_new_empty_norm_count, m_new_uv_count,
                 new_pos, new_norm, new_uv, m_total_index_count,
                 new_faces, m_chunks.size(), m_chunks.data());
 

@@ -105,7 +105,6 @@ public:
 
     ModelLoader();
     virtual ~ModelLoader();
-    bool load(const char* data, size_t size);
     bool load(const BlendData *blendData); // << load blender data
     bool isLoaded() { return m_loaded; }
     void setIsLoaded(bool newValue) { m_loaded = newValue; }
@@ -121,7 +120,7 @@ public:
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
     void setBoundingBox(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
-    void createModel(uint32_t posCount, uint32_t normCount, uint32_t uvCount,
+    void createModel(uint32_t posCount, uint32_t normCount, uint32_t emptyNormCount, uint32_t uvCount,
                      float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
                      uint16_t* indexBuffer, uint32_t chunkCount, const MeshChunk *chunks);
 
@@ -136,15 +135,8 @@ private:
         size_t hash() const;
     };
     size_t addPadding(size_t size);
+    void generateNormals(uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm, uint32_t emptyNormCount);
 
-    bool reindex(const char *data);
-    uint32_t reindexType(uint32_t &chunk, VertexType vtype, const char* data,
-                         uint16_t *new_faces, uint16_t *new_mats);
-    void generateNormals(uint16_t *new_faces, GLfloat* new_pos, GLfloat* new_norm);
-    void copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const char* data,
-                      GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
-    void nextChunk(uint32_t &chunk, ModelLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
-                   uint32_t vertOffset, bool firstOfType = false);
 
     uint32_t reindexTypeBlender(uint32_t &chunk, VertexType vtype, const BlendData *blendData,
                          uint16_t *new_faces); // << reindex blender data for specified vertex type
