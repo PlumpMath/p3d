@@ -36,7 +36,8 @@ SOURCES += \
     ../libViewer/ModelLoader.cpp \
     ../libViewer/CameraNavigation.cpp \
     ../libViewer/BaseLoader.cpp \
-    ../libViewer/BinLoader.cpp
+    ../libViewer/BinLoader.cpp \
+    ../libViewer/BlendLoader.cpp
 
 windows {
 SOURCES += \
@@ -67,7 +68,8 @@ HEADERS += \
     ../libViewer/GL/gl3w.h \
     ../libViewer/GL/glcorearb.h \
     ../libViewer/BaseLoader.h \
-    ../libViewer/BinLoader.h
+    ../libViewer/BinLoader.h \
+    ../libViewer/BlendLoader.h
 
 RESOURCES += \
     resources.qrc

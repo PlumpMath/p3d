@@ -4,6 +4,7 @@
 #include "CameraNavigation.h"
 #include "glwrapper.h"
 #include "BinLoader.h"
+#include "BlendLoader.h"
 
 #define GLM_FORCE_RADIANS
 // vec3, vec4, ivec4, mat4
@@ -322,8 +323,10 @@ void P3dViewer::clearModel()
 
 bool P3dViewer::loadModel(const BlendData *blendData)
 {
+    BlendLoader loader;
+    loader.setModelLoader(m_ModelLoader);
     P3D_LOGD("ready to load %d bytes, blend", blendData->size());
-    bool res = m_ModelLoader->load(blendData);
+    bool res = loader.load(blendData);
     if(res)
     {
         P3D_LOGD("bounding radius %f", m_ModelLoader->boundingRadius());

@@ -14,6 +14,7 @@
 #include <QFile>
 
 #include "ModelLoader.h"
+#include "BlendLoader.h"
 #include "P3dViewer.h"
 #include "CameraNavigation.h"
 #include "QtPlatformAdapter.h"
