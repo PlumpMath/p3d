@@ -207,6 +207,7 @@ void QmlAppViewer::onModelInfoReplyDone()
     m_NetInfoReply->deleteLater();
     if(m_NetInfoReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 200)
     {
+        m_NetInfoReply = 0;
         return;
     }
     QByteArray data = m_NetInfoReply->readAll();
@@ -217,6 +218,7 @@ void QmlAppViewer::onModelInfoReplyDone()
     qDebug() << "bin url:" << binUrl;
     m_NetDataReply = m_NetMgr->get(QNetworkRequest(QUrl(binUrl)));
     connect(m_NetDataReply, SIGNAL(finished()), SLOT(onModelDataReplyDone()));
+    m_NetInfoReply = 0;
 }
 
 void QmlAppViewer::onModelDataReplyDone()
@@ -224,6 +226,7 @@ void QmlAppViewer::onModelDataReplyDone()
     m_NetDataReply->deleteLater();
     if(m_NetDataReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() != 200)
     {
+        m_NetDataReply = 0;
         return;
     }
     //TODO: threading
@@ -231,4 +234,5 @@ void QmlAppViewer::onModelDataReplyDone()
     qDebug() << m_NetDataReply->url() << "returned" << m_ModelData.size() << "bytes";
     setModelState(MS_PROCESSING);
     window->update();
+    m_NetDataReply = 0;
 }
