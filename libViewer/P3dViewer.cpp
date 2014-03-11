@@ -323,15 +323,16 @@ void P3dViewer::clearModel()
 
 bool P3dViewer::loadModel(const BlendData *blendData, const char *extension)
 {
-    BlendLoader *loader = dynamic_cast<BlendLoader *>(BaseLoader::loaderFromExtension(extension));
+    BaseLoader *loader = BaseLoader::loaderFromExtension(extension);
     if(!loader)
     {
         P3D_LOGW("unsupported extension:  %s", extension);
         return false;
     }
     loader->setModelLoader(m_ModelLoader);
+    BlendData *data = const_cast<BlendData*>(blendData);
     P3D_LOGD("ready to load %d bytes, blend", blendData->size());
-    bool res = loader->load(blendData);
+    bool res = loader->load(static_cast<void *>(data));
     if(res)
     {
         P3D_LOGD("bounding radius %f", m_ModelLoader->boundingRadius());

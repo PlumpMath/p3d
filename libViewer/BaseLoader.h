@@ -42,6 +42,7 @@ public:
     void setModelLoader(ModelLoader* modelLoader) { m_modelLoader = modelLoader; }
     static BaseLoader* loaderFromExtension(const char* extension);
     virtual bool load(const char*, size_t) { return false; }
+    virtual bool load(const void *data) { return false; }
 
 protected:
     struct VertexIndex

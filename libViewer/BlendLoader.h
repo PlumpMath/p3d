@@ -8,6 +8,8 @@
 #include "PlatformAdapter.h"
 #include "P3dMap.h"
 
+#include "p3dConvert.h"
+
 #include "glwrapper.h"
 
 #define STRIDE 3
@@ -64,6 +66,17 @@ public:
         }
     }
 
+    void initBlendData(P3dConverter &converter){
+        P3D_LOGD("Adding %u meshes", converter.object_count());
+        for(uint32_t i = 0; i < converter.object_count(); i++) {
+            P3dMesh &mesh = converter[0];
+            for(uint32_t j = 0; j < mesh.m_totchunk; j++) {
+                Chunk &chunk = mesh.m_chunks[j];
+                initBlendData(chunk.totvert, chunk.totface, chunk.v, chunk.f);
+            }
+        }
+    }
+
     void clearBlendData() {
         isloaded = false;
         delete [] verts;
@@ -97,7 +110,7 @@ public:
     BlendLoader();
     virtual ~BlendLoader();
 
-    bool load(const BlendData *data);
+    bool load(const void *data);
 
 private:
     uint32_t reindexTypeBlender(uint32_t &chunk, VertexType vtype, const BlendData *blendData,

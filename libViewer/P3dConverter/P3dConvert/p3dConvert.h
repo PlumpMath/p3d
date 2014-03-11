@@ -12,18 +12,25 @@
 #ifndef P3DCONVERT_H
 #define P3DCONVERT_H
 
+#include <cstdlib>
+#include <cstdint>
+
 #include "fbtBlend.h"
 #include "Blender.h"
 
 #include "P3dVector.h"
 
-#include <cstdlib>
-#include <cstdint>
-
 using namespace Blender;
 
 class Chunk {
 public:
+    Chunk(){ }
+    ~Chunk() {
+        delete [] v;
+        delete [] f;
+        v = 0; f = 0; totvert = 0; totface = 0;
+    }
+
     uint32_t totvert;
     uint32_t totface;
 	float *v; /* verts, stride 3 */
@@ -32,8 +39,8 @@ public:
 
 class P3dMesh{
 public:
-	uint16_t totchunk;
-	Chunk *chunks;
+    uint16_t m_totchunk;
+    Chunk *m_chunks;
 };
 
 class P3dConverter {
@@ -41,13 +48,20 @@ public:
     P3dConverter();
     ~P3dConverter();
 
-    P3dMesh *extract_all_geometry(size_t *count);
     int parse_blend(const char *path);
+
+    size_t object_count() {
+        return m_pme.size();
+    }
+    P3dMesh &operator[](size_t i) {
+        return m_pme[i];
+    }
+
 private:
+    void extract_all_geometry();
     void free_p3d_mesh_data(P3dMesh *pme);
-    int extract_geometry(Object *ob, P3dMesh *pme);
-    void cleanup();
-    int count_mesh_objects();
+    void extract_geometry(Object *ob);
+    size_t count_mesh_objects();
 
     P3dVector<P3dMesh> m_pme;
     fbtBlend m_fp;

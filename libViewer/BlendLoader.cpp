@@ -22,8 +22,10 @@ BlendLoader::~BlendLoader()
 
 /********** BLENDER DATA ***************************/
 
-bool BlendLoader::load(const BlendData *blendData)
+bool BlendLoader::load(const void *data)
 {
+    void *d = const_cast<void *>(data);
+    BlendData *blendData = static_cast<BlendData *>(d);
     uint64_t start = PlatformAdapter::currentMillis();
     uint32_t chunk = 0;
 
@@ -94,14 +96,14 @@ bool BlendLoader::load(const BlendData *blendData)
 
     delete [] new_faces;
 
-    P3D_LOGD("reindex took %lldms", PlatformAdapter::durationMillis(start));
     m_loaded = true;
 
     m_modelLoader->setBoundingBox(m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
     m_modelLoader->setIsLoaded(m_loaded);
 
-    return m_loaded;
+    P3D_LOGD("reindex took %lldms", PlatformAdapter::durationMillis(start));
 
+    return m_loaded;
 }
 
 uint32_t BlendLoader::reindexTypeBlender(uint32_t &chunk, BlendLoader::VertexType vtype, const BlendData *blendData,
@@ -191,13 +193,14 @@ uint32_t BlendLoader::reindexTypeBlender(uint32_t &chunk, BlendLoader::VertexTyp
                 m_new_empty_norm_count += 3;
             }
 
-            //P3D_LOGD("face %u, idx %u, new idx %u, %u", face, index.pos, new_index, vertexMap->size());
+            P3D_LOGD("face %u, idx %u, new idx %u, %u", face, index.pos, new_index, vertexMap->size());
             new_faces[new_offset] = (uint16_t)new_index;
             ++new_offset;
         }
     }
 
     m_chunks[chunk].vertCount = (m_new_pos_count - STRIDE * m_chunks[chunk].vertOffset) / 3;
+    m_chunks[chunk].validNormals = true; // hack
 
     P3D_LOGD("reindex type Blender took: %lldms", PlatformAdapter::durationMillis(start));
 
@@ -290,12 +293,12 @@ void BlendLoader::copyVertDataBlender(uint32_t vertOffset, P3dMap<VertexIndex, u
         new_offset = (new_index + vertOffset) * STRIDE;
         // store empty normal
         // TODO: actual normal storage if present in BlendData
-        new_norm[new_offset] = 0.0f;
-        new_uv[new_offset++] = 0.0f;
-        new_norm[new_offset] = 0.0f;
-        new_uv[new_offset++] = 0.0f;
-        new_norm[new_offset] = 0.0f;
-        new_uv[new_offset] = 0.0f;
+        new_norm[new_offset] = .5f;
+        new_uv[new_offset++] = 1.0f;
+        new_norm[new_offset] = .5f;
+        new_uv[new_offset++] = 1.0f;
+        new_norm[new_offset] = .5f;
+        new_uv[new_offset] = 1.0f;
     }
 
     P3D_LOGD("BB: %f:%f %f:%f %f:%f", m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);

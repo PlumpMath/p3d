@@ -22,7 +22,7 @@ P3dConverter::P3dConverter() {
 }
 
 P3dConverter::~P3dConverter() {
-    cleanup();
+    m_pme.clear();
 }
 
 int P3dConverter::parse_blend(const char *path) {
@@ -37,39 +37,43 @@ int P3dConverter::parse_blend(const char *path) {
 		gzipped = true;
 	}
     fbtPrintf(" %s | %d%s[OK]\n", m_fp.getHeader().c_str(), m_fp.getVersion(), gzipped ? " compressed ": "");
+
+    extract_all_geometry();
 	
 	return 0;
 }
 
 void P3dConverter::free_p3d_mesh_data(P3dMesh *pme) {
-	Chunk *chunk = pme->chunks;
+    Chunk *chunk = pme->m_chunks;
 	if(chunk) {
-		for(int i = 0; i < pme->totchunk; i++, chunk++) {
+        for(int i = 0; i < pme->m_totchunk; i++, chunk++) {
             delete [] chunk->v;
             delete [] chunk->f;
 		}
 	}
-    delete [] pme->chunks;
+    delete [] pme->m_chunks;
 }
 
-int P3dConverter::extract_geometry(Object *ob, P3dMesh *pme) {
+void P3dConverter::extract_geometry(Object *ob) {
     uint32_t totf3 = 0;
     uint32_t totfx = 0;
 	totmesh = 0;
 
-    if(ob->type != 1 || !ob->data) return 1;
+    if(ob->type != 1 || !ob->data) throw;
 
-	pme->totchunk = 0;
-	pme->chunks = 0;
+    P3dMesh pme = P3dMesh();
+
+    pme.m_totchunk = 0;
+    pme.m_chunks = 0;
 
 	Mesh *me = (Mesh *)ob->data;
 	MVert *mvert = me->mvert;
 
     /* for now only one chunk. */
-    pme->chunks = new Chunk[1]; //(Chunk *)malloc(sizeof(Chunk));
-	pme->totchunk = 1;
+    pme.m_chunks = new Chunk[1]; //(Chunk *)malloc(sizeof(Chunk));
+    pme.m_totchunk = 1;
 
-	Chunk *chunk = pme->chunks;
+    Chunk *chunk = pme.m_chunks;
 	chunk->totvert = 0;
 	chunk->totface = 0;
 	chunk->v = 0;
@@ -104,17 +108,19 @@ int P3dConverter::extract_geometry(Object *ob, P3dMesh *pme) {
 		mf = me->mface;
         for(uint32_t j=0, curf=0; j < (uint32_t)me->totface; j++, mf++) {
 			if(mf->v4==0) {
-                chunk->f[curf++] = (uint32_t)mf->v1;
-                chunk->f[curf++] = (uint32_t)mf->v2;
-                chunk->f[curf++] = (uint32_t)mf->v3;
+                chunk->f[curf] = (uint32_t)mf->v1;
+                chunk->f[curf+1] = (uint32_t)mf->v2;
+                chunk->f[curf+2] = (uint32_t)mf->v3;
+                curf+=3;
                 fbtPrintf(" %s triface [LEGACY] %d: [%d, %d, %d]\n", ob->id.name+2, j, chunk->f[curf-3], chunk->f[curf-2], chunk->f[curf-1]);
 			} else {
-                chunk->f[curf++] = (uint32_t)mf->v1;
-                chunk->f[curf++] = (uint32_t)mf->v2;
-                chunk->f[curf++] = (uint32_t)mf->v3;
-                chunk->f[curf++] = (uint32_t)mf->v1;
-                chunk->f[curf++] = (uint32_t)mf->v3;
-                chunk->f[curf++] = (uint32_t)mf->v4;
+                chunk->f[curf] = (uint32_t)mf->v1;
+                chunk->f[curf+1] = (uint32_t)mf->v2;
+                chunk->f[curf+2] = (uint32_t)mf->v3;
+                chunk->f[curf+3] = (uint32_t)mf->v1;
+                chunk->f[curf+4] = (uint32_t)mf->v3;
+                chunk->f[curf+5] = (uint32_t)mf->v4;
+                curf+=6;
 			}
 		}
 	/* mesh data since bmesh */
@@ -152,22 +158,11 @@ int P3dConverter::extract_geometry(Object *ob, P3dMesh *pme) {
                 fbtPrintf(" %s quad found\n", ob->id.name+2);
 			}
 		}
-	}
-
-	return 0;
+    }
+    m_pme.push_back(pme);
 }
 
-void P3dConverter::cleanup() {
-    //P3dMesh *curpme = m_pme.size();
-    for(uint32_t i = 0; i < m_pme.size(); i++) {
-        P3dMesh *tmp = &m_pme[i];
-		free_p3d_mesh_data(tmp);
-	}
-
-    m_pme.clear();
-}
-
-int P3dConverter::count_mesh_objects() {
+size_t P3dConverter::count_mesh_objects() {
 	totmesh = 0;
     fbtList& objects = m_fp.m_object;
 	for (Object* ob = (Object*)objects.first; ob; ob = (Object*)ob->id.next) {
@@ -179,24 +174,23 @@ int P3dConverter::count_mesh_objects() {
 	return totmesh;
 }
 
-P3dMesh *P3dConverter::extract_all_geometry(size_t *count) {
+void P3dConverter::extract_all_geometry() {
 
-	*count = count_mesh_objects();
+    size_t count = count_mesh_objects();
 
-    fbtPrintf("%d mesh object%s found\n", (*count), (*count)==1?"":"s");
-    P3dMesh *pme = new P3dMesh[*count];
+    fbtPrintf("%d mesh object%s found\n", count, count==1?"":"s");
+    //P3dMesh *pme = new P3dMesh[*count];
 
-	P3dMesh *curpme = pme;
+    //P3dMesh *curpme = pme;
+
     fbtList& objects = m_fp.m_object;
 	for (Object* ob = (Object*)objects.first; ob; ob = (Object*)ob->id.next) {
 		if (ob->data && ob->type == 1) {
-			extract_geometry(ob, curpme);
-            fbtPrintf("%s: %d verts, %d faces\n", ob->id.name+2, curpme->chunks[0].totvert, curpme->chunks[0].totface);
-			curpme++;
+            extract_geometry(ob);
+            //m_pme.push_back(curpme);
+            //fbtPrintf("%s: %d verts, %d faces\n", ob->id.name+2, curpme.m_chunks[0].totvert, curpme.m_chunks[0].totface);
 		}
 	}
     fbtPrintf(" @.\n");
-
-	return pme;
 }
 	

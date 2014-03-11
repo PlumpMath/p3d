@@ -67,9 +67,12 @@ void QmlAppViewer::loadModel(const QUrl &model)
             return;
         }
 
-        parse_blend(path.toLocal8Bit().data());
+        P3dConverter converter;
 
-        size_t totmesh = 0;
+        converter.parse_blend(path.toLocal8Bit().data());
+        m_BlendData->initBlendData(converter);
+
+        /*size_t totmesh = 0;
         P3dMesh *pme = extract_all_geometry(&totmesh);
         P3dMesh *curpme = pme;
 
@@ -79,11 +82,11 @@ void QmlAppViewer::loadModel(const QUrl &model)
         {
             P3D_LOGD("init blend data");
             m_BlendData->clearBlendData();
-            m_BlendData->initBlendData(curpme->chunks[0].totvert, curpme->chunks[0].totface, curpme->chunks[0].v, curpme->chunks[0].f);
+            m_BlendData->initBlendData(curpme->m_chunks[0].totvert, curpme->m_chunks[0].totface, curpme->m_chunks[0].v, curpme->m_chunks[0].f);
             P3D_LOGD("done init blend data");
             free_p3d_mesh_data(curpme);
         }
-        free(pme);
+        free(pme);*/
 
         P3D_LOGD("blender geom size %d", m_BlendData->vertbytes + m_BlendData->facebytes);
         setModelState(MS_PROCESSING);
