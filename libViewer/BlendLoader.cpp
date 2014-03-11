@@ -83,7 +83,7 @@ bool BlendLoader::load(const BlendData *blendData)
 
     m_modelLoader->createModel(m_new_pos_count, m_new_norm_count, m_new_empty_norm_count, m_new_uv_count,
                 new_pos, new_norm, new_uv, m_total_index_count,
-                new_faces, m_chunks.size(), 0);
+                new_faces, m_chunks.size(), m_chunks.data());
 
     delete [] new_norm;
     delete [] new_uv;
@@ -93,7 +93,11 @@ bool BlendLoader::load(const BlendData *blendData)
 
     P3D_LOGD("reindex took %lldms", PlatformAdapter::durationMillis(start));
     m_loaded = true;
-    return true;
+
+    m_modelLoader->setBoundingBox(m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
+    m_modelLoader->setIsLoaded(m_loaded);
+
+    return m_loaded;
 
 }
 
