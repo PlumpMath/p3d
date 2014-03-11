@@ -26,7 +26,7 @@ INCLUDEPATH += ../libViewer/P3dConverter/FileFormats/Blend
 
 LIBS += -L./p3dconverter
 LIBS += -L./zlib
-LIBS += -lzlib -lp3dconverter
+LIBS += -lp3dconverter -lzlib
 
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += \
