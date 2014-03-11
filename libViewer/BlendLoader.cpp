@@ -1,8 +1,16 @@
 #include "BlendLoader.h"
 #include "ModelLoader.h"
+#include <cfloat>
 
 BlendLoader::BlendLoader()
 {
+    m_loaded = false;
+    m_minX = FLT_MAX;
+    m_maxX = FLT_MIN;
+    m_minY = FLT_MAX;
+    m_maxY = FLT_MIN;
+    m_minZ = FLT_MAX;
+    m_maxZ = FLT_MIN;
 }
 
 BlendLoader::~BlendLoader()
