@@ -1,27 +1,30 @@
 p3d.in c++ viewer
 =================
 
-This is using git submodules for external libs (glm, P3dConverter), so:
+This is using git submodules for external libs (glm), so:
 
     $git submodule init
     $git submodule update
 
-Building with P3dConverter
-==========================
+Building with QtCreator
+=======================
 
-Initialize and update submodules as per first section.
+Open three projects in the same session:
 
-In QtCreator with p3d project open add a new project. Select the CMakeLists.txt
-file from the P3dConverter directory.
+ - p3d.pro
+ - zlib.pro
+ - p3dconverter.pro
 
-As build directory make sure you use ./build/p3dconverter (seen from README.md).
+For all the base build directory should be ./build/debug and ./build/release
+for the respective build types. For zlib and p3dconverter, append /zlib and
+/p3dconverter respectively. This ensures all internally built libraries can be
+found and linked.
 
-In project settings for P3dConverter go to Build and Run settings. From that
-choose Build. Set the Build Steps for P3dConverter to:
+Set p3d.pro as the active project.
 
-   make zlibstatic fbtFile bfBlend p3dConvert
+Set p3dconverter.pro as dependency for p3d.pro.
 
-Set this new project to be the dependency for the p3d project.
+Set zlib.pro as dependency for p3dconverter.pro.
 
 Structure
 =========
