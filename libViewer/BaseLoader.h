@@ -61,6 +61,8 @@ class RegisterLoader
 {
 public:
     //! \brief registers a loader supporting a list of extensions
+    //! \arg loader pointer to the laoder to register
+    //! \arg ... zero terminated list of exensions
     //! \example ReisterLoader registerMyLoader(&myLoader, ".foo", ".bar", 0);
     RegisterLoader(BaseLoader* loader, ...);
 };
