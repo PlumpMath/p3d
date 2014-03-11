@@ -1,3 +1,5 @@
+TEMPLATE = app
+
 # Add more folders to ship with the application, here
 folder_01.source = qml/p3d
 folder_01.target = qml
@@ -11,20 +13,20 @@ QMAKE_CXXFLAGS += -std=c++0x
 INCLUDEPATH += ../libViewer
 INCLUDEPATH += ../ext/glm
 
+SUBDIRS += P3dConverter
+
 # converter paths
-INCLUDEPATH += ../P3dConverter/P3dConvert
-INCLUDEPATH += ../P3dConverter/File
-INCLUDEPATH += ../P3dConverter/FileFormats/Blend
+INCLUDEPATH += ../libViewer/P3dConverter/P3dConvert
+INCLUDEPATH += ../libViewer/P3dConverter/File
+INCLUDEPATH += ../libViewer/P3dConverter/FileFormats/Blend
 
-QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/File", $$PWD)
-QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/FileFormats/Blend", $$PWD)
-QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/P3dConvert", $$PWD)
+#QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/File", $$PWD)
+#QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/FileFormats/Blend", $$PWD)
+#QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/P3dConvert", $$PWD)
 
-LIBS += -L../p3dconverter/File
-LIBS += -L../p3dconverter/FileFormats/Blend
-LIBS += -L../p3dconverter/P3dConvert
-LIBS += -L../p3dconverter/zlib
-LIBS += -lzlibstatic -lp3dConvert -lfbtFile -lbfBlend
+LIBS += -L./p3dconverter
+LIBS += -L./zlib
+LIBS += -lzlib -lp3dconverter
 
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += \

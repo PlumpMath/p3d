@@ -1,6 +1,3 @@
 [submodule "ext/glm"]
 	path = ext/glm
 	url = https://github.com/g-truc/glm.git
-[submodule "P3dConverter"]
-	path = P3dConverter
-	url = https://github.com/jesterKing/P3dConverter.git
