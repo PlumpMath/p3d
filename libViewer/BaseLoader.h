@@ -40,6 +40,8 @@ public:
     BaseLoader();
     virtual ~BaseLoader() {}
     void setModelLoader(ModelLoader* modelLoader) { m_modelLoader = modelLoader; }
+    static BaseLoader* loaderFromExtension(const char* extension);
+    virtual bool load(const char*, size_t) { return false; }
 
 protected:
     struct VertexIndex
@@ -53,6 +55,14 @@ protected:
     };
 
     ModelLoader* m_modelLoader;
+};
+
+class RegisterLoader
+{
+public:
+    //! \brief registers a loader supporting a list of extensions
+    //! \example ReisterLoader registerMyLoader(&myLoader, ".foo", ".bar", 0);
+    RegisterLoader(BaseLoader* loader, ...);
 };
 
 #endif // BASELOADER_H

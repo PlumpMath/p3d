@@ -29,7 +29,7 @@ public:
     void onSurfaceCreated();
     void onSurfaceChanged(int width, int height);
     void drawFrame();
-    bool loadModel(const char* binaryData, size_t size);
+    bool loadModel(const char* binaryData, size_t size, const char* extension);
     void clearModel();
     bool loadModel(const BlendData *blendData);
     CameraNavigation* cameraNavigation() {return m_CameraNavigation;}

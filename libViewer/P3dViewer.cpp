@@ -296,11 +296,16 @@ void P3dViewer::drawFrame() {
     }
 }
 
-bool P3dViewer::loadModel(const char *binaryData, size_t size)
+bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *extension)
 {
-    BinLoader loader;
-    loader.setModelLoader(m_ModelLoader);
-    bool res = loader.load(binaryData, size);
+    BaseLoader* loader = BaseLoader::loaderFromExtension(extension);
+    if(!loader)
+    {
+        P3D_LOGW("unsupported extension:  %s", extension);
+        return false;
+    }
+    loader->setModelLoader(m_ModelLoader);
+    bool res = loader->load(binaryData, size);
     if(res)
     {
     	P3D_LOGD("bounding radius %f", m_ModelLoader->boundingRadius());

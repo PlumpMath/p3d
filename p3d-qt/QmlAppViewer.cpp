@@ -181,7 +181,7 @@ void QmlAppViewer::onGLRender()
     if(!m_ModelData.isEmpty())
     {
         setModelState(MS_PROCESSING);
-        m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size());
+        m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size(), ".bin");
         m_ModelData.clear();
         setModelState(MS_READY);
     }

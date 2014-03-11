@@ -24,6 +24,9 @@ static float READ_FLOAT(const char& x) {
 
 #include "ModelLoader.h"
 
+static BinLoader binLoader;
+static RegisterLoader registerBinLoader(&binLoader, ".bin", 0);
+
 BinLoader::BinLoader()
 {
     m_loaded = false;

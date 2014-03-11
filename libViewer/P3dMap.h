@@ -4,11 +4,20 @@
 #include "P3dVector.h"
 #include "PlatformAdapter.h"
 
+#include <cstring>
+
 template<typename K>
 class P3dHasher
 {
 public:
     size_t static hash(const K& k) {return k.hash();}
+};
+
+template<typename K>
+class P3dComperator
+{
+public:
+    bool static equals(const K& k1, const K& k2) {return k1 == k2;}
 };
 
 template<>
@@ -17,6 +26,35 @@ class P3dHasher<uint32_t>
 public:
     size_t static hash(const uint32_t& k) {return k;}
 };
+
+template<>
+class P3dHasher<const char*>
+{
+public:
+    size_t static hash(const char* const& k)
+    {
+        size_t i = 0;
+        size_t h1 = k[i++];
+        size_t h2 = h1;
+        while(h2)
+        {
+            h2 = k[i++];
+            h1 ^= h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2);
+        }
+        return h1;
+    }
+};
+
+template<>
+class P3dComperator<const char*>
+{
+public:
+    bool static equals(const char* const& k1, const char* const& k2)
+    {
+        return strcmp(k1, k2) == 0;
+    }
+};
+
 
 //! \brief Replacement for std::unordered_map which makes code size too big (emscripten)
 //! Very limited compared to std::unordered_map
@@ -185,7 +223,7 @@ private:
         for(size_t i = 0, il = buck.size(); i < il; ++i)
         {
             Item& itm = buck[i];
-            if(itm.key == key) return &itm;
+            if(P3dComperator<K>::equals(itm.key, key)) return &itm;
         }
         return 0;
     }
