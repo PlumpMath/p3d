@@ -11,6 +11,8 @@ INCLUDEPATH += zlib
 
 INCLUDEPATH += ../
 
+DEFINES += FBT_USE_GZ_FILE=1
+
 SUBDIRS += zlib
 
 SOURCES += \
