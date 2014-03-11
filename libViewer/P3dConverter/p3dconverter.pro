@@ -1,11 +1,15 @@
 TEMPLATE = lib
 CONFIG += staticlib
 
+QMAKE_CXXFLAGS += -std=c++0x
+
 INCLUDEPATH += File
 INCLUDEPATH += FileFormats/Blend
 INCLUDEPATH += FileFormats/Blend/Generated
 INCLUDEPATH += P3dConvert
 INCLUDEPATH += zlib
+
+INCLUDEPATH += ../
 
 SUBDIRS += zlib
 
