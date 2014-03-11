@@ -188,7 +188,7 @@ void QmlAppViewer::onGLRender()
     }
     if(m_BlendData->isLoaded()) {
         setModelState(MS_PROCESSING);
-        m_P3dViewer->loadModel(m_BlendData);
+        m_P3dViewer->loadModel(m_BlendData, ".blend");
         m_BlendData->clearBlendData();
         setModelState(MS_READY);
     }

@@ -2,6 +2,9 @@
 #include "ModelLoader.h"
 #include <cfloat>
 
+static BlendLoader blendLoader;
+static RegisterLoader registerBlendLoader(&blendLoader, ".blend", 0);
+
 BlendLoader::BlendLoader()
 {
     m_loaded = false;
