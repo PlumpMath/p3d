@@ -1,4 +1,3 @@
-#include "p3dConvert.h"
 #include "QmlAppViewer.h"
 #include <QDebug>
 #include <QQmlContext>
@@ -14,7 +13,6 @@
 #include <QFile>
 
 #include "ModelLoader.h"
-#include "BlendLoader.h"
 #include "P3dViewer.h"
 #include "CameraNavigation.h"
 #include "QtPlatformAdapter.h"

@@ -13,21 +13,6 @@ QMAKE_CXXFLAGS += -std=c++0x
 INCLUDEPATH += ../libViewer
 INCLUDEPATH += ../ext/glm
 
-SUBDIRS += P3dConverter
-
-# converter paths
-INCLUDEPATH += ../libViewer/P3dConverter/P3dConvert
-INCLUDEPATH += ../libViewer/P3dConverter/File
-INCLUDEPATH += ../libViewer/P3dConverter/FileFormats/Blend
-
-#QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/File", $$PWD)
-#QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/FileFormats/Blend", $$PWD)
-#QMAKE_LFLAGS += -Wl,-rpath,$$absolute_path("../build/p3dconverter/P3dConvert", $$PWD)
-
-LIBS += -L./p3dconverter
-LIBS += -L./zlib
-LIBS += -lp3dconverter -lzlib
-
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += \
     main.cpp \
@@ -38,8 +23,7 @@ SOURCES += \
     ../libViewer/ModelLoader.cpp \
     ../libViewer/CameraNavigation.cpp \
     ../libViewer/BaseLoader.cpp \
-    ../libViewer/BinLoader.cpp \
-    ../libViewer/BlendLoader.cpp
+    ../libViewer/BinLoader.cpp
 
 windows {
 SOURCES += \
@@ -70,8 +54,13 @@ HEADERS += \
     ../libViewer/GL/gl3w.h \
     ../libViewer/GL/glcorearb.h \
     ../libViewer/BaseLoader.h \
-    ../libViewer/BinLoader.h \
-    ../libViewer/BlendLoader.h
+    ../libViewer/BinLoader.h
 
 RESOURCES += \
     resources.qrc
+
+
+# blend support
+include(../libViewer/P3dConverter/P3dConverter.pri)
+SOURCES += ../libViewer/BlendLoader.cpp
+HEADERS += ../libViewer/BlendLoader.h
