@@ -60,13 +60,15 @@ JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_init_1asset_1manag
 	adapter->setAssetManager(mgr);
 }
 
-JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_load_1binary(JNIEnv* env,
-		jclass cls, jobject buf, jint size) {
+JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_load_1model(JNIEnv* env,
+		jclass cls, jobject buf, jint size, jstring extension) {
 	// unused
 	(void)cls;
 
 	const char* data = (const char*) env->GetDirectBufferAddress(buf);
-	viewer.loadModel(data, size);
+	const char *c_extension = env->GetStringUTFChars(extension, 0);
+	viewer.loadModel(data, size, c_extension);
+	env->ReleaseStringUTFChars(extension, c_extension);
 }
 
 JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_start_1rotate_1cam

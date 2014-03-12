@@ -9,6 +9,7 @@ import android.opengl.GLSurfaceView.Renderer;
 
 public class RendererWrapper implements Renderer {
 	private ByteBuffer modelData = null;
+	private String extension = ".bin";
 	
 	private Object rotateMutex = new Object();
 	private float rotateX;
@@ -51,7 +52,7 @@ public class RendererWrapper implements Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
     	if(modelData != null) {
-    		P3dViewerJNIWrapper.load_binary(modelData, modelData.limit());
+    		P3dViewerJNIWrapper.load_model(modelData, modelData.limit(), extension);
     		modelData = null;
     	}
     	synchronized (rotateMutex) {

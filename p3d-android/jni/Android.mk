@@ -9,6 +9,8 @@ LOCAL_SRC_FILES := \
 	../../libViewer/PlatformAdapter.cpp \
 	../../libViewer/P3dViewer.cpp \
 	../../libViewer/ModelLoader.cpp \
+	../../libViewer/BaseLoader.cpp \
+	../../libViewer/BinLoader.cpp \
 	../../libViewer/CameraNavigation.cpp \
 	jni_stub.cpp \
 	AndroidPlatformAdapter.cpp

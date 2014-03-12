@@ -41,11 +41,11 @@ JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_init_1asset_1manag
 
 /*
  * Class:     in_p3d_mobile_P3dViewerJNIWrapper
- * Method:    load_binary
- * Signature: (Ljava/nio/ByteBuffer;I)V
+ * Method:    load_model
+ * Signature: (Ljava/nio/ByteBuffer;ILjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_load_1binary
-  (JNIEnv *, jclass, jobject, jint);
+JNIEXPORT void JNICALL Java_in_p3d_mobile_P3dViewerJNIWrapper_load_1model
+  (JNIEnv *, jclass, jobject, jint, jstring);
 
 /*
  * Class:     in_p3d_mobile_P3dViewerJNIWrapper
