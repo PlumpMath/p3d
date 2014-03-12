@@ -51,12 +51,10 @@ public:
         uint i;
         for(i=0, v = vs, vnew = verts; i < tv*STRIDE; i++, v++, vnew++) {
             *vnew = *v;
-            P3D_LOGD("v %f\n", *vnew);
         }
 
         for(i=0, f = fs, fnew = faces; i < tf*STRIDE; i++, f++, fnew++) {
             *fnew = *f;
-            P3D_LOGD("f %u\n", *fnew);
         }
 
         if(totvert>0 && verts!=NULL) {

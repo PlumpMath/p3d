@@ -135,25 +135,6 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
         return result;
     }
 
-#if 0
-    P3D_LOGD("fcount: %u", fcount);
-
-
-    float *vp = blendData->verts;
-    for(uint i = 0; i < blendData->totvert; i++) {
-        P3D_LOGD("v: %f %f %f", vp[i*3], vp[i*3+1], vp[i*3+2]);
-    }
-
-    P3D_LOGD("----------------");
-
-    uint32_t *fp = blendData->faces;
-    for(uint i = 0; i < blendData->totface; i++) {
-        P3D_LOGD("f: %u %u %u", fp[i*3], fp[i*3+1], fp[i*3+2]);
-    }
-
-    P3D_LOGD("<<<<<<<<<<<<<<<");
-#endif
-
     // tris
     pos_offset = 0;
 
@@ -161,7 +142,6 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
     index.type = vtype;
     uint16_t new_index;
     new_offset = 0; //TODO: should be passed in?
-    //new_mat_offset = 0;
 
     for(face = 0; face < fcount; ++face)
     {
@@ -197,7 +177,6 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
                 m_new_empty_norm_count += 3;
             }
 
-            P3D_LOGD("face %u, idx %u, new idx %u, %u", face, index.pos, new_index, vertexMap->size());
             new_faces[new_offset] = (uint16_t)new_index;
             ++new_offset;
         }
@@ -270,7 +249,8 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
         ++vertCount;
         const VertexIndex& index = itr.key();
         uint32_t new_index = itr.value();
-        P3D_LOGD("%u: %u/%u/%u > %u", vertCount, index.pos, index.uv, index.norm, new_index);
+        //P3D_LOGD("%u: %u/%u/%u > %u", vertCount, index.pos, index.uv, index.norm, new_index);
+
         // pos
         vert_offset = index.pos * STRIDE;
         new_offset = (new_index + vertOffset) * STRIDE;
@@ -279,7 +259,7 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
         y = data.verts[vert_offset++];
         z = data.verts[vert_offset];
 
-        P3D_LOGD("%u @ %u: (%f,%f,%f)", vertCount, vert_offset, x, y, z);
+        //P3D_LOGD("%u @ %u: (%f,%f,%f)", vertCount, vert_offset, x, y, z);
 
         if(x > m_maxX) m_maxX = x;
         if(x < m_minX) m_minX = x;
