@@ -49,7 +49,7 @@ bool BlendLoader::load(const char *path, size_t length)
     }
 
     /* for now we do only VT_POS */
-    m_new_index_count[VT_POS] = blendData.totface;
+    m_new_index_count[VT_POS] = blendData.totface * 3;
     m_new_f3_start[VT_POS] = 0;
     m_new_f4_start[VT_POS] = -1;
     m_total_index_count += m_new_index_count[VT_POS];
