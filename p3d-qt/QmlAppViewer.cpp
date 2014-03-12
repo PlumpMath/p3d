@@ -32,12 +32,10 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     m_NetDataReply = 0;
     m_ModelState = MS_NONE;
     m_ClearModel = false;
-    m_BlendData = new BlendData();
 }
 
 QmlAppViewer::~QmlAppViewer()
 {
-    delete m_BlendData;
     delete m_P3dViewer;
 }
 
@@ -58,6 +56,7 @@ void QmlAppViewer::loadModel(const QUrl &model)
     setModelState(MS_LOADING);
     if(fileName.endsWith(".blend"))
     {
+        m_extension = ".blend";
         qDebug() << "found a blend file: " << path;
         // loading a .blend
         QFile file(path);
@@ -66,29 +65,9 @@ void QmlAppViewer::loadModel(const QUrl &model)
             qWarning() << "File doesn't exist: " << model;
             return;
         }
+        //P3D_LOGD("blender geom size %d", m_BlendData->vertbytes + m_BlendData->facebytes);
 
-        P3dConverter converter;
-
-        converter.parse_blend(path.toLocal8Bit().data());
-        m_BlendData->initBlendData(converter);
-
-        /*size_t totmesh = 0;
-        P3dMesh *pme = extract_all_geometry(&totmesh);
-        P3dMesh *curpme = pme;
-
-        qDebug() << "loaded " << path << " and found " << totmesh << " meshes.";
-
-        for(uint i = 0; i < totmesh; i++, curpme++)
-        {
-            P3D_LOGD("init blend data");
-            m_BlendData->clearBlendData();
-            m_BlendData->initBlendData(curpme->m_chunks[0].totvert, curpme->m_chunks[0].totface, curpme->m_chunks[0].v, curpme->m_chunks[0].f);
-            P3D_LOGD("done init blend data");
-            free_p3d_mesh_data(curpme);
-        }
-        free(pme);*/
-
-        P3D_LOGD("blender geom size %d", m_BlendData->vertbytes + m_BlendData->facebytes);
+        m_ModelData = path.toLocal8Bit();
         setModelState(MS_PROCESSING);
         window->update();
 
@@ -98,6 +77,7 @@ void QmlAppViewer::loadModel(const QUrl &model)
 
     if(fileName.endsWith(".bin"))
     {
+        m_extension = ".bin";
         // this is a local binary file
         QFile file(path);
         if(!file.exists())
@@ -185,14 +165,8 @@ void QmlAppViewer::onGLRender()
     if(!m_ModelData.isEmpty())
     {
         setModelState(MS_PROCESSING);
-        m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size(), ".bin");
+        m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size(), m_extension.toLocal8Bit().constData());
         m_ModelData.clear();
-        setModelState(MS_READY);
-    }
-    if(m_BlendData->isLoaded()) {
-        setModelState(MS_PROCESSING);
-        m_P3dViewer->loadModel(m_BlendData, ".blend");
-        m_BlendData->clearBlendData();
         setModelState(MS_READY);
     }
 

@@ -56,7 +56,7 @@ private:
     QByteArray m_ModelData;
     ModelState m_ModelState;
     bool m_ClearModel;
-    BlendData *m_BlendData;
+    QString m_extension;
 };
 
 #endif // QMLAPPVIEWER_H

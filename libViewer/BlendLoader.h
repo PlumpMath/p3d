@@ -110,15 +110,15 @@ public:
     BlendLoader();
     virtual ~BlendLoader();
 
-    bool load(const void *data);
+    bool load(const char *data, size_t length);
 
 private:
-    uint32_t reindexTypeBlender(uint32_t &chunk, VertexType vtype, const BlendData *blendData,
-                         uint16_t *new_faces); // << reindex blender data for specified vertex type
-    void copyVertDataBlender(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData* data,
-                      GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos); // << copy blender vertex data into GLfloat buffers
-    void nextChunkBlender(uint32_t &chunk, BaseLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
-                   uint32_t vertOffset, bool firstOfType = false); // << create a new chunk, blender specific
+    uint32_t reindexType(uint32_t &chunk, VertexType vtype, const BlendData *blendData,
+                         uint16_t *new_faces);
+    void copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData& data,
+                      GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
+    void nextChunk(uint32_t &chunk, BaseLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+                   uint32_t vertOffset, bool firstOfType = false);
 
     bool m_loaded;
 

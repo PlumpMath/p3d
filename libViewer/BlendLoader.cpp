@@ -22,14 +22,18 @@ BlendLoader::~BlendLoader()
 
 /********** BLENDER DATA ***************************/
 
-bool BlendLoader::load(const void *data)
+bool BlendLoader::load(const char *path, size_t length)
 {
-    void *d = const_cast<void *>(data);
-    BlendData *blendData = static_cast<BlendData *>(d);
+    P3dConverter converter;
+    BlendData blendData;
+
+    converter.parse_blend(path);
+    blendData.initBlendData(converter);
+
     uint64_t start = PlatformAdapter::currentMillis();
     uint32_t chunk = 0;
 
-    uint16_t* new_faces = new uint16_t[blendData->totface*STRIDE];
+    uint16_t* new_faces = new uint16_t[blendData.totface*STRIDE];
 
     /* initialize counters and indices */
     m_new_pos_count = 0;
@@ -45,17 +49,17 @@ bool BlendLoader::load(const void *data)
     }
 
     /* for now we do only VT_POS */
-    m_new_index_count[VT_POS] = blendData->totface;
+    m_new_index_count[VT_POS] = blendData.totface;
     m_new_f3_start[VT_POS] = 0;
     m_new_f4_start[VT_POS] = -1;
     m_total_index_count += m_new_index_count[VT_POS];
 
     /* reindex VT_POS */
-    reindexTypeBlender(chunk, VT_POS, blendData, new_faces);
+    reindexType(chunk, VT_POS, &blendData, new_faces);
 
-    GLfloat* new_pos = new GLfloat[blendData->totvert * STRIDE];
-    GLfloat* new_uv = new GLfloat[blendData->totvert * STRIDE];
-    GLfloat* new_norm = new GLfloat[blendData->totvert * STRIDE];
+    GLfloat* new_pos = new GLfloat[blendData.totvert * STRIDE];
+    GLfloat* new_uv = new GLfloat[blendData.totvert * STRIDE];
+    GLfloat* new_norm = new GLfloat[blendData.totvert * STRIDE];
 
     if(new_pos==NULL || new_uv==NULL || new_norm==NULL) return false;
 
@@ -78,7 +82,7 @@ bool BlendLoader::load(const void *data)
         P3D_LOGD("vertex bank:");
         P3D_LOGD(" offset: %d", itr.key());
         P3D_LOGD(" count: %d", itr.value()->size());
-        copyVertDataBlender(itr.key(), itr.value(), blendData, new_norm, new_uv, new_pos);
+        copyVertData(itr.key(), itr.value(), blendData, new_norm, new_uv, new_pos);
         itr.value()->dumpBucketLoad();
         delete itr.value();
     }
@@ -106,7 +110,7 @@ bool BlendLoader::load(const void *data)
     return m_loaded;
 }
 
-uint32_t BlendLoader::reindexTypeBlender(uint32_t &chunk, BlendLoader::VertexType vtype, const BlendData *blendData,
+uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype, const BlendData *blendData,
                                   uint16_t* new_faces)
 {
     uint32_t pos_offset;
@@ -163,7 +167,7 @@ uint32_t BlendLoader::reindexTypeBlender(uint32_t &chunk, BlendLoader::VertexTyp
     {
         if(face == 0)
         {
-            nextChunkBlender(chunk, vtype, in_quad, new_offset, m_new_pos_count / 3, true);
+            nextChunk(chunk, vtype, in_quad, new_offset, m_new_pos_count / 3, true);
             m_chunks[chunk].material = mat;
             vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
         }
@@ -207,7 +211,7 @@ uint32_t BlendLoader::reindexTypeBlender(uint32_t &chunk, BlendLoader::VertexTyp
     return result;
 }
 
-void BlendLoader::nextChunkBlender(uint32_t &chunk, BlendLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
                             uint32_t vertOffset, bool firstOfType)
 {
     P3D_LOGD("new_offset: %d", new_offset);
@@ -252,7 +256,7 @@ void BlendLoader::nextChunkBlender(uint32_t &chunk, BlendLoader::VertexType vtyp
 
 
 
-void BlendLoader::copyVertDataBlender(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData* data,
+void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData& data,
                                GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos)
 {
     uint32_t new_offset = 0;
@@ -272,9 +276,9 @@ void BlendLoader::copyVertDataBlender(uint32_t vertOffset, P3dMap<VertexIndex, u
         vert_offset = index.pos * STRIDE;
         new_offset = (new_index + vertOffset) * STRIDE;
 
-        x = data->verts[vert_offset++];
-        y = data->verts[vert_offset++];
-        z = data->verts[vert_offset];
+        x = data.verts[vert_offset++];
+        y = data.verts[vert_offset++];
+        z = data.verts[vert_offset];
 
         P3D_LOGD("%u @ %u: (%f,%f,%f)", vertCount, vert_offset, x, y, z);
 
