@@ -71,6 +71,7 @@
 
       function postRun() {
         console.log("postRun");
+
         var binURL = "samples/captain.bin";
         //var binURL = "samples/monkey500k.bin";
 
@@ -84,7 +85,7 @@
             console.log("loaded bytes:", size);
             var buf = Module._malloc(size);
             Module.HEAPU8.set(new Uint8Array(this.response), buf);
-            Module._loadBinary(buf, size);
+            Module._loadModel(buf, size, Module.allocate(Module.intArrayFromString(".bin"), 'i8', Module.ALLOC_STACK));
             Module._free(buf);
           }
         };

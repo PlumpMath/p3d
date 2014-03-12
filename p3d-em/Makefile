@@ -3,7 +3,7 @@ LDOPTIMIZE = --closure 1
 
 EXPORTED_FUNCTIONS = "[\
 '_main',\
-'_loadBinary',\
+'_loadModel',\
 '_startRotateCam',\
 '_rotateCam',\
 '_resetCam'\
@@ -15,7 +15,13 @@ CXXFLAGS = -I. -I../libViewer -I../ext/glm -Wall -Wextra -std=c++0x $(OPTIMIZE)
 LDFLAGS = -s ASM_JS=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --preload-file shaders --memory-init-file 1 $(OPTIMIZE) $(LDOPTIMIZE)
 
 LIBVIEWER_DIR = ../libViewer
-LIBVIEWER_SOURCES = P3dViewer.cpp PlatformAdapter.cpp ModelLoader.cpp CameraNavigation.cpp
+LIBVIEWER_SOURCES = \
+    P3dViewer.cpp \
+    PlatformAdapter.cpp \
+    ModelLoader.cpp \
+    BaseLoader.cpp \
+    BinLoader.cpp \
+    CameraNavigation.cpp
 SOURCES = main.cpp $(LIBVIEWER_SOURCES)
 OBJECTS = $(SOURCES:.cpp=.o)
 VPATH = $(LIBVIEWER_DIR) ../ext/glm

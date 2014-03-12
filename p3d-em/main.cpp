@@ -61,9 +61,9 @@ void shutdown_gl()
     glfwTerminate();
 }
 
-extern "C" void loadBinary(const char* data, int size)
+extern "C" void loadModel(const char* data, int size, const char* extension)
 {
-    viewer.loadModel(data, size);
+    viewer.loadModel(data, size, extension);
 }
 
 extern "C" void startRotateCam(float x, float y)
