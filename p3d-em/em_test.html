@@ -164,6 +164,7 @@
             console.log(" filename doesn't have extension");
             return;
         }
+        extension = extension[0];
         console.log(" extension:", extension);
         var reader = new FileReader();
         reader.onload = function(e) {

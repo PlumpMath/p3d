@@ -48,7 +48,7 @@ public:
 
         float *v, *vnew;
         uint32_t *f, *fnew;
-        uint i;
+        unsigned int i;
         for(i=0, v = vs, vnew = verts; i < tv*STRIDE; i++, v++, vnew++) {
             *vnew = *v;
         }

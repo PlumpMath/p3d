@@ -242,7 +242,7 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
     float x;
     float y;
     float z;
-    uint vertCount = 0;
+    unsigned int vertCount = 0;
     P3D_LOGD("vert offset: %u", vertOffset);
     for(P3dMap<VertexIndex, uint32_t>::iterator itr = vertexMap->begin(); itr.hasNext(); ++itr)
     {
