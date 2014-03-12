@@ -9,22 +9,7 @@ This is using git submodules for external libs (glm), so:
 Building with QtCreator
 =======================
 
-Open three projects in the same session:
-
- - p3d.pro
- - zlib.pro
- - p3dconverter.pro
-
-For all the base build directory should be ./build/debug and ./build/release
-for the respective build types. For zlib and p3dconverter, append /zlib and
-/p3dconverter respectively. This ensures all internally built libraries can be
-found and linked.
-
-Set p3d.pro as the active project.
-
-Set p3dconverter.pro as dependency for p3d.pro.
-
-Set zlib.pro as dependency for p3dconverter.pro.
+Open p3d-qt/p3d.pro and build
 
 Structure
 =========
