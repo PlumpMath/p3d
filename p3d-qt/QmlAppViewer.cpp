@@ -208,6 +208,7 @@ void QmlAppViewer::onModelDataReplyDone()
         return;
     }
     //TODO: threading
+    m_extension = ".bin";
     m_ModelData = m_NetDataReply->readAll();
     qDebug() << m_NetDataReply->url() << "returned" << m_ModelData.size() << "bytes";
     setModelState(MS_PROCESSING);

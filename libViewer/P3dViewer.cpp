@@ -3,8 +3,6 @@
 #include "ModelLoader.h"
 #include "CameraNavigation.h"
 #include "glwrapper.h"
-#include "BinLoader.h"
-#include "BlendLoader.h"
 
 #define GLM_FORCE_RADIANS
 // vec3, vec4, ivec4, mat4
