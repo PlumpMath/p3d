@@ -240,6 +240,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     uint32_t b_offset;
     uint32_t c_offset;
 
+    if(emptyNormCount<128) emptyNormCount=128;
     P3dMap<glm::vec3, glm::vec3> normalsMap(emptyNormCount / 128);
 
     // calc

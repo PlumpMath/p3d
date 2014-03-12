@@ -204,7 +204,6 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
     }
 
     m_chunks[chunk].vertCount = (m_new_pos_count - STRIDE * m_chunks[chunk].vertOffset) / 3;
-    m_chunks[chunk].validNormals = true; // hack
 
     P3D_LOGD("reindex type Blender took: %lldms", PlatformAdapter::durationMillis(start));
 
