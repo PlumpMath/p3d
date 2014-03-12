@@ -51,47 +51,36 @@ void QmlAppViewer::loadModel(const QUrl &model)
     QString fileName = model.fileName();
     QString path = model.isLocalFile() ? model.toLocalFile() : model.path();
 
+    m_extension = ".unknown";
+
     setModelState(MS_LOADING);
     if(fileName.endsWith(".blend"))
     {
         m_extension = ".blend";
-        qDebug() << "found a blend file: " << path;
-        // loading a .blend
+    }
+    else if(fileName.endsWith(".bin"))
+    {
+        m_extension = ".bin";
+    }
+    if(m_extension!=".unknown") {
+        qDebug() << "found a file: " << path;
         QFile file(path);
         if(!file.exists())
         {
             qWarning() << "File doesn't exist: " << model;
             return;
         }
-        //P3D_LOGD("blender geom size %d", m_BlendData->vertbytes + m_BlendData->facebytes);
 
         file.open(QFile::ReadOnly);
         m_ModelData = file.readAll();
-        qDebug() << "loaded" << m_ModelData.size() <<"bytes for .blend";
+        qDebug() << "loaded" << m_ModelData.size() <<"bytes for" << m_extension;
         setModelState(MS_PROCESSING);
         window->update();
 
         return;
-
     }
 
-    if(fileName.endsWith(".bin"))
-    {
-        m_extension = ".bin";
-        // this is a local binary file
-        QFile file(path);
-        if(!file.exists())
-        {
-            qWarning() << "File doesn't exist:" << model;
-            return;
-        }
-        file.open(QFile::ReadOnly);
-        m_ModelData = file.readAll();
-        qDebug() << "loaded" << m_ModelData.size() << "bytes";
-        setModelState(MS_PROCESSING);
-        window->update();
-        return;
-    }
+
     if(m_NetInfoReply)
     {
         m_NetInfoReply->abort();
