@@ -22,12 +22,12 @@ BlendLoader::~BlendLoader()
 
 /********** BLENDER DATA ***************************/
 
-bool BlendLoader::load(const char *path, size_t length)
+bool BlendLoader::load(const char *data, size_t length)
 {
     P3dConverter converter;
     BlendData blendData;
 
-    converter.parse_blend(path);
+    converter.parse_blend(data, length);
     blendData.initBlendData(converter);
 
     uint64_t start = PlatformAdapter::currentMillis();

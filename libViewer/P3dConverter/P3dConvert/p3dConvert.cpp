@@ -25,11 +25,11 @@ P3dConverter::~P3dConverter() {
     m_pme.clear();
 }
 
-int P3dConverter::parse_blend(const char *path) {
+int P3dConverter::parse_blend(const char *data, size_t length) {
 	bool gzipped = false;
-    fbtPrintf("reading %s:... ", path);
-    if (m_fp.parse(path, fbtFile::PM_READTOMEMORY) != fbtFile::FS_OK) {
-        if (m_fp.parse(path, fbtFile::PM_COMPRESSED) != fbtFile::FS_OK)
+
+    if (m_fp.parse(data, length, fbtFile::PM_READTOMEMORY, false) != fbtFile::FS_OK) {
+        if (m_fp.parse(data, length, fbtFile::PM_COMPRESSED, false) != fbtFile::FS_OK)
 		{
             fbtPrintf(" [NOK]\n");
 			return 1;

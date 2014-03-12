@@ -48,7 +48,7 @@ public:
     P3dConverter();
     ~P3dConverter();
 
-    int parse_blend(const char *path);
+    int parse_blend(const char *path, size_t length);
 
     size_t object_count() {
         return m_pme.size();

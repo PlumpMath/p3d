@@ -65,7 +65,9 @@ void QmlAppViewer::loadModel(const QUrl &model)
         }
         //P3D_LOGD("blender geom size %d", m_BlendData->vertbytes + m_BlendData->facebytes);
 
-        m_ModelData = path.toLocal8Bit();
+        file.open(QFile::ReadOnly);
+        m_ModelData = file.readAll();
+        qDebug() << "loaded" << m_ModelData.size() <<"bytes for .blend";
         setModelState(MS_PROCESSING);
         window->update();
 
