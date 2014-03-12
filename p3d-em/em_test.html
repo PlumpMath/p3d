@@ -29,6 +29,7 @@
       &nbsp;&nbsp;&nbsp;
       <input type="button" value="Fullscreen" onclick="Module.requestFullScreen(document.getElementById('pointerLock').checked, 
                                                                                 document.getElementById('resize').checked)">
+      <input type="file" id="modelFile"/>
     </div>
     
     <hr/>
@@ -154,6 +155,29 @@
         }
       };
       Module.setStatus('Downloading...');
+
+      function handleFileSelect(evt) {
+        var file = evt.target.files[0];
+        console.log("loading:", file.name);
+        var extension = /\.[^.]+$/.exec(file.name);
+        if(!extension) {
+            console.log(" filename doesn't have extension");
+            return;
+        }
+        console.log(" extension:", extension);
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var data = reader.result;
+            var size = data.byteLength;
+            console.log("loaded bytes:", size);
+            var buf = Module._malloc(size);
+            Module.HEAPU8.set(new Uint8Array(data), buf);
+            Module._loadModel(buf, size, Module.allocate(Module.intArrayFromString(extension), 'i8', Module.ALLOC_STACK));
+            Module._free(buf);
+        }
+        reader.readAsArrayBuffer(file);
+      }
+      document.getElementById('modelFile').addEventListener('change', handleFileSelect, false);
     </script>
     <script async type="text/javascript" src="em_test.js"></script>
   </body>
