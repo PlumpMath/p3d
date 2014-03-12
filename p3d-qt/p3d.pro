@@ -61,6 +61,9 @@ RESOURCES += \
 
 
 # blend support
-include(../libViewer/P3dConverter/P3dConverter.pri)
-SOURCES += ../libViewer/BlendLoader.cpp
-HEADERS += ../libViewer/BlendLoader.h
+# add CONFIG+=noblend (to qmake args) to disable
+!noblend {
+    include(../libViewer/P3dConverter/P3dConverter.pri)
+    SOURCES += ../libViewer/BlendLoader.cpp
+    HEADERS += ../libViewer/BlendLoader.h
+}
