@@ -83,10 +83,10 @@ SHADERS = $(shell find $(LIBVIEWER_DIR)/shaders/ -name "*.glsl")
 # Targets start here.
 all: $(TARGET_GZ)
 
-shaders: $(LIBVIEWER_DIR)/shaders
+$(CURDIR)/shaders: $(LIBVIEWER_DIR)/shaders
 	ln -s $< $@
 
-$(TARGET): $(OBJECTS) Makefile deps.txt shaders $(SHADERS)
+$(TARGET): $(OBJECTS) Makefile deps.txt $(CURDIR)/shaders $(SHADERS)
 	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $(OBJECTS)
 
 $(TARGET_GZ): $(TARGET)
