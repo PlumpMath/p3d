@@ -23,6 +23,8 @@ p3d-em
    - Arguments: em_test.html
    - Working directory: %{buildDir}
 
+Run chrome with: --allow-file-access-from-files for emscripten to be able to load data files locally
+
 Structure
 =========
 
