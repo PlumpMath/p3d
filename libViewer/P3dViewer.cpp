@@ -245,17 +245,36 @@ void P3dViewer::drawFrame() {
         {
             if(m_ModelLoader->indexCount(chunk))
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->posBuffer(chunk));
+                GLuint arrayBuffer;
+
+                arrayBuffer = m_ModelLoader->posBuffer(chunk);
+                glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
                 glVertexAttribPointer(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0);
                 glEnableVertexAttribArray(ATTRIB_POSITION);
 
-                glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->normBuffer(chunk));
-                glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
-                glEnableVertexAttribArray(ATTRIB_NORMAL);
+                arrayBuffer = m_ModelLoader->normBuffer(chunk);
+                glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
+                if(arrayBuffer)
+                {
+                    glVertexAttribPointer(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0);
+                    glEnableVertexAttribArray(ATTRIB_NORMAL);
+                }
+                else
+                {
+                    glDisableVertexAttribArray(ATTRIB_NORMAL);
+                }
 
-                glBindBuffer(GL_ARRAY_BUFFER, m_ModelLoader->uvBuffer(chunk));
-                glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
-                glEnableVertexAttribArray(ATTRIB_UV);
+                arrayBuffer = m_ModelLoader->uvBuffer(chunk);
+                glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
+                if(arrayBuffer)
+                {
+                    glVertexAttribPointer(ATTRIB_UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
+                    glEnableVertexAttribArray(ATTRIB_UV);
+                }
+                else
+                {
+                    glDisableVertexAttribArray(ATTRIB_UV);
+                }
 
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
@@ -287,9 +306,11 @@ void P3dViewer::drawFrame() {
                 glm::vec3& color = colors[m_ModelLoader->material(chunk) % (sizeof(colors) / sizeof(colors[0]))];
                 glUniform3f(uDiffuse, color.r, color.g, color.b);
 
-                glDrawElements(GL_TRIANGLES, m_ModelLoader->indexCount(chunk),
+                GLsizei count = m_ModelLoader->indexCount(chunk);
+                uint32_t offset = m_ModelLoader->indexOffset(chunk);
+                glDrawElements(GL_TRIANGLES, count,
                                GL_UNSIGNED_SHORT,
-                               (GLvoid*)(sizeof(GLushort) * m_ModelLoader->indexOffset(chunk)));
+                               (GLvoid*)(sizeof(GLushort) * offset));
                 }
         }
     }

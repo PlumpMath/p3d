@@ -103,6 +103,7 @@ void ModelLoader::clear()
         m_chunks.clear();
 
         glDeleteBuffers(1, &m_index_buffer);
+        m_index_buffer = 0;
 
         for(P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*>::iterator itr = m_vertex_maps.begin(); itr.hasNext(); ++itr)
         {
@@ -240,8 +241,9 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     uint32_t b_offset;
     uint32_t c_offset;
 
-    if(emptyNormCount<128) emptyNormCount=128;
-    P3dMap<glm::vec3, glm::vec3> normalsMap(emptyNormCount / 128);
+    P3dMap<glm::vec3, glm::vec3> normalsMap(emptyNormCount < 128
+                                            ? 1
+                                            : emptyNormCount / 128);
 
     // calc
     for(uint32_t chunk = 0, chunkl = m_chunks.size(); chunk < chunkl; ++chunk)

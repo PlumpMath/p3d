@@ -49,6 +49,8 @@ bool BinLoader::load(const char *data, size_t size)
 
     m_modelLoader->clear();
 
+    m_chunks.clear();
+
     // check header
     const char magic[] = "Three.js 003";
     size_t magicSize = sizeof(magic) - 1;
