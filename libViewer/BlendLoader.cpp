@@ -27,6 +27,9 @@ bool BlendLoader::load(const char *data, size_t length)
     P3dConverter converter;
     BlendData blendData;
 
+    m_modelLoader->clear();
+    m_chunks.clear();
+
     converter.parse_blend(data, length);
     blendData.initBlendData(converter);
 
