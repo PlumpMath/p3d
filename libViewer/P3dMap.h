@@ -55,6 +55,18 @@ public:
     }
 };
 
+template<typename K, typename T>
+struct P3dPair
+{
+    P3dPair(const K& k, const T& v)
+    {
+        first = k;
+        second = v;
+    }
+
+    K first;
+    T second;
+};
 
 //! \brief Replacement for std::unordered_map which makes code size too big (emscripten)
 //! Very limited compared to std::unordered_map
@@ -62,6 +74,8 @@ template<typename K, typename T>
 class P3dMap
 {
 public:
+    typedef P3dPair<K, T> value_type;
+
     class iterator {
     public:
         iterator(P3dMap* _map)
@@ -74,12 +88,12 @@ public:
 
         const K& key()
         {
-            return map->m_buckets[bucketIndex][itemIndex].key;
+            return map->m_buckets[bucketIndex][itemIndex].first;
         }
 
         T& value()
         {
-            return map->m_buckets[bucketIndex][itemIndex].val;
+            return map->m_buckets[bucketIndex][itemIndex].second;
         }
 
         iterator& operator++()
@@ -99,10 +113,27 @@ public:
             return bucketIndex < map->m_bucketCount;
         }
 
+        bool operator==(const iterator& other)
+        {
+            return map == other.map && bucketIndex == other.bucketIndex && itemIndex == other.itemIndex;
+        }
+
+        bool operator!=(const iterator& other)
+        {
+            return !operator==(other);
+        }
+
+        value_type operator*()
+        {
+            return map->m_buckets[bucketIndex][itemIndex];
+        }
+
     private:
         P3dMap* map;
         size_t bucketIndex;
         size_t itemIndex;
+
+        friend class P3dMap;
     };
 
     P3dMap()
@@ -140,12 +171,12 @@ public:
 
     T& operator[] (const K& key)
     {
-        Item* itm = find(key);
+        value_type* itm = find(key);
         if(!itm)
         {
             itm = insertItem(key, T());
         }
-        return itm->val;
+        return itm->second;
     }
 
     size_t size() { return m_size; }
@@ -155,7 +186,18 @@ public:
         insertItem(key, val);
     }
 
+    void insert(const value_type& newItem)
+    {
+        insertItem(newItem.first, newItem.second);
+    }
+
     iterator begin() { return iterator(this); }
+    iterator end() {
+        iterator itr(this);
+        itr.itemIndex = 0;
+        itr.bucketIndex = m_bucketCount;
+        return itr;
+    }
 
     // for debugging
     void dumpBucketLoad() {
@@ -179,51 +221,39 @@ private:
     // disable assignment
     P3dMap& operator=(const P3dMap&) {;}
 
-    struct Item
-    {
-        Item(const K& k, const T& v)
-        {
-            key = k;
-            val = v;
-        }
+    typedef P3dVector<value_type> Bucket;
 
-        K key;
-        T val;
-    };
-
-    typedef P3dVector<Item> Bucket;
-
-    Item* find(const K& key)
+    value_type* find(const K& key)
     {
         size_t hash = P3dHasher<K>::hash(key);
         Bucket& buck = m_buckets[hash % m_bucketCount];
         return findInBucket(buck, key);
     }
 
-    Item* insertItem(const K& key, const T& val)
+    value_type* insertItem(const K& key, const T& val)
     {
         size_t hash = P3dHasher<K>::hash(key);
         Bucket& buck = m_buckets[hash % m_bucketCount];
-        Item* itm = findInBucket(buck, key);
+        value_type* itm = findInBucket(buck, key);
         if(itm)
         {
-            itm->val = val;
+            itm->second = val;
         }
         else
         {
-            buck.push_back(Item(key, val));
+            buck.push_back(value_type(key, val));
             itm = &buck[buck.size() - 1];
             ++m_size;
         }
         return itm;
     }
 
-    Item* findInBucket(Bucket& buck, const K& key)
+    value_type* findInBucket(Bucket& buck, const K& key)
     {
         for(size_t i = 0, il = buck.size(); i < il; ++i)
         {
-            Item& itm = buck[i];
-            if(P3dComperator<K>::equals(itm.key, key)) return &itm;
+            value_type& itm = buck[i];
+            if(P3dComperator<K>::equals(itm.first, key)) return &itm;
         }
         return 0;
     }
@@ -234,5 +264,11 @@ private:
 
 };
 
+template<class K, class T>
+inline P3dPair<K,T>
+P3dMakePair(K first, T second)
+{
+    return P3dPair<K,T>(first, second);
+}
 
 #endif // P3DMAP_H
