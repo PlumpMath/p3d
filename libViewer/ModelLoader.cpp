@@ -91,12 +91,12 @@ void ModelLoader::clear()
     if(m_loaded)
     {
         m_loaded = false;
-        for(P3dMap<uint32_t, GLBuffers*>::iterator itr = m_gl_buffers.begin(); itr.hasNext(); ++itr)
+        for(auto item: m_gl_buffers)
         {
-            glDeleteBuffers(1, &itr.value()->posBuffer);
-            glDeleteBuffers(1, &itr.value()->uvBuffer);
-            glDeleteBuffers(1, &itr.value()->normBuffer);
-            delete itr.value();
+            glDeleteBuffers(1, &item.second->posBuffer);
+            glDeleteBuffers(1, &item.second->uvBuffer);
+            glDeleteBuffers(1, &item.second->normBuffer);
+            delete item.second;
         }
         m_gl_buffers.clear();
 
@@ -105,9 +105,9 @@ void ModelLoader::clear()
         glDeleteBuffers(1, &m_index_buffer);
         m_index_buffer = 0;
 
-        for(P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*>::iterator itr = m_vertex_maps.begin(); itr.hasNext(); ++itr)
+        for(auto item: m_vertex_maps)
         {
-            delete itr.value();
+            delete item.second;
         }
         m_vertex_maps.clear();
     }
@@ -188,34 +188,34 @@ void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t em
         }
     }
 
-    for(P3dMap<uint32_t, GLBuffers*>::iterator itr = m_gl_buffers.begin(); itr.hasNext(); ++itr)
+    for(auto item: m_gl_buffers)
     {
-        GLBuffers* glbufs = itr.value();
+        GLBuffers* glbufs = item.second;
 
-        P3D_LOGD("Creating gl buf, vertOffset: %d, vertCount: %d", itr.key(), glbufs->vertCount);
+        P3D_LOGD("Creating gl buf, vertOffset: %d, vertCount: %d", item.first, glbufs->vertCount);
 
-        if(3 * (itr.key() + glbufs->vertCount) <= posCount)
+        if(3 * (item.first + glbufs->vertCount) <= posCount)
         {
             glGenBuffers(1, &glbufs->posBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, glbufs->posBuffer);
             glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
-                         posBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+                         posBuffer + 3 * item.first, GL_STATIC_DRAW);
         }
 
-        if(2 * (itr.key() + glbufs->vertCount) <= uvCount)
+        if(2 * (item.first + glbufs->vertCount) <= uvCount)
         {
             glGenBuffers(1, &glbufs->uvBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, glbufs->uvBuffer);
             glBufferData(GL_ARRAY_BUFFER, 2 * glbufs->vertCount * sizeof(GLfloat),
-                         uvBuffer + 2 * itr.key(), GL_STATIC_DRAW);
+                         uvBuffer + 2 * item.first, GL_STATIC_DRAW);
         }
 
-        if(3 * (itr.key() + glbufs->vertCount) <= normCount)
+        if(3 * (item.first + glbufs->vertCount) <= normCount)
         {
             glGenBuffers(1, &glbufs->normBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, glbufs->normBuffer);
             glBufferData(GL_ARRAY_BUFFER, 3 * glbufs->vertCount * sizeof(GLfloat),
-                         normBuffer + 3 * itr.key(), GL_STATIC_DRAW);
+                         normBuffer + 3 * item.first, GL_STATIC_DRAW);
         }
     }
 
@@ -275,9 +275,9 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
 
     start = PlatformAdapter::currentMillis();
     // normalize
-    for(P3dMap<glm::vec3, glm::vec3>::iterator itr = normalsMap.begin(); itr.hasNext(); ++itr)
+    for(auto item: normalsMap)
     {
-        glm::vec3& normal = itr.value();
+        glm::vec3& normal = item.second;
         normal = glm::normalize(normal);
     }
     P3D_LOGD("normalize took: %lldms", PlatformAdapter::durationMillis(start));

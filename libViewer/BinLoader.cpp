@@ -224,14 +224,14 @@ bool BinLoader::reindex(const char *data)
         P3D_LOGD(" material: %d", m_chunks[chunk].material);
     }
 
-    for(P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*>::iterator itr = m_vertex_maps.begin(); itr.hasNext(); ++itr)
+    for(auto item: m_vertex_maps)
     {
         P3D_LOGD("vertex bank:");
-        P3D_LOGD(" offset: %d", itr.key());
-        P3D_LOGD(" count: %d", itr.value()->size());
-        copyVertData(itr.key(), itr.value(), data, new_norm, new_uv, new_pos);
-        itr.value()->dumpBucketLoad();
-        delete itr.value();
+        P3D_LOGD(" offset: %d", item.first);
+        P3D_LOGD(" count: %d", item.second->size());
+        copyVertData(item.first, item.second, data, new_norm, new_uv, new_pos);
+        item.second->dumpBucketLoad();
+        delete item.second;
     }
     m_vertex_maps.clear();
 
@@ -418,10 +418,10 @@ void BinLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t> 
     float y;
     float z;
     int vertCount = 0;
-    for(P3dMap<VertexIndex, uint32_t>::iterator itr = vertexMap->begin(); itr.hasNext(); ++itr)
+    for(auto item: *vertexMap)
     {
-        const VertexIndex& index = itr.key();
-        uint32_t new_index = itr.value();
+        const VertexIndex& index = item.first;
+        uint32_t new_index = item.second;
         //P3D_LOGD("%d: %d/%d/%d > %d", vertCount, index.pos, index.uv, index.norm, new_index);
 
         ++vertCount;

@@ -108,10 +108,10 @@ public:
             return *this;
         }
 
-        bool hasNext()
-        {
-            return bucketIndex < map->m_bucketCount;
-        }
+//        bool hasNext()
+//        {
+//            return bucketIndex < map->m_bucketCount;
+//        }
 
         bool operator==(const iterator& other)
         {

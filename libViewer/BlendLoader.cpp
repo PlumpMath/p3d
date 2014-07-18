@@ -80,14 +80,14 @@ bool BlendLoader::load(const char *data, size_t length)
 
     P3D_LOGD("----------");
 
-    for(P3dMap<uint32_t, P3dMap<VertexIndex, uint32_t>*>::iterator itr = m_vertex_maps.begin(); itr.hasNext(); ++itr)
+    for(auto item: m_vertex_maps)
     {
         P3D_LOGD("vertex bank:");
-        P3D_LOGD(" offset: %d", itr.key());
-        P3D_LOGD(" count: %d", itr.value()->size());
-        copyVertData(itr.key(), itr.value(), blendData, new_norm, new_uv, new_pos);
-        itr.value()->dumpBucketLoad();
-        delete itr.value();
+        P3D_LOGD(" offset: %d", item.first);
+        P3D_LOGD(" count: %d", item.second->size());
+        copyVertData(item.first, item.second, blendData, new_norm, new_uv, new_pos);
+        item.second->dumpBucketLoad();
+        delete item.second;
     }
 
     P3D_LOGD("data copied");
@@ -247,11 +247,11 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
     float z;
     unsigned int vertCount = 0;
     P3D_LOGD("vert offset: %u", vertOffset);
-    for(P3dMap<VertexIndex, uint32_t>::iterator itr = vertexMap->begin(); itr.hasNext(); ++itr)
+    for(auto item: *vertexMap)
     {
         ++vertCount;
-        const VertexIndex& index = itr.key();
-        uint32_t new_index = itr.value();
+        const VertexIndex& index = item.first;
+        uint32_t new_index = item.second;
         //P3D_LOGD("%u: %u/%u/%u > %u", vertCount, index.pos, index.uv, index.norm, new_index);
 
         // pos
