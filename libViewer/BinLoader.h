@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "P3dMap.h"
+#include "P3dVector.h"
 #include "glwrapper.h"
 
 class BinLoader : public BaseLoader

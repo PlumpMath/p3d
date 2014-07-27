@@ -56,10 +56,9 @@ size_t ModelLoader::VertexIndex::hash() const
 }
 
 template<>
-class P3dHasher<glm::vec3>
+struct P3dHash<glm::vec3>
 {
-public:
-    size_t static hash(const glm::vec3& k)
+    size_t operator() (const glm::vec3& k) const
     {
         size_t h1 = *((uint32_t*) &k.x);
         size_t h2 = *((uint32_t*) &k.y);

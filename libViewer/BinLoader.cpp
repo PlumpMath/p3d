@@ -1,5 +1,7 @@
 #include "BinLoader.h"
 
+#define DUMP_LOAD_STATS 0
+
 #include <cfloat>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -23,6 +25,7 @@ static float READ_FLOAT(const char& x) {
 }
 
 #include "ModelLoader.h"
+#include "PlatformAdapter.h"
 
 static BinLoader binLoader;
 static RegisterLoader registerBinLoader(&binLoader, ".bin", 0);
@@ -214,6 +217,7 @@ bool BinLoader::reindex(const char *data)
     GLfloat* new_uv = new GLfloat[m_new_uv_count];
     GLfloat* new_norm = new GLfloat[m_new_norm_count];
 
+#if DUMP_LOAD_STATS
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
         P3D_LOGD("chunk: %d", chunk);
@@ -223,12 +227,15 @@ bool BinLoader::reindex(const char *data)
         P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4Offset);
         P3D_LOGD(" material: %d", m_chunks[chunk].material);
     }
+#endif
 
     for(auto item: m_vertex_maps)
     {
+#if DUMP_LOAD_STATS
         P3D_LOGD("vertex bank:");
         P3D_LOGD(" offset: %d", item.first);
         P3D_LOGD(" count: %d", item.second->size());
+#endif
         copyVertData(item.first, item.second, data, new_norm, new_uv, new_pos);
         item.second->dumpBucketLoad();
         delete item.second;

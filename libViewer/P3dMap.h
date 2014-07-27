@@ -1,37 +1,24 @@
 #ifndef P3DMAP_H
 #define P3DMAP_H
 
-#include "P3dVector.h"
-#include "PlatformAdapter.h"
-
-#include <cstring>
+#define USE_STD_MAP 0
 
 template<typename K>
-class P3dHasher
+struct P3dHash
 {
-public:
-    size_t static hash(const K& k) {return k.hash();}
-};
-
-template<typename K>
-class P3dComperator
-{
-public:
-    bool static equals(const K& k1, const K& k2) {return k1 == k2;}
+    size_t operator() (const K& k) const {return k.hash();}
 };
 
 template<>
-class P3dHasher<uint32_t>
+struct P3dHash<uint32_t>
 {
-public:
-    size_t static hash(const uint32_t& k) {return k;}
+    size_t operator() (const uint32_t& k) const {return k;}
 };
 
 template<>
-class P3dHasher<const char*>
+struct P3dHash<const char*>
 {
-public:
-    size_t static hash(const char* const& k)
+    size_t operator() (const char* const& k) const
     {
         size_t i = 0;
         size_t h1 = k[i++];
@@ -45,15 +32,47 @@ public:
     }
 };
 
+template<typename K>
+class P3dComperator
+{
+public:
+    bool operator() (const K& k1, const K& k2) const {return k1 == k2;}
+};
+
 template<>
 class P3dComperator<const char*>
 {
 public:
-    bool static equals(const char* const& k1, const char* const& k2)
+    bool operator() (const char* const& k1, const char* const& k2) const
     {
         return strcmp(k1, k2) == 0;
     }
 };
+
+#if USE_STD_MAP
+
+#include <unordered_map>
+template<typename K, typename T>
+class P3dMap: public std::unordered_map<K, T, P3dHash<K>, P3dComperator<K> >
+{
+public:
+    P3dMap() : std::unordered_map<K, T, P3dHash<K>, P3dComperator<K> >() {}
+    explicit P3dMap(size_t bucketCount) : std::unordered_map<K, T, P3dHash<K>, P3dComperator<K> >(bucketCount) {}
+    void insert(const K& key, const T& val)
+    {
+        std::unordered_map<K, T, P3dHash<K>, P3dComperator<K> >::insert(std::pair<K, T>(key, val));
+    }
+
+    // not implemented
+    void dumpBucketLoad() {}
+};
+
+#else // USE_STD_MAP
+
+#include "P3dVector.h"
+#include "PlatformAdapter.h"
+
+#include <cstring>
 
 template<typename K, typename T>
 struct P3dPair
@@ -67,6 +86,13 @@ struct P3dPair
     K first;
     T second;
 };
+
+template<class K, class T>
+inline P3dPair<K,T>
+P3dMakePair(K first, T second)
+{
+    return P3dPair<K,T>(first, second);
+}
 
 //! \brief Replacement for std::unordered_map which makes code size too big (emscripten)
 //! Very limited compared to std::unordered_map
@@ -107,11 +133,6 @@ public:
             }
             return *this;
         }
-
-//        bool hasNext()
-//        {
-//            return bucketIndex < map->m_bucketCount;
-//        }
 
         bool operator==(const iterator& other)
         {
@@ -174,7 +195,7 @@ public:
         value_type* itm = find(key);
         if(!itm)
         {
-            itm = insertItem(key, T());
+            itm = insertPair(value_type(key, T()));
         }
         return itm->second;
     }
@@ -183,12 +204,12 @@ public:
 
     void insert(const K& key, const T& val)
     {
-        insertItem(key, val);
+        insertPair(value_type(key, val));
     }
 
     void insert(const value_type& newItem)
     {
-        insertItem(newItem.first, newItem.second);
+        insertPair(newItem);
     }
 
     iterator begin() { return iterator(this); }
@@ -225,23 +246,23 @@ private:
 
     value_type* find(const K& key)
     {
-        size_t hash = P3dHasher<K>::hash(key);
+        size_t hash = m_Hash(key);
         Bucket& buck = m_buckets[hash % m_bucketCount];
         return findInBucket(buck, key);
     }
 
-    value_type* insertItem(const K& key, const T& val)
+    value_type* insertPair(const value_type& pair)
     {
-        size_t hash = P3dHasher<K>::hash(key);
+        size_t hash = m_Hash(pair.first);
         Bucket& buck = m_buckets[hash % m_bucketCount];
-        value_type* itm = findInBucket(buck, key);
+        value_type* itm = findInBucket(buck, pair.first);
         if(itm)
         {
-            itm->second = val;
+            itm->second = pair.second;
         }
         else
         {
-            buck.push_back(value_type(key, val));
+            buck.push_back(value_type(pair.first, pair.second));
             itm = &buck[buck.size() - 1];
             ++m_size;
         }
@@ -253,22 +274,19 @@ private:
         for(size_t i = 0, il = buck.size(); i < il; ++i)
         {
             value_type& itm = buck[i];
-            if(P3dComperator<K>::equals(itm.first, key)) return &itm;
+            if(m_Comperator(itm.first, key)) return &itm;
         }
         return 0;
     }
 
+    P3dHash<K> m_Hash;
+    P3dComperator<K> m_Comperator;
     Bucket* m_buckets;
     size_t m_size;
     size_t m_bucketCount;
 
 };
 
-template<class K, class T>
-inline P3dPair<K,T>
-P3dMakePair(K first, T second)
-{
-    return P3dPair<K,T>(first, second);
-}
+#endif // USE_STD_MAP
 
 #endif // P3DMAP_H

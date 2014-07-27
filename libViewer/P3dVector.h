@@ -2,6 +2,7 @@
 #define P3DVECTOR_H
 
 #define USE_STD_VECTOR 0
+
 #if USE_STD_VECTOR
 
 #include <vector>
