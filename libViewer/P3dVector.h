@@ -1,8 +1,17 @@
 #ifndef P3DVECTOR_H
 #define P3DVECTOR_H
 
+#define USE_STD_VECTOR 0
+#if USE_STD_VECTOR
+
+#include <vector>
+#define P3dVector std::vector
+
+#else // USE_STD_VECTOR
+
 #include <cstdint>
 #include <cstdlib>
+#include <cassert>
 
 //! \brief Replacement for std::vector which makes code size too big (emscripten)
 //! Very limited compared to std::vector
@@ -64,11 +73,7 @@ public:
 
     T& operator[] (size_t index)
     {
-        if(index >= m_size)
-        {
-            reserve(index + 1);
-            m_size = index + 1;
-        }
+        assert(index < m_size);
         return m_data[index];
     }
 
@@ -92,5 +97,7 @@ private:
     size_t m_size;
     size_t m_capacity;
 };
+
+#endif // USE_STD_VECTOR
 
 #endif // P3DVECTOR_H

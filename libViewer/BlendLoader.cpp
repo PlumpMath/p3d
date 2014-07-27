@@ -201,6 +201,14 @@ void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, bool
     {
         ++chunk;
     }
+    if(chunk >= m_chunks.size())
+    {
+        while(chunk >= m_chunks.size()) m_chunks.push_back(MeshChunk());
+    }
+    else
+    {
+        m_chunks[chunk] = MeshChunk();
+    }
     m_chunks[chunk] = MeshChunk();
     MeshChunk& newChunk = m_chunks[chunk];
     newChunk.indexCount = m_new_index_count[vtype];

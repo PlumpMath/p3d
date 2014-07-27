@@ -480,7 +480,14 @@ void BinLoader::nextChunk(uint32_t &chunk, BaseLoader::VertexType vtype, bool in
     {
         ++chunk;
     }
-    m_chunks[chunk] = MeshChunk();
+    if(chunk >= m_chunks.size())
+    {
+        while(chunk >= m_chunks.size()) m_chunks.push_back(MeshChunk());
+    }
+    else
+    {
+        m_chunks[chunk] = MeshChunk();
+    }
     MeshChunk& newChunk = m_chunks[chunk];
     newChunk.f3Offset = new_offset;
     newChunk.f4Offset = new_offset;
