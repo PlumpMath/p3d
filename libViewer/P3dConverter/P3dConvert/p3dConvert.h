@@ -35,6 +35,7 @@ public:
     uint32_t totface;
 	float *v; /* verts, stride 3 */
     uint32_t *f; /* face indices, stride 3 */
+    float *uv; /* totverts * 2 */
 };
 
 class P3dMesh{

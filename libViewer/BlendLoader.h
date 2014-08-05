@@ -22,8 +22,8 @@ public:
         totface = 0;
         vertbytes = 0;
         facebytes = 0;
-        verts = 0;
-        faces = 0;
+		verts = nullptr;
+		faces = nullptr;
         isloaded = false;
     }
     ~BlendData()
