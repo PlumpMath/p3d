@@ -62,7 +62,6 @@ public:
 	void loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv);
 private:
 	void extract_all_geometry();
-	void free_p3d_mesh_data(P3dMesh *pme);
 	void extract_geometry(Object *ob);
 	size_t count_mesh_objects();
 

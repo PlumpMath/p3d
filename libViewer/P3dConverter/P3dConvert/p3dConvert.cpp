@@ -43,17 +43,6 @@ int P3dConverter::parse_blend(const char *data, size_t length) {
 	return 0;
 }
 
-void P3dConverter::free_p3d_mesh_data(P3dMesh *pme) {
-	Chunk *chunk = pme->m_chunks;
-	if(chunk) {
-		for(int i = 0; i < pme->m_totchunk; i++, chunk++) {
-			delete [] chunk->v;
-			delete [] chunk->f;
-		}
-	}
-	delete [] pme->m_chunks;
-}
-
 void P3dConverter::loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv)
 {
 	chunk->f[curf] = (uint32_t)loop->v;
