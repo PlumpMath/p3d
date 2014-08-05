@@ -152,48 +152,25 @@ void P3dConverter::extract_geometry(Object *ob) {
 				loop_data(mpuv, chunk, curf, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk+1, curf, loop, luv);
+				loop_data(mpuv, chunk, curf+1, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk+2, curf, loop, luv);
+				loop_data(mpuv, chunk, curf+2, loop, luv);
 				curf+=3;
 			} else if (mp->totloop==4) {
 				loop_data(mpuv, chunk, curf, loop, luv);
-				loop_data(mpuv, chunk+3, curf, loop, luv);
+				loop_data(mpuv, chunk, curf+3, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk+1, curf, loop, luv);
-				loop_data(mpuv, chunk+4, curf, loop, luv);
+				loop_data(mpuv, chunk, curf+1, loop, luv);
+				loop_data(mpuv, chunk, curf+3, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk+2, curf, loop, luv);
+				loop_data(mpuv, chunk, curf+2, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk+5, curf, loop, luv);
+				loop_data(mpuv, chunk, curf+5, loop, luv);
 				curf+=6;
-				/*chunk->f[curf] = (uint32_t)loop->v; loop++;
-				chunk->f[curf+1] = (uint32_t)loop->v; loop++;
-				chunk->f[curf+2] = (uint32_t)loop->v; loop++;
-				chunk->f[curf+3] = chunk->f[curf];
-				chunk->f[curf+4] = chunk->f[curf+1];
-				chunk->f[curf+5] = (uint32_t)loop->v;
-				curf+=6;
-				if(mpuv) {
-					chunk->uv[curuv] = luv->uv[0];
-					chunk->uv[curuv+1] = luv->uv[1]; luv++;
-					chunk->uv[curuv+2] = luv->uv[0];
-					chunk->uv[curuv+3] = luv->uv[1]; luv++;
-					chunk->uv[curuv+4] = luv->uv[0];
-					chunk->uv[curuv+5] = luv->uv[1]; luv++;
-					chunk->uv[curuv+6] = chunk->uv[curuv];
-					chunk->uv[curuv+7] = chunk->uv[curuv+1];
-					chunk->uv[curuv+8] = chunk->uv[curuv+2];
-					chunk->uv[curuv+9] = chunk->uv[curuv+3];
-					chunk->uv[curuv+10] = luv->uv[0];
-					chunk->uv[curuv+11] = luv->uv[1];
-					curuv+=12;
-				}
-				*/
 			}
 		}
 	}
