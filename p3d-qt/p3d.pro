@@ -8,7 +8,7 @@ DEPLOYMENTFOLDERS = folder_01
 # Additional import path used to resolve QML modules in Creator's code model
 QML_IMPORT_PATH =
 
-QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++0x -Wno-c++11-narrowing
 
 INCLUDEPATH += ../libViewer
 INCLUDEPATH += ../ext/glm

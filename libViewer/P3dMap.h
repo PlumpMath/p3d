@@ -100,8 +100,7 @@ template<typename K, typename T>
 class P3dMap
 {
 private:
-    static constexpr char const* LOG_TAG = "core.P3dMap";
-    static const P3dLogger::Level LOG_LEVEL = P3dLogger::LOG_VERBOSE;
+    P3dLogger logger{"core.P3dMap", P3dLogger::LOG_VERBOSE};
 
 public:
     typedef P3dPair<K, T> value_type;
@@ -226,7 +225,6 @@ public:
 
     // for debugging
     void dumpBucketLoad() {
-        static P3dLogger logger(LOG_TAG, LOG_LEVEL);
         size_t maxSize = 0;
         size_t minSize = size();
         size_t totalSize = 0;
