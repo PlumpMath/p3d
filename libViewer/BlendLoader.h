@@ -12,7 +12,10 @@
 
 #include "glwrapper.h"
 
+static P3dLogger logger("BlendLoader", P3dLogger::LOG_DEBUG);
+
 #define STRIDE 3
+#define UVSTRIDE 2
 /** Class to pass around data buffers from Blender files */
 class BlendData {
 public:
@@ -24,6 +27,7 @@ public:
 		facebytes = 0;
 		verts = nullptr;
 		faces = nullptr;
+		uvs = nullptr;
 		isloaded = false;
 	}
 	~BlendData()
@@ -32,10 +36,11 @@ public:
 	}
 
 	/** Data is expected to be triangulated before being passed in here. */
-	void initBlendData(uint32_t tv, uint32_t tf, float *vs, uint32_t *fs) {
+	void initBlendData(uint32_t tv, uint32_t tf, float *vs, float *uv, uint32_t *fs) {
 		isloaded = false;
-		if(verts != 0) delete [] verts;
-		if(faces != 0) delete [] faces;
+		if(verts) delete [] verts;
+		if(faces) delete [] faces;
+		if(uvs) delete [] uvs;
 
 		totvert = tv;
 		totface = tf;
@@ -43,15 +48,22 @@ public:
 		vertbytes = totvert * sizeof(float) * STRIDE;
 		facebytes = totface * sizeof(uint32_t) * STRIDE;
 
+		if(uv) uvs = new float[totvert*UVSTRIDE];
 		verts = new float[totvert*STRIDE];
 		faces = new uint32_t[totface*STRIDE];
 
 		float *v, *vnew;
+		float *uv_, *uvnew;
 		uint32_t *f, *fnew;
 		unsigned int i;
 		for(i=0, v = vs, vnew = verts; i < tv*STRIDE; i++, v++, vnew++) {
 			*vnew = *v;
 		}
+
+		for(i=0, uv_ = uv, uvnew = uvs; i < tv*UVSTRIDE; i++, uv_++, uvnew++){
+			*uvnew = *uv_;
+		}
+
 
 		for(i=0, f = fs, fnew = faces; i < tf*STRIDE; i++, f++, fnew++) {
 			*fnew = *f;
@@ -65,22 +77,24 @@ public:
 	}
 
 	void initBlendData(P3dConverter &converter){
-		P3D_LOGD("Adding %u meshes", converter.object_count());
+		logger.debug("Adding %u meshes", converter.object_count());
 		for(uint32_t i = 0; i < converter.object_count(); i++) {
 			P3dMesh &mesh = converter[0];
 			for(uint32_t j = 0; j < mesh.m_totchunk; j++) {
 				Chunk &chunk = mesh.m_chunks[j];
-				initBlendData(chunk.totvert, chunk.totface, chunk.v, chunk.f);
+				initBlendData(chunk.totvert, chunk.totface, chunk.v, chunk.uv, chunk.f);
 			}
 		}
 	}
 
 	void clearBlendData() {
 		isloaded = false;
-		delete [] verts;
-		delete [] faces;
-		verts = 0;
-		faces = 0;
+		if(verts) delete [] verts;
+		if(faces) delete [] faces;
+		if(uvs) delete [] uvs;
+		verts = nullptr;
+		faces = nullptr;
+		uvs = nullptr;
 		totvert = 0;
 		totface = 0;
 		vertbytes = 0;
@@ -98,6 +112,8 @@ public:
 	uint32_t totface;
 	uint32_t *faces;
 	size_t facebytes;
+
+	float *uvs;
 
 	bool isloaded;
 };

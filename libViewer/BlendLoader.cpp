@@ -66,31 +66,31 @@ bool BlendLoader::load(const char *data, size_t length)
 
 	if(new_pos==NULL || new_uv==NULL || new_norm==NULL) return false;
 
-	P3D_LOGD("GLfloat buffers allocated");
+	logger.debug("GLfloat buffers allocated");
 
 	for(chunk = 0; chunk < m_chunks.size(); ++chunk)
 	{
-		P3D_LOGD("chunk: %d", chunk);
-		P3D_LOGD(" index count: %d", m_chunks[chunk].indexCount);
-		P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
-		P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3Offset);
-		P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4Offset);
-		P3D_LOGD(" material: %d", m_chunks[chunk].material);
+		logger.debug("chunk: %d", chunk);
+		logger.debug(" index count: %d", m_chunks[chunk].indexCount);
+		logger.debug(" vert count: %d", m_chunks[chunk].vertCount);
+		logger.debug(" f3 offset: %d", m_chunks[chunk].f3Offset);
+		logger.debug(" f4 offset: %d", m_chunks[chunk].f4Offset);
+		logger.debug(" material: %d", m_chunks[chunk].material);
 	}
 
-	P3D_LOGD("----------");
+	logger.debug("----------");
 
 	for(auto item: m_vertex_maps)
 	{
-		P3D_LOGD("vertex bank:");
-		P3D_LOGD(" offset: %d", item.first);
-		P3D_LOGD(" count: %d", item.second->size());
+		logger.debug("vertex bank:");
+		logger.debug(" offset: %d", item.first);
+		logger.debug(" count: %d", item.second->size());
 		copyVertData(item.first, item.second, blendData, new_norm, new_uv, new_pos);
 		item.second->dumpBucketLoad();
 		delete item.second;
 	}
 
-	P3D_LOGD("data copied");
+	logger.debug("data copied");
 	m_vertex_maps.clear();
 
 	m_modelLoader->createModel(m_new_pos_count, m_new_norm_count, m_new_empty_norm_count, m_new_uv_count,
@@ -108,7 +108,7 @@ bool BlendLoader::load(const char *data, size_t length)
 	m_modelLoader->setBoundingBox(m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
 	m_modelLoader->setIsLoaded(m_loaded);
 
-	P3D_LOGD("reindex took %lldms", PlatformAdapter::durationMillis(start));
+	logger.debug("reindex took %lldms", PlatformAdapter::durationMillis(start));
 
 	return m_loaded;
 }
@@ -187,7 +187,7 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 
 	m_chunks[chunk].vertCount = (m_new_pos_count - STRIDE * m_chunks[chunk].vertOffset) / 3;
 
-	P3D_LOGD("reindex type Blender took: %lldms", PlatformAdapter::durationMillis(start));
+	logger.debug("reindex type Blender took: %lldms", PlatformAdapter::durationMillis(start));
 
 	return result;
 }
@@ -195,8 +195,8 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
 							uint32_t vertOffset, bool firstOfType)
 {
-	P3D_LOGD("new_offset: %d", new_offset);
-	P3D_LOGD("vertOffset: %d", vertOffset);
+	logger.debug("new_offset: %d", new_offset);
+	logger.debug("vertOffset: %d", vertOffset);
 	if(m_chunks.size() != 0)
 	{
 		++chunk;
@@ -253,24 +253,37 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
 	float x;
 	float y;
 	float z;
+	float u;
+	float v;
 	unsigned int vertCount = 0;
-	P3D_LOGD("vert offset: %u", vertOffset);
+	logger.debug("vert offset: %u", vertOffset);
 	for(auto item: *vertexMap)
 	{
+		u = 0.0f;
+		v = 0.0f;
 		++vertCount;
 		const VertexIndex& index = item.first;
 		uint32_t new_index = item.second;
-		//P3D_LOGD("%u: %u/%u/%u > %u", vertCount, index.pos, index.uv, index.norm, new_index);
+		//logger.debug("%u: %u/%u/%u > %u", vertCount, index.pos, index.uv, index.norm, new_index);
 
 		// pos
 		vert_offset = index.pos * STRIDE;
 		new_offset = (new_index + vertOffset) * STRIDE;
 
-		x = data.verts[vert_offset++];
-		y = data.verts[vert_offset++];
+		x = data.verts[vert_offset];
+		if(data.uvs) {
+			u = data.uvs[vert_offset];
+		}
+		++vert_offset;
+		y = data.verts[vert_offset];
+		if(data.uvs) {
+			v = data.uvs[vert_offset];
+		}
+		++vert_offset;
 		z = data.verts[vert_offset];
 
-		//P3D_LOGD("%u @ %u: (%f,%f,%f)", vertCount, vert_offset, x, y, z);
+
+		//logger.debug("%u @ %u: (%f,%f,%f)", vertCount, vert_offset, x, y, z);
 
 		if(x > m_maxX) m_maxX = x;
 		if(x < m_minX) m_minX = x;
@@ -288,12 +301,12 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
 		// store empty normal
 		// TODO: actual normal storage if present in BlendData
 		new_norm[new_offset] = .5f;
-		new_uv[new_offset++] = 1.0f;
+		new_uv[new_offset++] = u;
 		new_norm[new_offset] = .5f;
-		new_uv[new_offset++] = 1.0f;
+		new_uv[new_offset++] = v;
 		new_norm[new_offset] = .5f;
 		new_uv[new_offset] = 1.0f;
 	}
 
-	P3D_LOGD("BB: %f:%f %f:%f %f:%f", m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
+	logger.debug("BB: %f:%f %f:%f %f:%f", m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
 }

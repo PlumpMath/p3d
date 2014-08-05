@@ -34,8 +34,8 @@ public:
     uint32_t totvert;
     uint32_t totface;
 	float *v; /* verts, stride 3 */
-    uint32_t *f; /* face indices, stride 3 */
-    float *uv; /* totverts * 2 */
+	uint32_t *f; /* face indices, stride 3 */
+	float *uv; /* totverts * 2 */
 };
 
 class P3dMesh{
@@ -58,6 +58,7 @@ public:
         return m_pme[i];
     }
 
+	void loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv);
 private:
     void extract_all_geometry();
     void free_p3d_mesh_data(P3dMesh *pme);

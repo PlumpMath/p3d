@@ -54,6 +54,15 @@ void P3dConverter::free_p3d_mesh_data(P3dMesh *pme) {
 	delete [] pme->m_chunks;
 }
 
+void P3dConverter::loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv)
+{
+	chunk->f[curf] = (uint32_t)loop->v;
+	if(mpuv) {
+		chunk->uv[loop->v*2] = luv->uv[0];
+		chunk->uv[loop->v*2+1] = luv->uv[1];
+	}
+}
+
 void P3dConverter::extract_geometry(Object *ob) {
 	uint32_t totf3 = 0;
 	uint32_t totfx = 0;
@@ -135,34 +144,37 @@ void P3dConverter::extract_geometry(Object *ob) {
 		}
 		/* create buffer for tri indices */
 		chunk->totface = totf3 + totfx*2;
-		/* create buffer for UV coords, face based per vertice in tri = 3 * 2 * totface floats */
+		/* create buffer for UV coords */
 		if(mpuv) {
-			chunk->uv = new float[chunk->totface*6];
+			chunk->uv = new float[chunk->totvert*2];
 			fbtPrintf("Got UV\n");
 		}
 		chunk->f = new uint32_t[3 * chunk->totface];
 		/* reset mp to start of mpoly */
 		mp = me->mpoly;
 		MLoopUV *luv = nullptr;
-		for(int j=0, curf=0, curuv=0; j < me->totpoly; j++, mp++) {
+		for(int j=0, curf=0; j < me->totpoly; j++, mp++) {
 			MLoop *loop = &me->mloop[mp->loopstart];
 			if(mpuv) luv = &me->mloopuv[mp->loopstart];
 			if(mp->totloop==3) {
-				chunk->f[curf] = (uint32_t)loop->v; loop++;
-				chunk->f[curf+1] = (uint32_t)loop->v; loop++;
-				chunk->f[curf+2] = (uint32_t)loop->v;
+				loop_data(mpuv, chunk, curf, loop, luv);
+				loop++;
+				loop_data(mpuv, chunk+1, curf, loop, luv);
+				loop++;
+				loop_data(mpuv, chunk+2, curf, loop, luv);
 				curf+=3;
-				if(mpuv) {
-					chunk->uv[curuv] = luv->uv[0];
-					chunk->uv[curuv+1] = luv->uv[1]; luv++;
-					chunk->uv[curuv+2] = luv->uv[0];
-					chunk->uv[curuv+3] = luv->uv[1]; luv++;
-					chunk->uv[curuv+4] = luv->uv[0];
-					chunk->uv[curuv+5] = luv->uv[1];
-					curuv+=6;
-				}
 			} else if (mp->totloop==4) {
-				chunk->f[curf] = (uint32_t)loop->v; loop++;
+				loop_data(mpuv, chunk, curf, loop, luv);
+				loop_data(mpuv, chunk+3, curf, loop, luv);
+				loop++;
+				loop_data(mpuv, chunk+1, curf, loop, luv);
+				loop_data(mpuv, chunk+4, curf, loop, luv);
+				loop++;
+				loop_data(mpuv, chunk+2, curf, loop, luv);
+				loop++;
+				loop_data(mpuv, chunk+5, curf, loop, luv);
+				curf+=6;
+				/*chunk->f[curf] = (uint32_t)loop->v; loop++;
 				chunk->f[curf+1] = (uint32_t)loop->v; loop++;
 				chunk->f[curf+2] = (uint32_t)loop->v; loop++;
 				chunk->f[curf+3] = chunk->f[curf];
@@ -184,6 +196,7 @@ void P3dConverter::extract_geometry(Object *ob) {
 					chunk->uv[curuv+11] = luv->uv[1];
 					curuv+=12;
 				}
+				*/
 			}
 		}
 	}
