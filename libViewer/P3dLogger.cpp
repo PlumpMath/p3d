@@ -3,12 +3,6 @@
 
 #include <stdarg.h>
 
-P3dLogger::P3dLogger(const char *tag, Level level)
-{
-    m_tag = tag;
-    m_level = level;
-}
-
 void P3dLogger::verbose(const char *format, ...) const
 {
     if(m_level < LOG_VERBOSE) return;

@@ -19,7 +19,7 @@ public:
         LOG_ERROR = 200,
         LOG_FATAL = 100
     };
-    P3dLogger(const char* tag, Level level=LOG_VERBOSE);
+    inline constexpr P3dLogger(const char* tag, Level level=LOG_VERBOSE) : m_tag(tag), m_level(level) {}
     void verbose(const char* format, ...) const;
     void debug(const char* format, ...) const;
     void info(const char* format, ...) const;
