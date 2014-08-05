@@ -217,25 +217,21 @@ bool BinLoader::reindex(const char *data)
     GLfloat* new_uv = new GLfloat[m_new_uv_count];
     GLfloat* new_norm = new GLfloat[m_new_norm_count];
 
-#if DUMP_LOAD_STATS
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
-        P3D_LOGD("chunk: %d", chunk);
-        P3D_LOGD(" index count: %d", m_chunks[chunk].indexCount);
-        P3D_LOGD(" vert count: %d", m_chunks[chunk].vertCount);
-        P3D_LOGD(" f3 offset: %d", m_chunks[chunk].f3Offset);
-        P3D_LOGD(" f4 offset: %d", m_chunks[chunk].f4Offset);
-        P3D_LOGD(" material: %d", m_chunks[chunk].material);
+        P3D_LOGV("chunk: %d", chunk);
+        P3D_LOGV(" index count: %d", m_chunks[chunk].indexCount);
+        P3D_LOGV(" vert count: %d", m_chunks[chunk].vertCount);
+        P3D_LOGV(" f3 offset: %d", m_chunks[chunk].f3Offset);
+        P3D_LOGV(" f4 offset: %d", m_chunks[chunk].f4Offset);
+        P3D_LOGV(" material: %d", m_chunks[chunk].material);
     }
-#endif
 
     for(auto item: m_vertex_maps)
     {
-#if DUMP_LOAD_STATS
-        P3D_LOGD("vertex bank:");
-        P3D_LOGD(" offset: %d", item.first);
-        P3D_LOGD(" count: %d", item.second->size());
-#endif
+        P3D_LOGV("vertex bank:");
+        P3D_LOGV(" offset: %d", item.first);
+        P3D_LOGV(" count: %d", item.second->size());
         copyVertData(item.first, item.second, data, new_norm, new_uv, new_pos);
         item.second->dumpBucketLoad();
         delete item.second;

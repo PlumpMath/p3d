@@ -44,7 +44,7 @@ const char *PlatformAdapter::loadAsset(const char *filename, size_t *size)
     return data;
 }
 
-void PlatformAdapter::logFunc(LogLevel level, const char *func, const char *format, ...)
+void PlatformAdapter::logFunc(P3dLogger::Level level, const char *func, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -70,30 +70,30 @@ void PlatformAdapter::logFunc(LogLevel level, const char *func, const char *form
     delete [] tag_buf;
 }
 
-void PlatformAdapter::logTag(LogLevel level, const char *tag, const char *format, va_list args)
+void PlatformAdapter::logTag(P3dLogger::Level level, const char *tag, const char *format, va_list args)
 {
     FILE* out = stdout;
 
     switch(level)
     {
-    case LOG_VERBOSE:
+    case P3dLogger::Level::LOG_VERBOSE:
         fprintf(out, "V ");
         break;
-    case LOG_DEBUG:
+    case P3dLogger::Level::LOG_DEBUG:
         fprintf(out, "D ");
         break;
-    case LOG_INFO:
+    case P3dLogger::Level::LOG_INFO:
         fprintf(out, "I ");
         break;
-    case LOG_WARN:
+    case P3dLogger::Level::LOG_WARN:
         out = stderr;
         fprintf(out, "W ");
         break;
-    case LOG_ERROR:
+    case P3dLogger::Level::LOG_ERROR:
         out = stderr;
         fprintf(out, "E ");
         break;
-    case LOG_FATAL:
+    case P3dLogger::Level::LOG_FATAL:
         out = stderr;
         fprintf(out, "F ");
         break;

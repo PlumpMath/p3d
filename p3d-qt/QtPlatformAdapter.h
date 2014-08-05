@@ -12,7 +12,7 @@ public:
     virtual ~QtPlatformAdapter();
 
     virtual const char* loadAsset(const char *filename, size_t *size);
-    virtual void logTag(LogLevel level, const char* tag, const char* format, va_list args);
+    virtual void logTag(P3dLogger::Level level, const char* tag, const char* format, va_list args);
 
 signals:
 

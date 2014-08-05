@@ -36,29 +36,29 @@ const char *QtPlatformAdapter::loadAsset(const char *filename, size_t *size)
     return result;
 }
 
-void QtPlatformAdapter::logTag(PlatformAdapter::LogLevel level, const char *tag, const char *format, va_list args)
+void QtPlatformAdapter::logTag(P3dLogger::Level level, const char *tag, const char *format, va_list args)
 {
     char buf[1024];
     vsnprintf(buf, sizeof(buf), format, args);
 
     switch(level)
     {
-    case LOG_VERBOSE:
+    case P3dLogger::Level::LOG_VERBOSE:
         qDebug() << "V" << tag << buf;
         break;
-    case LOG_DEBUG:
+    case P3dLogger::Level::LOG_DEBUG:
         qDebug() << "D" << tag << buf;
         break;
-    case LOG_INFO:
+    case P3dLogger::Level::LOG_INFO:
         qDebug() << "I" << tag << buf;
         break;
-    case LOG_WARN:
+    case P3dLogger::Level::LOG_WARN:
         qWarning() << "W" << tag << buf;
         break;
-    case LOG_ERROR:
+    case P3dLogger::Level::LOG_ERROR:
         qWarning() << "E" << tag << buf;
         break;
-    case LOG_FATAL:
+    case P3dLogger::Level::LOG_FATAL:
         qFatal("F %s %s", tag, buf);
         break;
     default:

@@ -28,6 +28,7 @@ LIBVIEWER_DIR = ../libViewer
 LIBVIEWER_SOURCES = \
     P3dViewer.cpp \
     PlatformAdapter.cpp \
+    P3dLogger.cpp \
     ModelLoader.cpp \
     BaseLoader.cpp \
     BinLoader.cpp \

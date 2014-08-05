@@ -12,7 +12,8 @@ INCLUDEPATH += ../ext/glm
 SOURCES += P3dViewer.cpp \
     PlatformAdapter.cpp \
     ModelLoader.cpp \
-    CameraNavigation.cpp
+    CameraNavigation.cpp \
+    P3dLogger.cpp
 
 HEADERS += P3dViewer.h \
     glwrapper.h \
@@ -20,7 +21,8 @@ HEADERS += P3dViewer.h \
     ModelLoader.h \
     P3dVector.h \
     P3dMap.h \
-    CameraNavigation.h
+    CameraNavigation.h \
+    P3dLogger.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
