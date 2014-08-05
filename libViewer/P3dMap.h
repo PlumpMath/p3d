@@ -99,6 +99,10 @@ P3dMakePair(K first, T second)
 template<typename K, typename T>
 class P3dMap
 {
+private:
+    static constexpr char const* LOG_TAG = "core.P3dMap";
+    static const P3dLogger::Level LOG_LEVEL = P3dLogger::LOG_VERBOSE;
+
 public:
     typedef P3dPair<K, T> value_type;
 
@@ -222,6 +226,7 @@ public:
 
     // for debugging
     void dumpBucketLoad() {
+        static P3dLogger logger(LOG_TAG, LOG_LEVEL);
         size_t maxSize = 0;
         size_t minSize = size();
         size_t totalSize = 0;
@@ -233,7 +238,7 @@ public:
         }
         size_t avgSize = 0;
         if(m_bucketCount) avgSize = totalSize / m_bucketCount;
-        P3D_LOGD("Bucket sizes min/max/avg: %d/%d/%d", minSize, maxSize, avgSize);
+        logger.verbose("Bucket sizes min/max/avg: %d/%d/%d", minSize, maxSize, avgSize);
     }
 
 private:

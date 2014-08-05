@@ -9,6 +9,8 @@
 
 #define STRIDE 3
 
+static P3dLogger logger("core.ModelLoader", P3dLogger::LOG_DEBUG);
+
 struct GLBuffers
 {
     GLBuffers()
@@ -191,7 +193,7 @@ void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t em
     {
         GLBuffers* glbufs = item.second;
 
-        P3D_LOGD("Creating gl buf, vertOffset: %d, vertCount: %d", item.first, glbufs->vertCount);
+        logger.verbose("Creating gl buf, vertOffset: %d, vertCount: %d", item.first, glbufs->vertCount);
 
         if(3 * (item.first + glbufs->vertCount) <= posCount)
         {
@@ -226,7 +228,7 @@ void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t em
 
 void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat *new_norm, uint32_t emptyNormCount)
 {
-    P3D_LOGD("Generating normals");
+    logger.debug("Generating normals");
     uint64_t start = PlatformAdapter::currentMillis();
 
     uint32_t i;
@@ -270,7 +272,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             normalsMap[posc] += fnormal;
         }
     }
-    P3D_LOGD("calc took: %lldms", PlatformAdapter::durationMillis(start));
+    logger.debug("calc took: %lldms", PlatformAdapter::durationMillis(start));
 
     start = PlatformAdapter::currentMillis();
     // normalize
@@ -279,7 +281,7 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
         glm::vec3& normal = item.second;
         normal = glm::normalize(normal);
     }
-    P3D_LOGD("normalize took: %lldms", PlatformAdapter::durationMillis(start));
+    logger.debug("normalize took: %lldms", PlatformAdapter::durationMillis(start));
 
     start = PlatformAdapter::currentMillis();
     // store new normals
@@ -304,8 +306,8 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
 
         m_chunks[chunk].validNormals = true;
     }
-    P3D_LOGD("store took: %lldms", PlatformAdapter::durationMillis(start));
+    logger.debug("store took: %lldms", PlatformAdapter::durationMillis(start));
 
-    P3D_LOGD("Calculated %d new normals", normalsMap.size());
+    logger.debug("Calculated %d new normals", normalsMap.size());
     normalsMap.dumpBucketLoad();
 }

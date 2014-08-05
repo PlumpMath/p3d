@@ -12,6 +12,8 @@
 // value_ptr
 #include <glm/gtc/type_ptr.hpp>
 
+static P3dLogger logger("core.P3dViewer", P3dLogger::LOG_DEBUG);
+
 const float PI = 3.14159265358979f;
 const float D2R = PI / 180;
 
@@ -29,7 +31,7 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
     m_ModelLoader = new ModelLoader();
     m_CameraNavigation = new CameraNavigation();
 
-    P3D_LOGD("Viewer constructed");
+    logger.debug("Viewer constructed");
 }
 
 P3dViewer::~P3dViewer()
@@ -81,7 +83,7 @@ GLuint P3dViewer::loadShader (GLenum type, const char *shaderSrc, size_t shaderS
             char* infoLog = new char[sizeof(char) * infoLen ];
 
             glGetShaderInfoLog(shader, infoLen, 0, infoLog);
-            P3D_LOGE( "Error compiling shader %s:\n%s", shaderName, infoLog);
+            logger.error("Error compiling shader %s:\n%s", shaderName, infoLog);
 
             delete[] infoLog;
         }
@@ -131,7 +133,7 @@ GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, 
 
     if(program == 0)
     {
-        P3D_LOGE("Could create shader program");
+        logger.error("Could create shader program");
         return 0;
     }
 
@@ -160,7 +162,7 @@ GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, 
             char* infoLog = new char[sizeof(char) * infoLen];
 
             glGetProgramInfoLog(program, infoLen, NULL, infoLog);
-            P3D_LOGE( "Error linking program:\n%s", infoLog );
+            logger.error( "Error linking program:\n%s", infoLog );
 
             delete[] infoLog;
         }
@@ -177,7 +179,7 @@ void P3dViewer::onSurfaceCreated() {
 #ifdef __gl3w_h_
     if(gl3wInit())
     {
-        P3D_LOGE("Unable to initialize OpenGL");
+        logger.error("Unable to initialize OpenGL");
         return;
     }
 #endif
@@ -185,25 +187,25 @@ void P3dViewer::onSurfaceCreated() {
     m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
     m_UniformMVP = glGetUniformLocation(m_ProgramObject, "uMVP");
     if (m_UniformMVP == -1) {
-      P3D_LOGE("Could not bind uniform %s", "uMVP");
+      logger.error("Could not bind uniform %s", "uMVP");
       glDeleteProgram(m_ProgramObject);
     }
 
     m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl", "#define HAS_UV\n");
     m_UniformMVPUv = glGetUniformLocation(m_ProgramObjectUv, "uMVP");
     if (m_UniformMVPUv == -1) {
-      P3D_LOGE("Could not bind uniform %s", "uMVP");
+      logger.error("Could not bind uniform %s", "uMVP");
       glDeleteProgram(m_ProgramObjectUv);
     }
 
     int depth;
     glGetIntegerv(GL_DEPTH_BITS, &depth);
-    P3D_LOGD("Depth buffer: %d bits", depth);
+    logger.debug("Depth buffer: %d bits", depth);
     m_InitOk = true;
 }
 
 void P3dViewer::onSurfaceChanged(int width, int height) {
-	P3D_LOGD("resize %d, %d", width, height);
+    logger.debug("resize %d, %d", width, height);
     m_Width = width;
     m_Height = height;
 }
@@ -321,14 +323,14 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
     BaseLoader* loader = BaseLoader::loaderFromExtension(extension);
     if(!loader)
     {
-        P3D_LOGW("unsupported extension:  %s", extension);
+        logger.warning("unsupported extension:  %s", extension);
         return false;
     }
     loader->setModelLoader(m_ModelLoader);
     bool res = loader->load(binaryData, size);
     if(res)
     {
-    	P3D_LOGD("bounding radius %f", m_ModelLoader->boundingRadius());
+        logger.debug("bounding radius %f", m_ModelLoader->boundingRadius());
         m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
         m_CameraNavigation->reset();
     }
