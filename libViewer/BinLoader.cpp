@@ -27,7 +27,7 @@ static float READ_FLOAT(const char& x) {
 #include "ModelLoader.h"
 #include "PlatformAdapter.h"
 
-static P3dLogger logger("binloader.BinLoader", P3dLogger::LOG_VERBOSE);
+static P3dLogger logger("binloader.BinLoader", P3dLogger::LOG_DEBUG);
 
 static BinLoader binLoader;
 static RegisterLoader registerBinLoader(&binLoader, ".bin", 0);
