@@ -11,19 +11,25 @@
 class P3dLogger
 {
 public:
-	enum Level {
-		LOG_VERBOSE = 1000,
-		LOG_DEBUG = 600,
-		LOG_INFO = 400,
-		LOG_WARN = 300,
-		LOG_ERROR = 200,
-		LOG_FATAL = 100
-	};
-	P3dLogger(const char* tag);
+    enum Level {
+        LOG_VERBOSE = 1000,
+        LOG_DEBUG = 600,
+        LOG_INFO = 400,
+        LOG_WARN = 300,
+        LOG_ERROR = 200,
+        LOG_FATAL = 100
+    };
+    P3dLogger(const char* tag, Level level=LOG_VERBOSE);
+    void verbose(const char* format, ...) const;
+    void debug(const char* format, ...) const;
+    void info(const char* format, ...) const;
+    void warning(const char* format, ...) const;
+    void error(const char* format, ...) const;
+    void fatal(const char* format, ...) const;
 
 private:
-	const char* m_tag;
-
+    const char* m_tag;
+    Level m_level;
 };
 
 #endif // P3DLOGGER_H

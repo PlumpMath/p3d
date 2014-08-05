@@ -27,6 +27,8 @@ static float READ_FLOAT(const char& x) {
 #include "ModelLoader.h"
 #include "PlatformAdapter.h"
 
+static P3dLogger logger("binloader.BinLoader", P3dLogger::LOG_VERBOSE);
+
 static BinLoader binLoader;
 static RegisterLoader registerBinLoader(&binLoader, ".bin", 0);
 
@@ -48,7 +50,7 @@ BinLoader::~BinLoader()
 
 bool BinLoader::load(const char *data, size_t size)
 {
-    P3D_LOGD("Loading %d bytes", size);
+    logger.debug("Loading %d bytes", size);
 
     m_modelLoader->clear();
 
@@ -59,18 +61,18 @@ bool BinLoader::load(const char *data, size_t size)
     size_t magicSize = sizeof(magic) - 1;
     if(size < magicSize)
     {
-        P3D_LOGE("data too short");
+        logger.error("data too short");
         return false;
     }
     if(strncmp(data, magic, magicSize))
     {
-        P3D_LOGE("magic doesn't match");
+        logger.error("magic doesn't match");
         return false;
     }
     uint8_t headerSize = data[12];
     if(headerSize != 64 || size < 64)
     {
-        P3D_LOGE("wrong header size or data too short");
+        logger.error("wrong header size or data too short");
         return false;
     }
 
@@ -87,9 +89,9 @@ bool BinLoader::load(const char *data, size_t size)
     m_pos_count = READ_U32(data[20 + 0*4]);
     m_norm_count = READ_U32(data[20 + 1*4]);
     m_tex_count = READ_U32(data[20 + 2*4]);
-    P3D_LOGD("pos_count %d", m_pos_count);
-    P3D_LOGD("norm_count %d", m_norm_count);
-    P3D_LOGD("tex_count %d", m_tex_count);
+    logger.debug("pos_count %d", m_pos_count);
+    logger.debug("norm_count %d", m_norm_count);
+    logger.debug("tex_count %d", m_tex_count);
 
     // trinagle indices
     m_f3_count[VT_POS]  = READ_U32(data[20 + 3*4]);
@@ -103,15 +105,15 @@ bool BinLoader::load(const char *data, size_t size)
     m_f4_count[VT_POS_UV]  = READ_U32(data[20 + 9*4]);
     m_f4_count[VT_POS_UV_NORM]  = READ_U32(data[20 + 10*4]);
 
-    P3D_LOGD("f3_count[VT_POS]: %d", m_f3_count[VT_POS]);
-    P3D_LOGD("f3_count[VT_POS_NORM]: %d", m_f3_count[VT_POS_NORM]);
-    P3D_LOGD("f3_count[VT_POS_UV]: %d", m_f3_count[VT_POS_UV]);
-    P3D_LOGD("f3_count[VT_POS_UV_NORM]: %d", m_f3_count[VT_POS_UV_NORM]);
+    logger.debug("f3_count[VT_POS]: %d", m_f3_count[VT_POS]);
+    logger.debug("f3_count[VT_POS_NORM]: %d", m_f3_count[VT_POS_NORM]);
+    logger.debug("f3_count[VT_POS_UV]: %d", m_f3_count[VT_POS_UV]);
+    logger.debug("f3_count[VT_POS_UV_NORM]: %d", m_f3_count[VT_POS_UV_NORM]);
 
-    P3D_LOGD("f4_count[VT_POS]: %d", m_f4_count[VT_POS]);
-    P3D_LOGD("f4_count[VT_POS_NORM]: %d", m_f4_count[VT_POS_NORM]);
-    P3D_LOGD("f4_count[VT_POS_UV]: %d", m_f4_count[VT_POS_UV]);
-    P3D_LOGD("f4_count[VT_POS_UV_NORM]: %d", m_f4_count[VT_POS_UV_NORM]);
+    logger.debug("f4_count[VT_POS]: %d", m_f4_count[VT_POS]);
+    logger.debug("f4_count[VT_POS_NORM]: %d", m_f4_count[VT_POS_NORM]);
+    logger.debug("f4_count[VT_POS_UV]: %d", m_f4_count[VT_POS_UV]);
+    logger.debug("f4_count[VT_POS_UV_NORM]: %d", m_f4_count[VT_POS_UV_NORM]);
 
     // vertex data offsets
     uint32_t offset = headerSize;
@@ -205,12 +207,12 @@ bool BinLoader::reindex(const char *data)
     reindexType(chunk, VT_POS_NORM, data, new_faces, new_mats);
     reindexType(chunk, VT_POS, data, new_faces, new_mats);
 
-    P3D_LOGD("mat count: %d", m_mat_count);
-    P3D_LOGD("new pos size: %d", m_new_pos_count);
-    P3D_LOGD("new uv size: %d", m_new_uv_count);
-    P3D_LOGD("new norm size: %d", m_new_norm_count);
+    logger.debug("mat count: %d", m_mat_count);
+    logger.debug("new pos size: %d", m_new_pos_count);
+    logger.debug("new uv size: %d", m_new_uv_count);
+    logger.debug("new norm size: %d", m_new_norm_count);
 
-    P3D_LOGD("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 2);
+    logger.debug("total new size: %d", (m_new_pos_count + m_new_norm_count + m_new_uv_count) * 4 + m_total_index_count * 2);
 
 
     GLfloat* new_pos = new GLfloat[m_new_pos_count];
@@ -219,19 +221,19 @@ bool BinLoader::reindex(const char *data)
 
     for(chunk = 0; chunk < m_chunks.size(); ++chunk)
     {
-        P3D_LOGV("chunk: %d", chunk);
-        P3D_LOGV(" index count: %d", m_chunks[chunk].indexCount);
-        P3D_LOGV(" vert count: %d", m_chunks[chunk].vertCount);
-        P3D_LOGV(" f3 offset: %d", m_chunks[chunk].f3Offset);
-        P3D_LOGV(" f4 offset: %d", m_chunks[chunk].f4Offset);
-        P3D_LOGV(" material: %d", m_chunks[chunk].material);
+        logger.verbose("chunk: %d", chunk);
+        logger.verbose(" index count: %d", m_chunks[chunk].indexCount);
+        logger.verbose(" vert count: %d", m_chunks[chunk].vertCount);
+        logger.verbose(" f3 offset: %d", m_chunks[chunk].f3Offset);
+        logger.verbose(" f4 offset: %d", m_chunks[chunk].f4Offset);
+        logger.verbose(" material: %d", m_chunks[chunk].material);
     }
 
     for(auto item: m_vertex_maps)
     {
-        P3D_LOGV("vertex bank:");
-        P3D_LOGV(" offset: %d", item.first);
-        P3D_LOGV(" count: %d", item.second->size());
+        logger.verbose("vertex bank:");
+        logger.verbose(" offset: %d", item.first);
+        logger.verbose(" count: %d", item.second->size());
         copyVertData(item.first, item.second, data, new_norm, new_uv, new_pos);
         item.second->dumpBucketLoad();
         delete item.second;
@@ -249,7 +251,7 @@ bool BinLoader::reindex(const char *data)
     delete [] new_mats;
     delete [] new_faces;
 
-    P3D_LOGD("reindex took %lldms", PlatformAdapter::durationMillis(start));
+    logger.debug("reindex took %lldms", PlatformAdapter::durationMillis(start));
     return true;
 
 }
