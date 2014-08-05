@@ -18,7 +18,7 @@ varying vec3 vNormal;
 void main(void)
 {
     vNormal = aNormal;
-#ifdef HAS_UVS
+#ifdef HAS_UV
     vUv = aUv;
 #else
     vUv = vec2(0.0, 0.0);

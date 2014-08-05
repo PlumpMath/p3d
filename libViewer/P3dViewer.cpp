@@ -104,8 +104,8 @@ GLuint P3dViewer::loadShaderFromFile (GLenum type, const char *shaderFile, const
     {
         size_t defsLen = strlen(defines);
         char* tmp = new char[srcLen + defsLen];
-        strncpy(tmp, shaderSrc, srcLen);
-        strncpy(tmp + srcLen, defines, defsLen);
+        strncpy(tmp, defines, defsLen);
+        strncpy(tmp + defsLen, shaderSrc, srcLen);
         shader = loadShader(type, tmp, srcLen + defsLen, shaderFile);
         delete[] tmp;
     }

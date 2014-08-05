@@ -156,6 +156,7 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 		{
 			nextChunk(chunk, vtype, in_quad, new_offset, m_new_pos_count / 3, true);
 			m_chunks[chunk].material = mat;
+			m_chunks[chunk].hasUvs = blendData->uvs;
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
 

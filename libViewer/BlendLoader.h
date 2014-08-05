@@ -60,8 +60,10 @@ public:
 			*vnew = *v;
 		}
 
-		for(i=0, uv_ = uv, uvnew = uvs; i < tv*UVSTRIDE; i++, uv_++, uvnew++){
-			*uvnew = *uv_;
+		if(uv) {
+			for(i=0, uv_ = uv, uvnew = uvs; i < tv*UVSTRIDE; i++, uv_++, uvnew++){
+				*uvnew = *uv_;
+			}
 		}
 
 
