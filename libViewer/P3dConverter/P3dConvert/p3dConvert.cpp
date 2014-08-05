@@ -57,7 +57,7 @@ void P3dConverter::free_p3d_mesh_data(P3dMesh *pme) {
 void P3dConverter::loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv)
 {
 	chunk->f[curf] = (uint32_t)loop->v;
-	if(mpuv) {
+	if(mpuv && luv) {
 		chunk->uv[loop->v*2] = luv->uv[0];
 		chunk->uv[loop->v*2+1] = luv->uv[1];
 	}
@@ -96,6 +96,7 @@ void P3dConverter::extract_geometry(Object *ob) {
 		chunk->v[curv++] = mvert->co[0];
 		chunk->v[curv++] = mvert->co[1];
 		chunk->v[curv++] = mvert->co[2];
+		/* \todo read mvert->no */
 	}
 
 	/* if totface > 0 we have legacy mesh format */
@@ -152,26 +153,33 @@ void P3dConverter::extract_geometry(Object *ob) {
 		chunk->f = new uint32_t[3 * chunk->totface];
 		/* reset mp to start of mpoly */
 		mp = me->mpoly;
-		MLoopUV *luv = nullptr;
 		for(int j=0, curf=0; j < me->totpoly; j++, mp++) {
+			MLoopUV *luv = nullptr;
 			MLoop *loop = &me->mloop[mp->loopstart];
+
 			if(mpuv) luv = &me->mloopuv[mp->loopstart];
+
 			if(mp->totloop==3) {
 				loop_data(mpuv, chunk, curf, loop, luv);
 				loop++;
+				luv++;
 				loop_data(mpuv, chunk+1, curf, loop, luv);
 				loop++;
+				luv++;
 				loop_data(mpuv, chunk+2, curf, loop, luv);
 				curf+=3;
 			} else if (mp->totloop==4) {
 				loop_data(mpuv, chunk, curf, loop, luv);
 				loop_data(mpuv, chunk+3, curf, loop, luv);
 				loop++;
+				luv++;
 				loop_data(mpuv, chunk+1, curf, loop, luv);
 				loop_data(mpuv, chunk+4, curf, loop, luv);
 				loop++;
+				luv++;
 				loop_data(mpuv, chunk+2, curf, loop, luv);
 				loop++;
+				luv++;
 				loop_data(mpuv, chunk+5, curf, loop, luv);
 				curf+=6;
 				/*chunk->f[curf] = (uint32_t)loop->v; loop++;

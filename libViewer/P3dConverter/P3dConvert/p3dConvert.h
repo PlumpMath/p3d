@@ -28,6 +28,7 @@ public:
     ~Chunk() {
         delete [] v;
         delete [] f;
+		delete [] uv;
         v = 0; f = 0; totvert = 0; totface = 0;
     }
 

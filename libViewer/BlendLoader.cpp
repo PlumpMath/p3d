@@ -30,8 +30,12 @@ bool BlendLoader::load(const char *data, size_t length)
 	m_modelLoader->clear();
 	m_chunks.clear();
 
+	logger.debug("Ready for  parsing blend\n");
 	converter.parse_blend(data, length);
+	logger.debug("Done parsing blend\n");
+	logger.debug("Initing blend data\n");
 	blendData.initBlendData(converter);
+	logger.debug("Done initing blend data\n");
 
 	uint64_t start = PlatformAdapter::currentMillis();
 	uint32_t chunk = 0;
