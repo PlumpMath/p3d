@@ -39,6 +39,8 @@ int P3dConverter::parse_blend(const char *data, size_t length) {
 	fbtPrintf(" %s | %d%s[OK]\n", m_fp.getHeader().c_str(), m_fp.getVersion(), gzipped ? " compressed ": "");
 
 	extract_all_geometry();
+
+	fbtPrintf(" Done extracting all geometry\n");
 	
 	return 0;
 }
