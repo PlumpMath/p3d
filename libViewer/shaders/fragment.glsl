@@ -19,4 +19,7 @@ void main(void)
     diffuse += 0.2 * uDiffuse * max(0.0, dot(normal, lightDir2));
 
     gl_FragColor = vec4(diffuse, 1.0);
+
+    // for debugging uvs
+    //gl_FragColor = vec4(vUv, 0.5, 1.0);
 }

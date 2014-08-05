@@ -168,7 +168,7 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 
 			/* TODO: norm */
 			index.norm = 0;
-			index.uv = 0;
+			index.uv = index.pos;
 
 			if(vertexMap->count(index))
 			{
@@ -183,6 +183,8 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 
 				m_new_norm_count += 3;
 				m_new_empty_norm_count += 3;
+
+				m_new_uv_count += 2;
 			}
 
 			new_faces[new_offset] = (uint16_t)new_index;
