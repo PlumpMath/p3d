@@ -115,7 +115,7 @@ void fbtDebugger::report(const char* fmt, ...)
 				OutputDebugString(ReportBuf);
 			else
 #endif
-				fprintf(stderr, "%s", ReportBuf);
+				fprintf(stdout, "%s", ReportBuf);
 		}
 	}
 
