@@ -25,9 +25,6 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
         PlatformAdapter::adapter = new PlatformAdapter();
     }
 
-    m_ProgramObject = 0;
-    m_ProgramObjectUv = 0;
-    m_InitOk = false;
     m_ModelLoader = new ModelLoader();
     m_CameraNavigation = new CameraNavigation();
 
@@ -174,6 +171,15 @@ GLuint P3dViewer::loadProgram(const char *vShaderFile, const char *fShaderFile, 
     return program;
 }
 
+GLint P3dViewer::getUniform(GLuint program, const char *name)
+{
+    GLint res = glGetUniformLocation(program, name);
+    if (res == -1) {
+      logger.error("Could not bind uniform %s", name);
+    }
+    return res;
+}
+
 void P3dViewer::onSurfaceCreated() {
     m_InitOk = false;
 #ifdef __gl3w_h_
@@ -185,18 +191,12 @@ void P3dViewer::onSurfaceCreated() {
 #endif
 
     m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
-    m_UniformMVP = glGetUniformLocation(m_ProgramObject, "uMVP");
-    if (m_UniformMVP == -1) {
-      logger.error("Could not bind uniform %s", "uMVP");
-      glDeleteProgram(m_ProgramObject);
-    }
+    m_UniformMVP = getUniform(m_ProgramObject, "uMVP");
 
-    m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl", "#define HAS_UV\n");
-    m_UniformMVPUv = glGetUniformLocation(m_ProgramObjectUv, "uMVP");
-    if (m_UniformMVPUv == -1) {
-      logger.error("Could not bind uniform %s", "uMVP");
-      glDeleteProgram(m_ProgramObjectUv);
-    }
+    m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl", "#define HAS_UV\n#define USE_DIFFUSE_TEXTURE\n");
+    m_UniformMVPUv = getUniform(m_ProgramObjectUv, "uMVP");
+    m_UniformTDiffuse = getUniform(m_ProgramObjectUv, "tDiffuse");
+    m_UniformEnableDiffuse = getUniform(m_ProgramObjectUv, "enableDiffuse");
 
     int depth;
     glGetIntegerv(GL_DEPTH_BITS, &depth);
@@ -280,14 +280,23 @@ void P3dViewer::drawFrame() {
 
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
-                GLuint uDiffuse = 0;
+                GLuint uDiffuseColor = 0;
                 if(m_ModelLoader->hasUvs(chunk))
                 {
                     // has uvs
                     glUseProgram(m_ProgramObjectUv);
                     glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
 
-                    uDiffuse = glGetUniformLocation(m_ProgramObjectUv, "uDiffuse");
+                    uDiffuseColor = glGetUniformLocation(m_ProgramObjectUv, "uDiffuseColor");
+
+                    // texure
+                    glUniform1i(m_UniformEnableDiffuse, m_DiffuseTexture != 0);
+                    if(m_DiffuseTexture)
+                    {
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, m_DiffuseTexture);
+                        glUniform1i(m_UniformTDiffuse, 0);
+                    }
                 }
                 else
                 {
@@ -295,7 +304,7 @@ void P3dViewer::drawFrame() {
                     glUseProgram(m_ProgramObject);
                     glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
 
-                    uDiffuse = glGetUniformLocation(m_ProgramObject, "uDiffuse");
+                    uDiffuseColor = glGetUniformLocation(m_ProgramObject, "uDiffuseColor");
                 }
 
                 static glm::vec3 colors[] = {
@@ -306,7 +315,7 @@ void P3dViewer::drawFrame() {
                 };
 
                 glm::vec3& color = colors[m_ModelLoader->material(chunk) % (sizeof(colors) / sizeof(colors[0]))];
-                glUniform3f(uDiffuse, color.r, color.g, color.b);
+                glUniform3f(uDiffuseColor, color.r, color.g, color.b);
 
                 GLsizei count = m_ModelLoader->indexCount(chunk);
                 uint32_t offset = m_ModelLoader->indexOffset(chunk);
@@ -333,6 +342,9 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
         logger.debug("bounding radius %f", m_ModelLoader->boundingRadius());
         m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
         m_CameraNavigation->reset();
+
+        //test: load texture
+        m_DiffuseTexture = PlatformAdapter::adapter->loadTexture("/home/pelle/blender_files/uvtest.jpg");
     }
     return res;
 }
@@ -340,4 +352,10 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
 void P3dViewer::clearModel()
 {
     m_ModelLoader->clear();
+
+    if(m_DiffuseTexture)
+    {
+        PlatformAdapter::adapter->deleteTexture(m_DiffuseTexture);
+    }
+    m_DiffuseTexture = 0;
 }

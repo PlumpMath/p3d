@@ -1,6 +1,7 @@
 #include "QtPlatformAdapter.h"
 #include <QFile>
 #include <QDebug>
+#include <QOpenGLTexture>
 #include <cstdio>
 
 QtPlatformAdapter::QtPlatformAdapter(QObject *parent) :
@@ -10,6 +11,24 @@ QtPlatformAdapter::QtPlatformAdapter(QObject *parent) :
 
 QtPlatformAdapter::~QtPlatformAdapter()
 {
+}
+
+uint32_t QtPlatformAdapter::loadTexture(const char *name)
+{
+    QOpenGLTexture *texture = new QOpenGLTexture(QImage(name).mirrored());
+    texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    m_textures.insert(texture->textureId(), texture);
+    return texture->textureId();
+}
+
+void QtPlatformAdapter::deleteTexture(uint32_t textureId)
+{
+    QOpenGLTexture *texture = m_textures.take(textureId);
+    if(texture)
+    {
+        delete texture;
+    }
 }
 
 const char *QtPlatformAdapter::loadAsset(const char *filename, size_t *size)

@@ -38,18 +38,23 @@ private:
     GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);
     GLuint loadShaderFromFile(GLenum type, const char *shaderFile, const char *defines = 0);
     GLuint loadProgram(const char* vShaderFile, const char* fShaderFile, const char *defines = 0);
+    GLint getUniform(GLuint program, const char* name);
 
     ModelLoader* m_ModelLoader;
     CameraNavigation* m_CameraNavigation;
-    GLuint m_ProgramObject;
-    GLuint m_ProgramObjectUv;
+    GLuint m_ProgramObject = 0;
+    GLuint m_ProgramObjectUv = 0;
 
     GLint m_UniformMVP;
     GLint m_UniformMVPUv;
+    GLint m_UniformTDiffuse;
+    GLint m_UniformEnableDiffuse;
+
+    GLuint m_DiffuseTexture = 0;
 
     int m_Width;
     int m_Height;
-    bool m_InitOk;
+    bool m_InitOk = false;
 };
 
 #endif // P3DVIEWER_H

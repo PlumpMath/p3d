@@ -6,6 +6,8 @@
 
 PlatformAdapter* PlatformAdapter::adapter = 0;
 
+static P3dLogger logger("core.PlatformAdapter", P3dLogger::LOG_DEBUG);
+
 PlatformAdapter::PlatformAdapter()
 {
 }
@@ -14,12 +16,22 @@ PlatformAdapter::~PlatformAdapter()
 {
 }
 
+uint32_t PlatformAdapter::loadTexture(const char *name)
+{
+    (void) name;
+    return 0;
+}
+
+void PlatformAdapter::deleteTexture(uint32_t textureId)
+{
+}
+
 const char *PlatformAdapter::loadAsset(const char *filename, size_t *size)
 {
     size_t filesize;
     FILE* f = fopen(filename, "rb");
     if(!f) {
-        P3D_LOGE("Unable to load asset: %s", filename);
+        logger.error("Unable to load asset: %s", filename);
         return 0;
     }
     fseek(f, 0L, SEEK_END);

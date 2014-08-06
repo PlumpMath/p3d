@@ -15,6 +15,13 @@ public:
     PlatformAdapter();
     virtual ~PlatformAdapter();
 
+    //! \brief load texture into opengl
+    //! \return opengl texture id, 0 for error
+    virtual uint32_t loadTexture(const char* name);
+
+    //! \brief deletes texture
+    virtual void deleteTexture(uint32_t textureId);
+
     //! \brief load asset data, e.g. shader code
     //! \arg filename path of asset, e.g. shaders/fragment.glsl
     //! \arg size pointer to receive size of data or 0 to get zero terminated data (default)
