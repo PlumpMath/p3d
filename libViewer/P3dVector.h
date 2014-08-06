@@ -20,6 +20,42 @@ template<typename T>
 class P3dVector
 {
 public:
+    class iterator {
+    public:
+        iterator(P3dVector* _vector)
+        {
+            vector = _vector;
+            index = 0;
+        }
+
+        iterator& operator++()
+        {
+            ++index;
+            return *this;
+        }
+
+        bool operator==(const iterator& other)
+        {
+            return vector == other.vector && index == other.index;
+        }
+
+        bool operator!=(const iterator& other)
+        {
+            return !operator==(other);
+        }
+
+        T operator*()
+        {
+            return vector->m_data[index];
+        }
+
+    private:
+        P3dVector* vector;
+        size_t index;
+
+        friend class P3dVector;
+    };
+
     P3dVector()
     {
         m_size = 0;
@@ -41,6 +77,13 @@ public:
 
     size_t size() const { return m_size; }
     const T* data() { return m_data; }
+
+    iterator begin() { return iterator(this); }
+    iterator end() {
+        iterator itr(this);
+        itr.index = m_size;
+        return itr;
+    }
 
     void reserve(size_t capacity)
     {

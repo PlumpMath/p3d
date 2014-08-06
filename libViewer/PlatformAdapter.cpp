@@ -24,6 +24,7 @@ uint32_t PlatformAdapter::loadTexture(const char *name)
 
 void PlatformAdapter::deleteTexture(uint32_t textureId)
 {
+    (void) textureId;
 }
 
 const char *PlatformAdapter::loadAsset(const char *filename, size_t *size)

@@ -3,6 +3,8 @@
 
 #define USE_STD_MAP 0
 
+#include <cstring>
+
 template<typename K>
 struct P3dHash
 {
@@ -72,8 +74,6 @@ public:
 #include "P3dVector.h"
 #include "PlatformAdapter.h"
 
-#include <cstring>
-
 template<typename K, typename T>
 struct P3dPair
 {
@@ -113,16 +113,6 @@ public:
             bucketIndex = 0;
             itemIndex = -1;
             operator++();
-        }
-
-        const K& key()
-        {
-            return map->m_buckets[bucketIndex][itemIndex].first;
-        }
-
-        T& value()
-        {
-            return map->m_buckets[bucketIndex][itemIndex].second;
         }
 
         iterator& operator++()
