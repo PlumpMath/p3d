@@ -165,10 +165,10 @@ void P3dConverter::extract_geometry(Object *ob) {
 				loop++;
 				luv++;
 				loop_data(mpuv, chunk, curf+1, loop, luv);
-				loop_data(mpuv, chunk, curf+3, loop, luv);
 				loop++;
 				luv++;
 				loop_data(mpuv, chunk, curf+2, loop, luv);
+				loop_data(mpuv, chunk, curf+4, loop, luv);
 				loop++;
 				luv++;
 				loop_data(mpuv, chunk, curf+5, loop, luv);
