@@ -14,7 +14,7 @@ public:
     explicit QtPlatformAdapter(QObject *parent = 0);
     virtual ~QtPlatformAdapter();
 
-    virtual uint32_t loadTexture(const char *name);
+    virtual void loadTexture(const char *name, std::function<void(uint32_t)> callback);
     virtual void deleteTexture(uint32_t textureId);
     virtual const char* loadAsset(const char *filename, size_t *size);
     virtual void logTag(P3dLogger::Level level, const char* tag, const char* format, va_list args);

@@ -13,13 +13,13 @@ QtPlatformAdapter::~QtPlatformAdapter()
 {
 }
 
-uint32_t QtPlatformAdapter::loadTexture(const char *name)
+void QtPlatformAdapter::loadTexture(const char *name, std::function<void(uint32_t)> callback)
 {
     QOpenGLTexture *texture = new QOpenGLTexture(QImage(name).mirrored());
     texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
     texture->setMagnificationFilter(QOpenGLTexture::Linear);
     m_textures.insert(texture->textureId(), texture);
-    return texture->textureId();
+    callback(texture->textureId());
 }
 
 void QtPlatformAdapter::deleteTexture(uint32_t textureId)

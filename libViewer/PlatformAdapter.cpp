@@ -16,10 +16,11 @@ PlatformAdapter::~PlatformAdapter()
 {
 }
 
-uint32_t PlatformAdapter::loadTexture(const char *name)
+void PlatformAdapter::loadTexture(const char *name, std::function<void(uint32_t)> callback)
 {
     (void) name;
-    return 0;
+    (void) callback;
+    return;
 }
 
 void PlatformAdapter::deleteTexture(uint32_t textureId)

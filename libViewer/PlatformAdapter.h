@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <stdarg.h>
+#include <functional>
 
 #include "P3dLogger.h"
 
@@ -17,7 +18,7 @@ public:
 
     //! \brief load texture into opengl
     //! \return opengl texture id, 0 for error
-    virtual uint32_t loadTexture(const char* name);
+    virtual void loadTexture(const char* name, std::function<void(uint32_t)> callback);
 
     //! \brief deletes texture
     virtual void deleteTexture(uint32_t textureId);

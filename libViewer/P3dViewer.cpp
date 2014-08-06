@@ -344,7 +344,8 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
         m_CameraNavigation->reset();
 
         //test: load texture
-        m_DiffuseTexture = PlatformAdapter::adapter->loadTexture("/home/pelle/blender_files/uvtest.jpg");
+        PlatformAdapter::adapter->loadTexture("/home/pelle/blender_files/uvtest.jpg",
+                                              [this](uint32_t texId) { m_DiffuseTexture = texId; });
     }
     return res;
 }
