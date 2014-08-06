@@ -21,5 +21,5 @@ void main(void)
     gl_FragColor = vec4(diffuse, 1.0);
 
     // for debugging uvs
-    gl_FragColor = vec4(vUv, 0.5, 1.0);
+    //gl_FragColor = vec4(vUv, 0.5, 1.0);
 }
