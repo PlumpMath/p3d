@@ -290,11 +290,12 @@ void P3dViewer::drawFrame() {
                     uDiffuseColor = glGetUniformLocation(m_ProgramObjectUv, "uDiffuseColor");
 
                     // texure
-                    glUniform1i(m_UniformEnableDiffuse, m_DiffuseTexture != 0);
-                    if(m_DiffuseTexture)
+                    GLuint diffuseTexId = m_Materials[m_ModelLoader->material(chunk)].diffuseTexture;
+                    glUniform1i(m_UniformEnableDiffuse, diffuseTexId != 0);
+                    if(diffuseTexId)
                     {
                         glActiveTexture(GL_TEXTURE0);
-                        glBindTexture(GL_TEXTURE_2D, m_DiffuseTexture);
+                        glBindTexture(GL_TEXTURE_2D, diffuseTexId);
                         glUniform1i(m_UniformTDiffuse, 0);
                     }
                 }
@@ -307,15 +308,16 @@ void P3dViewer::drawFrame() {
                     uDiffuseColor = glGetUniformLocation(m_ProgramObject, "uDiffuseColor");
                 }
 
-                static glm::vec3 colors[] = {
-                    glm::vec3(1.0f, 1.0f, 1.0f),
-                    glm::vec3(1.0f, 0.0f, 0.0f),
-                    glm::vec3(0.0f, 1.0f, 0.0f),
-                    glm::vec3(0.0f, 0.0f, 1.0f),
-                };
+//                static glm::vec3 colors[] = {
+//                    glm::vec3(1.0f, 1.0f, 1.0f),
+//                    glm::vec3(1.0f, 0.0f, 0.0f),
+//                    glm::vec3(0.0f, 1.0f, 0.0f),
+//                    glm::vec3(0.0f, 0.0f, 1.0f),
+//                };
 
-                glm::vec3& color = colors[m_ModelLoader->material(chunk) % (sizeof(colors) / sizeof(colors[0]))];
-                glUniform3f(uDiffuseColor, color.r, color.g, color.b);
+//                glm::vec3& color = colors[m_ModelLoader->material(chunk) % (sizeof(colors) / sizeof(colors[0]))];
+//                glUniform3f(uDiffuseColor, color.r, color.g, color.b);
+                glUniform3f(uDiffuseColor, 1.0f, 1.0f, 1.0f);
 
                 GLsizei count = m_ModelLoader->indexCount(chunk);
                 uint32_t offset = m_ModelLoader->indexOffset(chunk);
@@ -340,13 +342,13 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
     if(res)
     {
         logger.debug("material count: %d", materialCount());
+        for(int i = 0, il = materialCount(); i < il; ++i)
+        {
+            m_Materials.push_back(P3dMaterial());
+        }
         logger.debug("bounding radius %f", m_ModelLoader->boundingRadius());
         m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
         m_CameraNavigation->reset();
-
-        //test: load texture
-        PlatformAdapter::adapter->loadTexture("/home/pelle/blender_files/uvtest.jpg",
-                                              [this](uint32_t texId) { m_DiffuseTexture = texId; });
     }
     return res;
 }
@@ -355,11 +357,11 @@ void P3dViewer::clearModel()
 {
     m_ModelLoader->clear();
 
-    if(m_DiffuseTexture)
+    for(P3dMaterial material: m_Materials)
     {
-        PlatformAdapter::adapter->deleteTexture(m_DiffuseTexture);
+        PlatformAdapter::adapter->deleteTexture(material.diffuseTexture);
     }
-    m_DiffuseTexture = 0;
+    m_Materials.clear();
 }
 
 int P3dViewer::materialCount()
@@ -369,5 +371,18 @@ int P3dViewer::materialCount()
 
 void P3dViewer::setMaterialProperty(int materialIndex, const char *property, const char *value)
 {
+    if(materialIndex >= materialCount())
+    {
+        return;
+    }
+
+    if(!strcmp("diffuseTexture", property))
+    {
+        PlatformAdapter::adapter->loadTexture(value, [=](uint32_t texId)
+        {
+            m_Materials[materialIndex].diffuseTexture = texId;
+        });
+    }
+
 
 }

@@ -6,6 +6,7 @@
 #include <QMap>
 
 class QOpenGLTexture;
+class QNetworkAccessManager;
 
 class QtPlatformAdapter : public QObject, public PlatformAdapter
 {
@@ -24,6 +25,7 @@ signals:
 public slots:
 
 private:
+    QNetworkAccessManager* m_NetMgr;
     QMap<int, QOpenGLTexture*> m_textures;
 };
 

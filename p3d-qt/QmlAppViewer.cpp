@@ -24,8 +24,8 @@ QmlAppViewer::QmlAppViewer(QObject *parent) :
     engine.rootContext()->setContextProperty("viewer", this);
 
     connect(this, SIGNAL(windowReady()), SLOT(onWindowReady()));
-    m_P3dViewer = new P3dViewer(new QtPlatformAdapter());
     m_NetMgr = new QNetworkAccessManager(this);
+    m_P3dViewer = new P3dViewer(new QtPlatformAdapter());
     m_NetInfoReply = 0;
     m_NetDataReply = 0;
     m_ModelState = MS_NONE;
@@ -52,6 +52,8 @@ void QmlAppViewer::loadModel(const QUrl &model)
     QString path = model.isLocalFile() ? model.toLocalFile() : model.path();
 
     m_extension = ".unknown";
+    delete m_ModelInfo;
+    m_ModelInfo = nullptr;
 
     setModelState(MS_LOADING);
     if(fileName.endsWith(".blend"))
@@ -157,6 +159,48 @@ void QmlAppViewer::onGLRender()
         m_P3dViewer->loadModel(m_ModelData.constData(), m_ModelData.size(), m_extension.toLocal8Bit().constData());
         m_ModelData.clear();
         setModelState(MS_READY);
+
+        if(m_ModelInfo)
+        {
+            // set diffuse textures
+            //TODO: optimize using maps
+            QJsonArray mats = m_ModelInfo->value("materials").toArray();
+            for(int matIndex = 0, matIndexL = mats.size(); matIndex < matIndexL; ++matIndex)
+            {
+                QJsonObject mat = mats[matIndex].toObject();
+                QJsonArray texAssigns = m_ModelInfo->value("texture_assignments").toArray();
+                QJsonArray texs = m_ModelInfo->value("textures").toArray();
+                for(QJsonValue texAssignId: mat["texture_assignment_ids"].toArray())
+                {
+                    for(QJsonValue texAssignValue: texAssigns)
+                    {
+                        QJsonObject texAssign = texAssignValue.toObject();
+                        if(texAssignId.toInt() == texAssign["id"].toInt())
+                        {
+                            int texId = texAssign["texture_id"].toInt();
+                            for(QJsonValue texValue: texs)
+                            {
+                                QJsonObject tex = texValue.toObject();
+                                if(texId == tex["id"].toInt())
+                                {
+                                    QString texUrl = tex["url"].toString();
+                                    QString texType = texAssign["texture_type"].toString();
+                                    qDebug() << matIndex << ":" << texType << texUrl;
+                                    if(texType == "diff")
+                                    {
+                                        const char* fullUrl = (QString("http://p3d.in") + texUrl).toUtf8().constData();
+                                        m_P3dViewer->setMaterialProperty(matIndex, "diffuseTexture", fullUrl);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //m_P3dViewer->setMaterialProperty(0, "diffuseTexture", "http://secondlife.mitsi.com/Secondlife/Posts/UV-maps/uv_checker%20large.png");
+        //m_P3dViewer->setMaterialProperty(0, "diffuseTexture", "file:///home/pelle/blender_files/uvtest.jpg");
     }
 
     if(m_ClearModel)
@@ -179,7 +223,8 @@ void QmlAppViewer::onModelInfoReplyDone()
     }
     QByteArray data = m_NetInfoReply->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data);
-    QJsonObject viewerModel = doc.object()["viewer_model"].toObject();
+    m_ModelInfo = new QJsonObject(doc.object());
+    QJsonObject viewerModel = (*m_ModelInfo)["viewer_model"].toObject();
     QString baseUrl = viewerModel["base_url"].toString();
     QString binUrl = "http://p3d.in" + baseUrl + ".r48.bin";
     qDebug() << "bin url:" << binUrl;

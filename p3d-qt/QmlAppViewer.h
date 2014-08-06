@@ -7,7 +7,7 @@ class QNetworkAccessManager;
 class QNetworkReply;
 
 class P3dViewer;
-class BlendData;
+class QJsonObject;
 
 class QmlAppViewer : public QtQuick2ControlsApplicationViewer
 {
@@ -57,6 +57,7 @@ private:
     ModelState m_ModelState;
     bool m_ClearModel;
     QString m_extension;
+    QJsonObject* m_ModelInfo = nullptr;
 };
 
 #endif // QMLAPPVIEWER_H

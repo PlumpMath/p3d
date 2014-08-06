@@ -2,6 +2,7 @@
 #define P3DVIEWER_H
 
 #include <cstdlib>
+#include "P3dVector.h"
 
 typedef int GLint;
 typedef unsigned int GLuint;
@@ -37,6 +38,11 @@ public:
     void setMaterialProperty(int materialIndex, const char* property, const char* value);
 
 private:
+    struct P3dMaterial
+    {
+        GLuint diffuseTexture = 0;
+    };
+
     GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);
     GLuint loadShaderFromFile(GLenum type, const char *shaderFile, const char *defines = 0);
     GLuint loadProgram(const char* vShaderFile, const char* fShaderFile, const char *defines = 0);
@@ -52,7 +58,7 @@ private:
     GLint m_UniformTDiffuse;
     GLint m_UniformEnableDiffuse;
 
-    GLuint m_DiffuseTexture = 0;
+    P3dVector<P3dMaterial> m_Materials;
 
     int m_Width;
     int m_Height;

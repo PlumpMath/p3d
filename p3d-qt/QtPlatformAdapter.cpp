@@ -2,24 +2,61 @@
 #include <QFile>
 #include <QDebug>
 #include <QOpenGLTexture>
+#include <QUrl>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 #include <cstdio>
+
+static P3dLogger logger("qt.QtPlatformAdapter", P3dLogger::LOG_DEBUG);
 
 QtPlatformAdapter::QtPlatformAdapter(QObject *parent) :
     QObject(parent)
 {
+    m_NetMgr = nullptr;
 }
 
 QtPlatformAdapter::~QtPlatformAdapter()
 {
+    if(m_NetMgr)
+    {
+        m_NetMgr->deleteLater();
+    }
 }
 
 void QtPlatformAdapter::loadTexture(const char *name, std::function<void(uint32_t)> callback)
 {
-    QOpenGLTexture *texture = new QOpenGLTexture(QImage(name).mirrored());
-    texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    m_textures.insert(texture->textureId(), texture);
-    callback(texture->textureId());
+    //TODO: handle threading better
+    QUrl url(name);
+    if(url.isLocalFile())
+    {
+        QOpenGLTexture *texture = new QOpenGLTexture(QImage(url.toLocalFile()).mirrored());
+        texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+        texture->setMagnificationFilter(QOpenGLTexture::Linear);
+        m_textures.insert(texture->textureId(), texture);
+        callback(texture->textureId());
+    }
+    else
+    {
+        if(!m_NetMgr)
+        {
+            m_NetMgr = new QNetworkAccessManager();
+        }
+        QNetworkReply* reply = m_NetMgr->get(QNetworkRequest(url));
+        connect(reply, &QNetworkReply::finished, [=]() {
+            logger.debug("got image data: %s", url.toString().toUtf8().constData());
+            QByteArray bytes = reply->readAll();
+            logger.debug(" %d bytes", bytes.length());
+            reply->deleteLater();
+
+            QOpenGLTexture *texture = new QOpenGLTexture(QImage::fromData(bytes));
+            texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+            texture->setMagnificationFilter(QOpenGLTexture::Linear);
+            m_textures.insert(texture->textureId(), texture);
+            callback(texture->textureId());
+        });
+
+    }
 }
 
 void QtPlatformAdapter::deleteTexture(uint32_t textureId)
