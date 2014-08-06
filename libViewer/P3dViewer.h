@@ -31,8 +31,10 @@ public:
     void drawFrame();
     bool loadModel(const char* binaryData, size_t size, const char* extension);
     void clearModel();
-    bool loadModel(const BlendData *blendData, const char *extension);
     CameraNavigation* cameraNavigation() {return m_CameraNavigation;}
+
+    int materialCount();
+    void setMaterialProperty(int materialIndex, const char* property, const char* value);
 
 private:
     GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);

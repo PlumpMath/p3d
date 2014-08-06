@@ -25,7 +25,6 @@ public:
 
     ModelLoader();
     virtual ~ModelLoader();
-    bool load(const BlendData *blendData); // << load blender data
     bool isLoaded() { return m_loaded; }
     void setIsLoaded(bool newValue) { m_loaded = newValue; }
     void clear();
@@ -37,6 +36,7 @@ public:
     uint32_t indexCount(uint32_t chunk) { return m_chunks[chunk].indexCount; }
     uint32_t indexOffset(uint32_t chunk) { return m_chunks[chunk].f3Offset; }
     uint16_t material(uint32_t chunk) { return m_chunks[chunk].material; }
+    uint16_t materialCount() { return m_mat_count; }
     bool hasUvs(uint32_t chunk) { return m_chunks[chunk].hasUvs; }
     float boundingRadius();
     void setBoundingBox(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
@@ -73,7 +73,7 @@ private:
     uint32_t m_f3_start[4];
     uint32_t m_f4_start[4];
 
-    uint16_t m_mat_count;
+    uint16_t m_mat_count = 0;
 
     // new data
     P3dVector<MeshChunk> m_chunks;

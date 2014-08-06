@@ -160,12 +160,17 @@ void ModelLoader::createModel(uint32_t posCount, uint32_t normCount, uint32_t em
                               uint16_t* indexBuffer, uint32_t chunkCount, const MeshChunk* chunks)
 {
     uint32_t chunk;
+    m_mat_count = 1;
 
     if(chunks)
     {
         for(chunk = 0; chunk < chunkCount; ++chunk)
         {
             m_chunks.push_back(chunks[chunk]);
+            if(chunks[chunk].material >= m_mat_count)
+            {
+                m_mat_count = chunks[chunk].material + 1;
+            }
         }
     }
 

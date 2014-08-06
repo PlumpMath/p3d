@@ -339,6 +339,7 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
     bool res = loader->load(binaryData, size);
     if(res)
     {
+        logger.debug("material count: %d", materialCount());
         logger.debug("bounding radius %f", m_ModelLoader->boundingRadius());
         m_CameraNavigation->setBoundingRadius(m_ModelLoader->boundingRadius());
         m_CameraNavigation->reset();
@@ -359,4 +360,14 @@ void P3dViewer::clearModel()
         PlatformAdapter::adapter->deleteTexture(m_DiffuseTexture);
     }
     m_DiffuseTexture = 0;
+}
+
+int P3dViewer::materialCount()
+{
+    return m_ModelLoader->materialCount();
+}
+
+void P3dViewer::setMaterialProperty(int materialIndex, const char *property, const char *value)
+{
+
 }
