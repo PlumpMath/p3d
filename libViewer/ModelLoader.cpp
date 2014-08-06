@@ -271,10 +271,13 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             glm::vec3 posb(new_pos[b_offset], new_pos[b_offset + 1], new_pos[b_offset + 2]);
             glm::vec3 posc(new_pos[c_offset], new_pos[c_offset + 1], new_pos[c_offset + 2]);
             glm::vec3 fnormal = glm::cross(posa - posb, posb - posc);
-            if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
-            normalsMap[posa] += fnormal;
-            normalsMap[posb] += fnormal;
-            normalsMap[posc] += fnormal;
+            if(!isnan(fnormal.x) && !isnan(fnormal.y) && !isnan(fnormal.z))
+            {
+                if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
+                normalsMap[posa] += fnormal;
+                normalsMap[posb] += fnormal;
+                normalsMap[posc] += fnormal;
+            }
         }
     }
     logger.debug("calc took: %lldms", PlatformAdapter::durationMillis(start));
@@ -284,7 +287,14 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
     for(auto item: normalsMap)
     {
         glm::vec3& normal = item.second;
-        normal = glm::normalize(normal);
+        if(!isnan(normal.x) && !isnan(normal.y) && !isnan(normal.z))
+        {
+            normal = glm::normalize(normal);
+        }
+        else
+        {
+            normal = glm::vec3();
+        }
     }
     logger.debug("normalize took: %lldms", PlatformAdapter::durationMillis(start));
 
