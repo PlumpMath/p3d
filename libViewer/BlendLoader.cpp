@@ -65,7 +65,7 @@ bool BlendLoader::load(const char *data, size_t length)
 	reindexType(chunk, VT_POS, &blendData, new_faces);
 
 	GLfloat* new_pos = new GLfloat[blendData.totvert * STRIDE];
-	GLfloat* new_uv = new GLfloat[blendData.totvert * STRIDE];
+	GLfloat* new_uv = new GLfloat[blendData.totvert * UVSTRIDE];
 	GLfloat* new_norm = new GLfloat[blendData.totvert * STRIDE];
 
 	if(new_pos==NULL || new_uv==NULL || new_norm==NULL) return false;
@@ -260,14 +260,10 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
 	float x;
 	float y;
 	float z;
-	float u;
-	float v;
 	unsigned int vertCount = 0;
 	logger.debug("vert offset: %u", vertOffset);
 	for(auto item: *vertexMap)
 	{
-		u = 0.0f;
-		v = 0.0f;
 		++vertCount;
 		const VertexIndex& index = item.first;
 		uint32_t new_index = item.second;
@@ -278,14 +274,8 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
 		new_offset = (new_index + vertOffset) * STRIDE;
 
 		x = data.verts[vert_offset];
-		if(data.uvs) {
-			u = data.uvs[vert_offset];
-		}
 		++vert_offset;
 		y = data.verts[vert_offset];
-		if(data.uvs) {
-			v = data.uvs[vert_offset];
-		}
 		++vert_offset;
 		z = data.verts[vert_offset];
 
@@ -308,11 +298,18 @@ void BlendLoader::copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t
 		// store empty normal
 		// TODO: actual normal storage if present in BlendData
 		new_norm[new_offset] = .5f;
-		new_uv[new_offset++] = u;
 		new_norm[new_offset] = .5f;
-		new_uv[new_offset++] = v;
 		new_norm[new_offset] = .5f;
-		new_uv[new_offset] = 1.0f;
+
+		// uv
+		if(data.uvs)
+		{
+			vert_offset = index.pos * UVSTRIDE;
+			new_offset = (new_index + vertOffset) * UVSTRIDE;
+			new_uv[new_offset++] = data.uvs[vert_offset++];
+			new_uv[new_offset++] = data.uvs[vert_offset++];
+		}
+
 	}
 
 	logger.debug("BB: %f:%f %f:%f %f:%f", m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ);
