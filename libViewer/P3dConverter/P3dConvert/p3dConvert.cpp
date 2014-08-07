@@ -63,22 +63,13 @@ void P3dConverter::extract_geometry(Object *ob) {
 
 	P3dMesh pme = P3dMesh();
 
-	pme.m_totchunk = 0;
-	pme.m_chunks = 0;
-
-	Mesh *me = (Mesh *)ob->data;
-	MVert *mvert = me->mvert;
+	auto me = (Mesh *)ob->data;
+	auto mvert = me->mvert;
 
 	/* for now only one chunk. */
-	pme.m_chunks = new Chunk[1];
-	pme.m_totchunk = 1;
+	pme.m_chunk = new Chunk();
 
-	Chunk *chunk = pme.m_chunks;
-	chunk->totvert = 0;
-	chunk->totface = 0;
-	chunk->v = nullptr;
-	chunk->f = nullptr;
-	chunk->uv = nullptr;
+	auto chunk = pme.m_chunk;
 
 	/* create vertex pos buffer */
 	chunk->totvert = me->totvert;

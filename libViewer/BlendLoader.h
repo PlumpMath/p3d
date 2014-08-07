@@ -75,10 +75,8 @@ public:
 		logger.debug("Adding %u meshes", converter.object_count());
 		for(uint32_t i = 0; i < converter.object_count(); i++) {
 			P3dMesh &mesh = converter[0];
-			for(uint32_t j = 0; j < mesh.m_totchunk; j++) {
-				Chunk &chunk = mesh.m_chunks[j];
-				initBlendData(chunk.totvert, chunk.totface, chunk.v, chunk.uv, chunk.f);
-			}
+			auto chunk = mesh.m_chunk;
+			initBlendData(chunk->totvert, chunk->totface, chunk->v, chunk->uv, chunk->f);
 		}
 	}
 

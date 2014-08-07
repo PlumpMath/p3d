@@ -41,8 +41,7 @@ public:
 
 class P3dMesh{
 public:
-	uint16_t m_totchunk = 0;
-	Chunk *m_chunks = nullptr;
+	Chunk *m_chunk = nullptr;
 };
 
 class P3dConverter {
