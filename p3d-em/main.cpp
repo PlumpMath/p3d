@@ -4,6 +4,9 @@
 #include <emscripten/emscripten.h>
 #include "P3dViewer.h"
 #include "CameraNavigation.h"
+#include "PlatformAdapter.h"
+
+static P3dLogger logger("em.main");
 
 const int width = 853;
 const int height = 480;
@@ -23,6 +26,7 @@ void do_frame2(void* arg)
 
 int main(void) 
 {
+    logger.debug("running main");
     if (init_gl() == GL_TRUE) {
         viewer.onSurfaceCreated();
         viewer.onSurfaceChanged(width, height);
@@ -35,6 +39,13 @@ int main(void)
     return 0;
 }
 
+void resize_gl(int width, int height )
+{
+    logger.debug("resize: %d x %d", width, height);
+    viewer.onSurfaceChanged(width, height);
+}
+
+
 int init_gl()
 {
     if (glfwInit() != GL_TRUE) {
@@ -46,6 +57,8 @@ int init_gl()
         printf("glfwOpenWindow() failed\n");
         return GL_FALSE;
     }
+
+    glfwSetWindowSizeCallback(resize_gl);
 
     return GL_TRUE;
 }

@@ -1,3 +1,7 @@
+var modelToLoad = modelToLoad || {
+    binUrl: "samples/captain.bin"
+};
+
 function mouseup( event ) {
     event.preventDefault();
     event.stopPropagation();
@@ -38,16 +42,14 @@ function loadModel(data, extension) {
     Module.HEAPU8.set(new Uint8Array(data), buf);
     Module._loadModel(buf, size, Module.allocate(Module.intArrayFromString(extension), 'i8', Module.ALLOC_STACK));
     Module._free(buf);
+    Module.print("material count: " + Module._materialCount());
 }
 
 function postRun() {
     console.log("postRun");
 
-    var binURL = "samples/captain.bin";
-    //var binURL = "samples/monkey500k.bin";
-
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', binURL, true);
+    xhr.open('GET', modelToLoad.binUrl, true);
     xhr.responseType = 'arraybuffer';
 
     xhr.onload = function(e) {
