@@ -770,20 +770,20 @@ protected:
 
 public:
 	fbtSizeHashKey()
-		: m_hash(FBT_NPOS), m_key(0)
+		: m_key(0), m_hash(FBT_NPOS)
 	{
 	}
 
 
 	fbtSizeHashKey(const FBTsize& k)
-		:   m_hash(FBT_NPOS), m_key(k)
+		: m_key(k), m_hash(FBT_NPOS)
 	{
 		hash();
 	}
 
 
 	fbtSizeHashKey(const fbtSizeHashKey& k)
-		:   m_hash(FBT_NPOS), m_key(k.m_key)
+		: m_key(k.m_key), m_hash(FBT_NPOS)
 	{
 		hash();
 	}
