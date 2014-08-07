@@ -25,7 +25,7 @@ P3dConverter::~P3dConverter() {
 	m_pme.clear();
 }
 
-int P3dConverter::parse_blend(const char *data, size_t length) {
+int P3dConverter::parse_blend(const char* data, size_t length) {
 	bool gzipped = false;
 
 	if (m_fp.parse(data, length, fbtFile::PM_READTOMEMORY, false) != fbtFile::FS_OK) {
@@ -45,38 +45,33 @@ int P3dConverter::parse_blend(const char *data, size_t length) {
 	return 0;
 }
 
-void P3dConverter::loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv)
+void P3dConverter::loop_data(MLoopUV* mpuv, P3dMesh* mesh, int curf, MLoop* loop, MLoopUV* luv)
 {
-	chunk->f[curf] = (uint32_t)loop->v;
+	mesh->f[curf] = (uint32_t)loop->v;
 	if(mpuv && luv) {
-		chunk->uv[loop->v*2] = luv->uv[0];
-		chunk->uv[loop->v*2+1] = luv->uv[1];
+		mesh->uv[loop->v*2] = luv->uv[0];
+		mesh->uv[loop->v*2+1] = luv->uv[1];
 	}
 }
 
-void P3dConverter::extract_geometry(Object *ob) {
+void P3dConverter::extract_geometry(Object* ob) {
 	uint32_t totf3 = 0;
 	uint32_t totfx = 0;
 
 	if(ob->type != 1 || !ob->data) throw;
 
-	P3dMesh pme = P3dMesh();
+	P3dMesh* pme = new P3dMesh();
 
 	auto me = (Mesh *)ob->data;
 	auto mvert = me->mvert;
 
-	/* for now only one chunk. */
-	pme.m_chunk = new Chunk();
-
-	auto chunk = pme.m_chunk;
-
 	/* create vertex pos buffer */
-	chunk->totvert = me->totvert;
-	chunk->v = new float[3*me->totvert];
-	for(uint32_t i=0, curv = 0; i < chunk->totvert; i++, mvert++) {
-		chunk->v[curv++] = mvert->co[0];
-		chunk->v[curv++] = mvert->co[1];
-		chunk->v[curv++] = mvert->co[2];
+	pme->totvert = me->totvert;
+	pme->v = new float[3*me->totvert];
+	for(uint32_t i=0, curv = 0; i < pme->totvert; i++, mvert++) {
+		pme->v[curv++] = mvert->co[0];
+		pme->v[curv++] = mvert->co[1];
+		pme->v[curv++] = mvert->co[2];
 		/* \todo read mvert->no */
 	}
 
@@ -93,22 +88,22 @@ void P3dConverter::extract_geometry(Object *ob) {
 			}
 		}
 		/* create buffer for tri indices */
-		chunk->totface = totf3 + totfx*2;
-		chunk->f = new uint32_t[3 * chunk->totface];
+		pme->totface = totf3 + totfx*2;
+		pme->f = new uint32_t[3 * pme->totface];
 		mf = me->mface;
 		for(uint32_t j=0, curf=0; j < (uint32_t)me->totface; j++, mf++) {
 			if(mf->v4==0) {
-				chunk->f[curf] = (uint32_t)mf->v1;
-				chunk->f[curf+1] = (uint32_t)mf->v2;
-				chunk->f[curf+2] = (uint32_t)mf->v3;
+				pme->f[curf] = (uint32_t)mf->v1;
+				pme->f[curf+1] = (uint32_t)mf->v2;
+				pme->f[curf+2] = (uint32_t)mf->v3;
 				curf+=3;
 			} else {
-				chunk->f[curf] = (uint32_t)mf->v1;
-				chunk->f[curf+1] = (uint32_t)mf->v2;
-				chunk->f[curf+2] = (uint32_t)mf->v3;
-				chunk->f[curf+3] = (uint32_t)mf->v1;
-				chunk->f[curf+4] = (uint32_t)mf->v3;
-				chunk->f[curf+5] = (uint32_t)mf->v4;
+				pme->f[curf] = (uint32_t)mf->v1;
+				pme->f[curf+1] = (uint32_t)mf->v2;
+				pme->f[curf+2] = (uint32_t)mf->v3;
+				pme->f[curf+3] = (uint32_t)mf->v1;
+				pme->f[curf+4] = (uint32_t)mf->v3;
+				pme->f[curf+5] = (uint32_t)mf->v4;
 				curf+=6;
 			}
 		}
@@ -125,13 +120,13 @@ void P3dConverter::extract_geometry(Object *ob) {
 			}
 		}
 		/* create buffer for tri indices */
-		chunk->totface = totf3 + totfx*2;
+		pme->totface = totf3 + totfx*2;
 		/* create buffer for UV coords */
 		if(mpuv) {
-			chunk->uv = new float[chunk->totvert*2];
+			pme->uv = new float[pme->totvert*2];
 			fbtPrintf("Got UV\n");
 		}
-		chunk->f = new uint32_t[3 * chunk->totface];
+		pme->f = new uint32_t[3 * pme->totface];
 		/* reset mp to start of mpoly */
 		mp = me->mpoly;
 		for(int j=0, curf=0; j < me->totpoly; j++, mp++) {
@@ -141,27 +136,27 @@ void P3dConverter::extract_geometry(Object *ob) {
 			if(mpuv) luv = &me->mloopuv[mp->loopstart];
 
 			if(mp->totloop==3) {
-				loop_data(mpuv, chunk, curf, loop, luv);
+				loop_data(mpuv, pme, curf, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk, curf+1, loop, luv);
+				loop_data(mpuv, pme, curf+1, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk, curf+2, loop, luv);
+				loop_data(mpuv, pme, curf+2, loop, luv);
 				curf+=3;
 			} else if (mp->totloop==4) {
-				loop_data(mpuv, chunk, curf, loop, luv);
-				loop_data(mpuv, chunk, curf+3, loop, luv);
+				loop_data(mpuv, pme, curf, loop, luv);
+				loop_data(mpuv, pme, curf+3, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk, curf+1, loop, luv);
+				loop_data(mpuv, pme, curf+1, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk, curf+2, loop, luv);
-				loop_data(mpuv, chunk, curf+4, loop, luv);
+				loop_data(mpuv, pme, curf+2, loop, luv);
+				loop_data(mpuv, pme, curf+4, loop, luv);
 				loop++;
 				luv++;
-				loop_data(mpuv, chunk, curf+5, loop, luv);
+				loop_data(mpuv, pme, curf+5, loop, luv);
 				curf+=6;
 			}
 		}

@@ -22,15 +22,10 @@
 
 using namespace Blender;
 
-class Chunk {
+class P3dMesh{
 public:
-	Chunk(){ }
-	~Chunk() {
-		delete [] v;
-		delete [] f;
-		delete [] uv;
-		v = 0; f = 0; totvert = 0; totface = 0;
-	}
+	P3dMesh() {}
+	~P3dMesh() {}
 
 	uint32_t totvert = 0;
 	uint32_t totface = 0;
@@ -39,32 +34,27 @@ public:
 	float *uv = nullptr; /* totverts * 2 */
 };
 
-class P3dMesh{
-public:
-	Chunk *m_chunk = nullptr;
-};
-
 class P3dConverter {
 public:
 	P3dConverter();
 	~P3dConverter();
 
-	int parse_blend(const char *path, size_t length);
+	int parse_blend(const char* path, size_t length);
 
 	size_t object_count() {
 		return m_pme.size();
 	}
-	P3dMesh &operator[](size_t i) {
+	P3dMesh* operator[](size_t i) {
 		return m_pme[i];
 	}
 
-	void loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop, MLoopUV *luv);
+	void loop_data(MLoopUV* mpuv, P3dMesh* mesh, int curf, MLoop* loop, MLoopUV* luv);
 private:
 	void extract_all_geometry();
 	void extract_geometry(Object *ob);
 	size_t count_mesh_objects();
 
-	P3dVector<P3dMesh> m_pme;
+	P3dVector<P3dMesh*> m_pme;
 	fbtBlend m_fp;
 	size_t totmesh = 0;
 };

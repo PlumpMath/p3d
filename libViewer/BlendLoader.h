@@ -74,9 +74,8 @@ public:
 	void initBlendData(P3dConverter &converter){
 		logger.debug("Adding %u meshes", converter.object_count());
 		for(uint32_t i = 0; i < converter.object_count(); i++) {
-			P3dMesh &mesh = converter[0];
-			auto chunk = mesh.m_chunk;
-			initBlendData(chunk->totvert, chunk->totface, chunk->v, chunk->uv, chunk->f);
+			auto mesh = converter[0];
+			initBlendData(mesh->totvert, mesh->totface, mesh->v, mesh->uv, mesh->f);
 		}
 	}
 
@@ -114,8 +113,8 @@ public:
 class BlendLoader : public BaseLoader
 {
 public:
-	BlendLoader() {};
-	virtual ~BlendLoader() {};
+	BlendLoader() {}
+	virtual ~BlendLoader() {}
 
 	bool load(const char *data, size_t length);
 
