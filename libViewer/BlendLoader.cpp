@@ -1,6 +1,5 @@
 #include "BlendLoader.h"
 #include "ModelLoader.h"
-#include <cfloat>
 
 static BlendLoader blendLoader;
 static RegisterLoader registerBlendLoader(&blendLoader, ".blend", 0);

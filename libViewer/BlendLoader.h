@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+#include <cfloat>
 
 #include "BaseLoader.h"
 #include "PlatformAdapter.h"
@@ -21,14 +22,6 @@ class BlendData {
 public:
 	BlendData()
 	{
-		totvert = 0;
-		totface = 0;
-		vertbytes = 0;
-		facebytes = 0;
-		verts = nullptr;
-		faces = nullptr;
-		uvs = nullptr;
-		isloaded = false;
 	}
 	~BlendData()
 	{
@@ -107,17 +100,17 @@ public:
 
 	bool isLoaded() { return isloaded; }
 
-	uint32_t totvert;
-	float *verts;
-	size_t vertbytes;
+	uint32_t totvert = 0;
+	float *verts = nullptr;
+	size_t vertbytes = 0;
 
-	uint32_t totface;
-	uint32_t *faces;
-	size_t facebytes;
+	uint32_t totface = 0;
+	uint32_t *faces = nullptr;
+	size_t facebytes = 0;
 
-	float *uvs;
+	float *uvs = nullptr;
 
-	bool isloaded;
+	bool isloaded = false;
 };
 
 class BlendLoader : public BaseLoader
@@ -136,31 +129,31 @@ private:
 	void nextChunk(uint32_t &chunk, BaseLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
 				   uint32_t vertOffset, bool firstOfType = false);
 
-	bool m_loaded;
+	bool m_loaded = false;
 
-	uint32_t m_pos_count;
-	uint32_t m_norm_count;
-	uint32_t m_tex_count;
+	uint32_t m_pos_count = 0;
+	uint32_t m_norm_count = 0;
+	uint32_t m_tex_count = 0;
 
 	uint32_t m_f3_count[4];
 	uint32_t m_f4_count[4];
 
-	uint32_t m_pos_start;
-	uint32_t m_norm_start;
-	uint32_t m_tex_start;
+	uint32_t m_pos_start = 0;
+	uint32_t m_norm_start = 0;
+	uint32_t m_tex_start = 0;
 
 	uint32_t m_f3_start[4];
 	uint32_t m_f4_start[4];
 
-	uint16_t m_mat_count;
+	uint16_t m_mat_count = 0;
 
 	// bounding box
-	float m_maxX;
-	float m_minX;
-	float m_maxY;
-	float m_minY;
-	float m_maxZ;
-	float m_minZ;
+	float m_maxX = FLT_MIN;
+	float m_minX = FLT_MAX;
+	float m_maxY = FLT_MIN;
+	float m_minY = FLT_MAX;
+	float m_maxZ = FLT_MIN;
+	float m_minZ = FLT_MAX;
 
 	// new data
 	P3dVector<MeshChunk> m_chunks;
@@ -171,12 +164,12 @@ private:
 	uint32_t m_new_f3_start[4];
 	uint32_t m_new_f4_start[4];
 
-	size_t m_total_index_count;
+	size_t m_total_index_count = 0;
 
-	uint32_t m_new_pos_count;
-	uint32_t m_new_norm_count;
-	uint32_t m_new_empty_norm_count;
-	uint32_t m_new_uv_count;
+	uint32_t m_new_pos_count = 0;
+	uint32_t m_new_norm_count = 0;
+	uint32_t m_new_empty_norm_count = 0;
+	uint32_t m_new_uv_count = 0;
 };
 
 #endif // BLENDLOADER_H
