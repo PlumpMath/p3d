@@ -1,12 +1,13 @@
-OPTIMIZE = -O3
-LDOPTIMIZE = --closure 1
+OPTIMIZE = -Oz
+LDOPTIMIZE = -O3 --closure 1
 
 EXPORTED_FUNCTIONS = "[\
 '_main',\
 '_loadModel',\
 '_startRotateCam',\
 '_rotateCam',\
-'_resetCam'\
+'_resetCam',\
+'_materialCount'\
 ]"
 
 INCLUDE_DIRS = \
@@ -22,7 +23,8 @@ WARNINGS = -Wno-c++11-narrowing
 CFLAGS = -I. $(INCLUDE_DIRS) -Wall -Wextra $(WARNINGS) $(OPTIMIZE)
 CXXFLAGS = -I. $(INCLUDE_DIRS) -Wall -Wextra $(WARNINGS) -std=c++0x $(OPTIMIZE)
 #LDFLAGS = -s ASM_JS=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)  --embed-file shaders $(OPTIMIZE) $(LDOPTIMIZE)
-LDFLAGS = -s ASM_JS=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --preload-file shaders --memory-init-file 0 $(OPTIMIZE) $(LDOPTIMIZE)
+LDFLAGS = -s ASM_JS=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --preload-file shaders --memory-init-file 0 \
+    $(LDOPTIMIZE) --emrun
 
 LIBVIEWER_DIR = ../libViewer
 LIBVIEWER_SOURCES = \
