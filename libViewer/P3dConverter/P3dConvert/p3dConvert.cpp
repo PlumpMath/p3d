@@ -70,6 +70,7 @@ void P3dConverter::extract_geometry(Object* ob) {
 	pme->totuv = me->totvert;
 	pme->v = new float[3*me->totvert];
 	for(uint32_t i=0, curv = 0; i < pme->totvert; i++, mvert++) {
+		/* \todo apply obmat */
 		pme->v[curv++] = mvert->co[0];
 		pme->v[curv++] = mvert->co[1];
 		pme->v[curv++] = mvert->co[2];
