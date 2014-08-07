@@ -67,6 +67,7 @@ void P3dConverter::extract_geometry(Object* ob) {
 
 	/* create vertex pos buffer */
 	pme->totvert = me->totvert;
+	pme->totuv = me->totvert;
 	pme->v = new float[3*me->totvert];
 	for(uint32_t i=0, curv = 0; i < pme->totvert; i++, mvert++) {
 		pme->v[curv++] = mvert->co[0];

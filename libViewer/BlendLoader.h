@@ -28,54 +28,23 @@ public:
 		clearBlendData();
 	}
 
-	/** Data is expected to be triangulated before being passed in here. */
-	void initBlendData(uint32_t tv, uint32_t tf, float *vs, float *uv, uint32_t *fs) {
-		isloaded = false;
-		if(verts) delete [] verts;
-		if(faces) delete [] faces;
-		if(uvs) delete [] uvs;
-
-		totvert = tv;
-		totface = tf;
-
-		vertbytes = totvert * sizeof(float) * STRIDE;
-		facebytes = totface * sizeof(uint32_t) * STRIDE;
-
-		if(uv) uvs = new float[totvert*UVSTRIDE];
-		verts = new float[totvert*STRIDE];
-		faces = new uint32_t[totface*STRIDE];
-
-		float *v, *vnew;
-		float *uv_, *uvnew;
-		uint32_t *f, *fnew;
-		unsigned int i;
-		for(i=0, v = vs, vnew = verts; i < tv*STRIDE; i++, v++, vnew++) {
-			*vnew = *v;
-		}
-
-		if(uv) {
-			for(i=0, uv_ = uv, uvnew = uvs; i < tv*UVSTRIDE; i++, uv_++, uvnew++){
-				*uvnew = *uv_;
-			}
-		}
-
-
-		for(i=0, f = fs, fnew = faces; i < tf*STRIDE; i++, f++, fnew++) {
-			*fnew = *f;
-		}
-
-		if(totvert>0 && verts!=NULL) {
-			isloaded = true;
-		} else {
-			clearBlendData();
-		}
-	}
-
+	/** Prepare Blender data for further use in viewer */
 	void initBlendData(P3dConverter &converter){
-		logger.debug("Adding %u meshes", converter.object_count());
+		uint32_t vs_index = 0;
+		uint32_t uv_index = 0;
+		uint32_t fs_index = 0;
+		logger.debug("Collating data of %u mesh%s", converter.object_count(), converter.object_count()!=1?"es":"");
+		allocateMemory(converter.totvert(), converter.totface(), converter.totuv());
 		for(uint32_t i = 0; i < converter.object_count(); i++) {
-			auto mesh = converter[0];
-			initBlendData(mesh->totvert, mesh->totface, mesh->v, mesh->uv, mesh->f);
+			auto mesh = converter[i];
+			collateData(
+				vs_index, mesh->totvert, mesh->v,
+				uv_index, mesh->totuv, mesh->uv,
+				fs_index, mesh->totface, mesh->f);
+
+			vs_index += mesh->totvert;
+			uv_index += mesh->totuv;
+			fs_index += mesh->totface;
 		}
 	}
 
@@ -105,9 +74,61 @@ public:
 	uint32_t *faces = nullptr;
 	size_t facebytes = 0;
 
+	uint32_t totuv = 0;
 	float *uvs = nullptr;
+	size_t uvbytes = 0;
 
 	bool isloaded = false;
+private:
+	void allocateMemory(uint32_t total_vertices, uint32_t total_faces, uint32_t total_uvs) {
+		totvert = total_vertices;
+		totface = total_faces;
+		totuv = total_uvs;
+
+		if(verts) delete [] verts;
+		if(faces) delete [] faces;
+		if(uvs) delete [] uvs;
+
+
+		if(total_uvs>0) {
+			uvs = new float[totvert*UVSTRIDE];
+			uvbytes = totuv * sizeof(float) * UVSTRIDE;
+		}
+		verts = new float[totvert*STRIDE];
+		vertbytes = totvert * sizeof(float) * STRIDE;
+
+		faces = new uint32_t[totface*STRIDE];
+		facebytes = totface * sizeof(uint32_t) * STRIDE;
+	}
+
+	/** Data is expected to be triangulated before being passed in here. */
+	void collateData(uint32_t vs_start, uint32_t vs_count, float *vs, uint32_t uv_start, uint32_t uv_count, float *uv, uint32_t fs_start, uint32_t fs_count, uint32_t *fs) {
+		isloaded = false;
+
+		float *v, *vnew;
+		float *uv_, *uvnew;
+		uint32_t *f, *fnew;
+		unsigned int i;
+		vnew = &verts[vs_start*STRIDE];
+		for(i=0, v = vs; i < vs_count*STRIDE; i++, v++, vnew++) {
+			*vnew = *v;
+		}
+
+		if(uv) {
+			uvnew = &uvs[uv_start*UVSTRIDE];
+			for(i=0, uv_ = uv; i < uv_count*UVSTRIDE; i++, uv_++, uvnew++){
+				*uvnew = *uv_;
+			}
+		}
+
+		fnew = &faces[fs_start*STRIDE];
+		for(i=0, f = fs; i < fs_count*STRIDE; i++, f++, fnew++) {
+			/*  adjust face index, since vert and uv data is being collated, these
+			 * indices point into collated array
+			 */
+			*fnew = *f+vs_start;
+		}
+	}
 };
 
 class BlendLoader : public BaseLoader
@@ -123,7 +144,7 @@ private:
 						 uint16_t *new_faces);
 	void copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData& data,
 					  GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
-	void nextChunk(uint32_t &chunk, BaseLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+	void nextChunk(uint32_t &chunk, BaseLoader::VertexType vtype, uint32_t new_offset,
 				   uint32_t vertOffset, bool firstOfType = false);
 
 	bool m_loaded = false;

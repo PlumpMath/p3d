@@ -29,6 +29,7 @@ public:
 
 	uint32_t totvert = 0;
 	uint32_t totface = 0;
+	uint32_t totuv = 0;
 	float *v = nullptr; /* verts, stride 3 */
 	uint32_t *f = nullptr; /* face indices, stride 3 */
 	float *uv = nullptr; /* totverts * 2 */
@@ -46,6 +47,33 @@ public:
 	}
 	P3dMesh* operator[](size_t i) {
 		return m_pme[i];
+	}
+
+	uint32_t totvert() {
+		uint32_t t = 0;
+		for(auto pme : m_pme) {
+			t += pme->totvert;
+		}
+
+		return t;
+	}
+
+	uint32_t totuv() {
+		uint32_t t = 0;
+		for(auto pme : m_pme) {
+			t += pme->totuv;
+		}
+
+		return t;
+	}
+
+	uint32_t totface() {
+		uint32_t t = 0;
+		for(auto pme : m_pme) {
+			t += pme->totface;
+		}
+
+		return t;
 	}
 
 	void loop_data(MLoopUV* mpuv, P3dMesh* mesh, int curf, MLoop* loop, MLoopUV* luv);

@@ -32,6 +32,8 @@ bool BlendLoader::load(const char *data, size_t length)
 	m_new_uv_count = 0;
 	m_total_index_count = 0;
 
+	/* CANDIDATE FOR REMOVAL
+	 * all types start at 0, because they have separate data arrays in BlendData */
 	for(int vtype = 0; vtype < 4; vtype++)
 	{
 		m_new_index_count[vtype] = 0;
@@ -42,14 +44,13 @@ bool BlendLoader::load(const char *data, size_t length)
 	/* for now we do only VT_POS */
 	m_new_index_count[VT_POS] = blendData.totface * 3;
 	m_new_f3_start[VT_POS] = 0;
-	m_new_f4_start[VT_POS] = -1;
 	m_total_index_count += m_new_index_count[VT_POS];
 
 	/* reindex VT_POS */
 	reindexType(chunk, VT_POS, &blendData, new_faces);
 
 	GLfloat* new_pos = new GLfloat[blendData.totvert * STRIDE];
-	GLfloat* new_uv = new GLfloat[blendData.totvert * UVSTRIDE];
+	GLfloat* new_uv = new GLfloat[blendData.totuv * UVSTRIDE];
 	GLfloat* new_norm = new GLfloat[blendData.totvert * STRIDE];
 
 	if(new_pos==NULL || new_uv==NULL || new_norm==NULL) return false;
@@ -115,8 +116,7 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 	uint64_t start = PlatformAdapter::currentMillis();
 
 	uint32_t result = 0;
-	P3dMap<VertexIndex, uint32_t>* vertexMap = 0;
-	bool in_quad = false;
+	P3dMap<VertexIndex, uint32_t>* vertexMap = nullptr;
 
 	fcount = blendData->totface;
 
@@ -138,13 +138,27 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 	{
 		if(face == 0)
 		{
-			nextChunk(chunk, vtype, in_quad, new_offset, m_new_pos_count / 3, true);
+			nextChunk(chunk, vtype, new_offset, m_new_pos_count / 3, true);
 			m_chunks[chunk].material = mat;
 			m_chunks[chunk].hasUvs = blendData->uvs;
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
+		else if(mat != m_chunks[chunk].material)
+		{
+			nextChunk(chunk, vtype, new_offset, m_chunks[chunk].vertOffset, false);
+			m_chunks[chunk].material = mat;
+			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
+		}
 
-		verts = in_quad ? 4 : 3;
+		if(vertexMap->size() > 65530)
+		{
+			// next chunk
+			nextChunk(chunk, vtype, new_offset, m_new_pos_count / 3, false);
+			m_chunks[chunk].material = mat;
+			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
+		}
+
+		verts = 3;
 		for(vert = 0; vert < verts; ++vert)
 		{
 			index.pos = blendData->faces[pos_offset];
@@ -183,7 +197,7 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 	return result;
 }
 
-void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, bool in_f4, uint32_t new_offset,
+void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, uint32_t new_offset,
 							uint32_t vertOffset, bool firstOfType)
 {
 	logger.debug("new_offset: %d", new_offset);
@@ -205,8 +219,8 @@ void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, bool
 	newChunk.indexCount = m_new_index_count[vtype];
 	newChunk.f3Offset = new_offset;
 
-	newChunk.validNormals = false;
-	newChunk.hasUvs = false;
+	newChunk.validNormals = vtype == VT_POS_NORM || vtype == VT_POS_UV_NORM;
+	newChunk.hasUvs = vtype == VT_POS_UV || vtype == VT_POS_UV_NORM;
 
 	newChunk.vertOffset = vertOffset;
 
@@ -214,19 +228,15 @@ void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, bool
 	{
 		newChunk.indexCount = m_new_index_count[vtype];
 		newChunk.f3Offset = m_new_f3_start[vtype];
-		newChunk.f4Offset = m_new_f4_start[vtype];
+		//newChunk.f4Offset = m_new_f4_start[vtype];
 	}
-	/*else
+	else
 	{
 		MeshChunk& oldChunk = m_chunks[chunk - 1];
-		if(!in_f4)
-		{
-			newChunk.f4Offset = oldChunk.f4Offset - new_offset;
-		}
 		newChunk.indexCount = oldChunk.indexCount - (new_offset - oldChunk.f3Offset);
 		oldChunk.indexCount = new_offset - oldChunk.f3Offset;
 		oldChunk.vertCount = (m_new_pos_count - oldChunk.vertOffset * 3) / 3;
-	}*/
+	}
 
 	if(m_vertex_maps.count(newChunk.vertOffset) == 0)
 	{
