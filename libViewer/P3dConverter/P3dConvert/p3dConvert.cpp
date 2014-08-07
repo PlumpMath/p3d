@@ -57,7 +57,6 @@ void P3dConverter::loop_data(MLoopUV* mpuv, Chunk *chunk, int curf, MLoop *loop,
 void P3dConverter::extract_geometry(Object *ob) {
 	uint32_t totf3 = 0;
 	uint32_t totfx = 0;
-	totmesh = 0;
 
 	if(ob->type != 1 || !ob->data) throw;
 
