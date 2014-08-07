@@ -12,5 +12,6 @@ OTHER_FILES += \
     Makefile \
     shaders/vertex.glsl \
     .gitignore \
-    em_test.html
+    em_test.html \
+    em_viewer.js
 
