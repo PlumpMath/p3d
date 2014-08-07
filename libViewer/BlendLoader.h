@@ -116,8 +116,8 @@ public:
 class BlendLoader : public BaseLoader
 {
 public:
-	BlendLoader();
-	virtual ~BlendLoader();
+	BlendLoader() {};
+	virtual ~BlendLoader() {};
 
 	bool load(const char *data, size_t length);
 

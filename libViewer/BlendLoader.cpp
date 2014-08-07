@@ -4,21 +4,6 @@
 static BlendLoader blendLoader;
 static RegisterLoader registerBlendLoader(&blendLoader, ".blend", 0);
 
-BlendLoader::BlendLoader()
-{
-	m_loaded = false;
-	m_minX = FLT_MAX;
-	m_maxX = FLT_MIN;
-	m_minY = FLT_MAX;
-	m_maxY = FLT_MIN;
-	m_minZ = FLT_MAX;
-	m_maxZ = FLT_MIN;
-}
-
-BlendLoader::~BlendLoader()
-{
-}
-
 /********** BLENDER DATA ***************************/
 
 bool BlendLoader::load(const char *data, size_t length)
