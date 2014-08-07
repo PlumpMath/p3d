@@ -32,17 +32,17 @@ public:
 		v = 0; f = 0; totvert = 0; totface = 0;
 	}
 
-	uint32_t totvert;
-	uint32_t totface;
-	float *v; /* verts, stride 3 */
-	uint32_t *f; /* face indices, stride 3 */
-	float *uv; /* totverts * 2 */
+	uint32_t totvert = 0;
+	uint32_t totface = 0;
+	float *v = nullptr; /* verts, stride 3 */
+	uint32_t *f = nullptr; /* face indices, stride 3 */
+	float *uv = nullptr; /* totverts * 2 */
 };
 
 class P3dMesh{
 public:
-	uint16_t m_totchunk;
-	Chunk *m_chunks;
+	uint16_t m_totchunk = 0;
+	Chunk *m_chunks = nullptr;
 };
 
 class P3dConverter {
@@ -67,7 +67,7 @@ private:
 
 	P3dVector<P3dMesh> m_pme;
 	fbtBlend m_fp;
-	size_t totmesh;
+	size_t totmesh = 0;
 };
 
 #endif

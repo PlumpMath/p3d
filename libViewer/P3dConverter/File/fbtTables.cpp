@@ -90,7 +90,7 @@ bool fbtBinTables::read(bool swap)
 }
 
 
-bool fbtBinTables::read(const void* ptr, const FBTsize& len, bool swap)
+bool fbtBinTables::read(const void* ptr, const FBTsize&, bool swap)
 {
 	FBTuint32* ip = 0, i, j, k, nl;
 	FBTtype* tp = 0;
@@ -140,7 +140,7 @@ bool fbtBinTables::read(const void* ptr, const FBTsize& len, bool swap)
 	i = 0;
 	while (i < nl && i < fbtMaxTable)
 	{
-		fbtName name = {cp, i, fbtCharHashKey(cp).hash(), 0, 0, 0, 1};
+		fbtName name = {cp, i, fbtCharHashKey(cp).hash(), 0, 0, 0, 1, {}};
 
 		fbtFixedString<64> bn;
 
@@ -366,7 +366,7 @@ void fbtBinTables::compile(FBTtype i, FBTtype nr, fbtStruct* off, FBTuint32& cof
 		{
 			if (strc[0] >= f && m_name[strc[1]].m_ptrCount == 0)
 			{
-				fbtKey64 k = {m_type[strc[0]].m_typeId, m_name[strc[1]].m_nameId};
+				fbtKey64 k = {{m_type[strc[0]].m_typeId, m_name[strc[1]].m_nameId}};
 				keys.push_back(k);
 
 				compile(m_type[strc[0]].m_strcId, m_name[strc[1]].m_arraySize, off, cof, depth+1, keys);
@@ -433,7 +433,7 @@ void fbtBinTables::compile(void)
 			if (strc[0] >= f && m_name[strc[1]].m_ptrCount == 0) //strc[0]:member_type, strc[1]:member_name
 			{
 				fbtStruct::Keys keys;
-				fbtKey64 k = {m_type[strc[0]].m_typeId, m_name[strc[1]].m_nameId};
+				fbtKey64 k = {{m_type[strc[0]].m_typeId, m_name[strc[1]].m_nameId}};
 				keys.push_back(k);
 				compile(m_type[strc[0]].m_strcId, m_name[strc[1]].m_arraySize, off, cof, depth+1, keys);				
 			}
@@ -441,7 +441,7 @@ void fbtBinTables::compile(void)
 				putMember(strc, off, 0, cof, 0, emptyKeys);
 		}
 
-		if (cof != off->m_len)
+		if (cof != (FBTuint32)(off->m_len))
 		{
 			off->m_flag |= fbtStruct::MISALIGNED;
 			fbtPrintf("Build ==> invalid offset %s:%i:%i:%i\n", m_type[off->m_key.k16[0]].m_name, i, cof, off->m_len);
