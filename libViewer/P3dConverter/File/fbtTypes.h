@@ -924,7 +924,7 @@ public:
 	}
 
 	fbtHashTable(FBTsizeType capacity)
-		:    m_size(0), m_capacity(0), m_lastPos(FBT_NPOS),
+		:    m_size(0), m_capacity(capacity), m_lastPos(FBT_NPOS),
 		     m_iptr(0), m_nptr(0), m_bptr(0), m_cache(0)
 	{
 	}
@@ -1308,7 +1308,7 @@ private:
 FBT_INLINE int fbtStrLen(const char* cp)
 {
 	int i = 0;
-	while (cp[i]) cp[i++];
+	while (cp[i]) i++;
 	return i;
 }
 
@@ -1468,8 +1468,8 @@ public:
 	FBT_INLINE const char* c_str(void) const                 { return m_buffer; }
 	FBT_INLINE char* ptr(void)                               { return m_buffer; }
 	FBT_INLINE const char* ptr(void) const                   { return m_buffer; }
-	FBT_INLINE const char operator [](FBTuint16 i) const     { FBT_ASSERT(i < L); return m_buffer[i]; }
-	FBT_INLINE const char at(FBTuint16 i) const              { FBT_ASSERT(i < L); return m_buffer[i]; }
+	FBT_INLINE char operator [](FBTuint16 i) const     { FBT_ASSERT(i < L); return m_buffer[i]; }
+	FBT_INLINE char at(FBTuint16 i) const              { FBT_ASSERT(i < L); return m_buffer[i]; }
 	FBT_INLINE void clear(void)                              { m_buffer[0] = 0; m_size = 0; }
 	FBT_INLINE int empty(void) const                         { return m_size == 0; }
 	FBT_INLINE int size(void) const                          { return m_size; }

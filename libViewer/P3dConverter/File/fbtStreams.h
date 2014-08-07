@@ -46,7 +46,7 @@ public:
 	fbtStream() {}
 	virtual ~fbtStream() {}
 
-	virtual void open(const char* path, fbtStream::StreamMode mode) {}
+	virtual void open(const char*, fbtStream::StreamMode) {}
 	virtual void clear(void) {};
 
 
@@ -55,15 +55,15 @@ public:
 
 	virtual FBTsize  read(void* dest, FBTsize nr) const = 0;
 	virtual FBTsize  write(const void* src, FBTsize nr) = 0;
-	virtual FBTsize  writef(const char* fmt, ...) {return 0;};
+	virtual FBTsize  writef(const char*, ...) {return 0;};
 
 	virtual FBTsize  position(void) const = 0;
 	virtual FBTsize  size(void) const = 0;
 
-	virtual FBTsize seek(FBTint32 off, FBTint32 way) {return 0;}
+	virtual FBTsize seek(FBTint32, FBTint32) {return 0;}
 
 protected:
-	virtual void reserve(FBTsize nr) {}
+	virtual void reserve(FBTsize) {}
 };
 
 

@@ -152,7 +152,7 @@ public:
 
 	fbtList& getChunks(void) {return m_chunks;}
 
-    virtual void setIgnoreList(FBTuint32 *stripList) {}
+	virtual void setIgnoreList(FBTuint32*) {}
 
 	bool _setuid(const char* uid);
 
@@ -165,29 +165,32 @@ protected:
 
 
 	virtual int initializeTables(fbtBinTables* tables) = 0;
-	virtual int notifyData(void* p, const Chunk& id) {return FS_OK;}
-	virtual int writeData(fbtStream* stream) {return FS_OK;}
+	virtual int notifyData(void*, const Chunk&) {return FS_OK;}
+	virtual int writeData(fbtStream*) {return FS_OK;}
 	
 	virtual void*   getFBT(void) = 0;
 	virtual FBTsize getFBTlength(void) = 0;
 
 
 	// lookup name first 7 of 12
-	const char* m_uhid;
-	const char* m_aluhid; //alternative header string
+	const char* m_uhid = nullptr;
+	const char* m_aluhid = nullptr; //alternative header string
 	fbtFixedString<12> m_header;
 
 
-	int m_version, m_fileVersion, m_fileHeader;
-	char* m_curFile;
+	int m_version = -1;
+	int m_fileVersion = 0;
+	int m_fileHeader = 0;
+	char* m_curFile = nullptr;
 
 	typedef fbtHashTable<fbtSizeHashKey, MemoryChunk*> ChunkMap;
 	fbtList     m_chunks;
 	ChunkMap    m_map;
-	fbtBinTables* m_memory, *m_file;
+	fbtBinTables* m_memory = nullptr;
+	fbtBinTables* m_file = nullptr;
 
 
-	virtual bool skip(const FBTuint32& id) {return false;}
+	virtual bool skip(const FBTuint32&) {return false;}
 	void* findPtr(const FBTsize& iptr);
 	MemoryChunk* findBlock(const FBTsize& iptr);
 

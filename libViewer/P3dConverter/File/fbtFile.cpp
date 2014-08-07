@@ -71,8 +71,7 @@ struct fbtChunk
 
 
 fbtFile::fbtFile(const char* uid)
-	:   m_version(-1), m_fileVersion(0), m_fileHeader(0), m_uhid(uid), m_aluhid(0),
-	    m_memory(0), m_file(0), m_curFile(0)
+	:   m_uhid(uid)
 {
 }
 
@@ -440,7 +439,7 @@ fbtStruct* fbtLinkCompiler::find(fbtStruct* strc, fbtStruct* member, bool isPoin
 int fbtLinkCompiler::link(void)
 {
 	fbtBinTables::OffsM::Pointer md = m_mp->m_offs.ptr();
-	fbtBinTables::OffsM::Pointer fd = m_fp->m_offs.ptr();
+	//fbtBinTables::OffsM::Pointer fd = m_fp->m_offs.ptr();
 
 	FBTsizeType i, i2; 
 	fbtStruct::Members::Pointer p2;
@@ -841,7 +840,7 @@ bool fbtFile::_setuid(const char* uid)
 	return true;
 }
 
-int fbtFile::reflect(const char* path, const int mode, const fbtEndian& endian)
+int fbtFile::reflect(const char* path, const int mode, const fbtEndian& /*endian*/)
 {
 	fbtStream* fs;
 	

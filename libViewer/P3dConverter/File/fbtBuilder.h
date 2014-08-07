@@ -91,18 +91,15 @@ class fbtBuildStruct
 public:
 
 	fbtBuildStruct()
-		:   m_structId(-1),
-		    m_line(-1),
-		    m_nrDependentTypes(0)
 	{
 	}
 
-	FBTsize         m_structId;
+	FBTsize         m_structId = -1;
 	fbtId           m_name;
 	fbtVariables    m_data;
-	FBTsize         m_nrDependentTypes;
+	FBTsize         m_nrDependentTypes = 0;
 	fbtPath         m_path;
-	FBTsize         m_line;
+	FBTsize         m_line = -1;
 
 };
 
