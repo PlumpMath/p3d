@@ -357,6 +357,7 @@ void P3dViewer::clearModel()
 {
     m_ModelLoader->clear();
 
+    PlatformAdapter::adapter->cancelTextureLoads();
     for(P3dMaterial material: m_Materials)
     {
         PlatformAdapter::adapter->deleteTexture(material.diffuseTexture);

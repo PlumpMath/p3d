@@ -54,8 +54,9 @@ void QtPlatformAdapter::loadTexture(const char *name, std::function<void(uint32_
             texture->setMagnificationFilter(QOpenGLTexture::Linear);
             m_textures.insert(texture->textureId(), texture);
             callback(texture->textureId());
+            m_pendingTextures.removeOne(reply);
         });
-
+        m_pendingTextures.append(reply);
     }
 }
 
@@ -66,6 +67,18 @@ void QtPlatformAdapter::deleteTexture(uint32_t textureId)
     {
         delete texture;
     }
+}
+
+void QtPlatformAdapter::cancelTextureLoads()
+{
+    logger.debug("cancel textures");
+    for(QNetworkReply* reply: m_pendingTextures)
+    {
+        reply->disconnect(SIGNAL(finished()));
+        reply->abort();
+        reply->deleteLater();
+    }
+    m_pendingTextures.clear();
 }
 
 const char *QtPlatformAdapter::loadAsset(const char *filename, size_t *size)

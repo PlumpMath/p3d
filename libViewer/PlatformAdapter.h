@@ -23,6 +23,9 @@ public:
     //! \brief deletes texture
     virtual void deleteTexture(uint32_t textureId);
 
+    //! \brief cancel ongoing texture loads
+    virtual void cancelTextureLoads();
+
     //! \brief load asset data, e.g. shader code
     //! \arg filename path of asset, e.g. shaders/fragment.glsl
     //! \arg size pointer to receive size of data or 0 to get zero terminated data (default)

@@ -20,12 +20,15 @@ void PlatformAdapter::loadTexture(const char *name, std::function<void(uint32_t)
 {
     (void) name;
     (void) callback;
-    return;
 }
 
 void PlatformAdapter::deleteTexture(uint32_t textureId)
 {
     (void) textureId;
+}
+
+void PlatformAdapter::cancelTextureLoads()
+{
 }
 
 const char *PlatformAdapter::loadAsset(const char *filename, size_t *size)
