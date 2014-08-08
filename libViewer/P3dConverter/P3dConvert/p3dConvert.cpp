@@ -167,7 +167,7 @@ void P3dConverter::extract_geometry(Object* ob) {
 }
 
 size_t P3dConverter::count_mesh_objects() {
-	totmesh = 0;
+	size_t totmesh = 0;
 	fbtList& objects = m_fp.m_object;
 	for (Object* ob = (Object*)objects.first; ob; ob = (Object*)ob->id.next) {
 		if (ob->data && ob->type == 1) {
