@@ -129,6 +129,7 @@ void BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype, co
 
 	for(face = 0; face < fcount; ++face)
 	{
+		/* start a new chunk for very first face. */
 		if(face == 0)
 		{
 			nextChunk(chunk, vtype, new_offset, m_new_pos_count / 3, true);
@@ -136,6 +137,7 @@ void BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype, co
 			m_chunks[chunk].hasUvs = blendData->uvs != nullptr;
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
+		/* start a new chunk when a new material is found (Not yet used for blend reading. */
 		else if(mat != m_chunks[chunk].material)
 		{
 			nextChunk(chunk, vtype, new_offset, m_chunks[chunk].vertOffset, false);
@@ -144,6 +146,7 @@ void BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype, co
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
 
+		/* if we get more than 65530 vertices in map we need start new chunk. */
 		if(vertexMap->size() > 65530)
 		{
 			// next chunk
