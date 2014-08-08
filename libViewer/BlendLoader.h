@@ -149,22 +149,6 @@ private:
 
 	bool m_loaded = false;
 
-	uint32_t m_pos_count = 0;
-	uint32_t m_norm_count = 0;
-	uint32_t m_tex_count = 0;
-
-	uint32_t m_f3_count[4];
-	uint32_t m_f4_count[4];
-
-	uint32_t m_pos_start = 0;
-	uint32_t m_norm_start = 0;
-	uint32_t m_tex_start = 0;
-
-	uint32_t m_f3_start[4];
-	uint32_t m_f4_start[4];
-
-	uint16_t m_mat_count = 0;
-
 	// bounding box
 	float m_maxX = FLT_MIN;
 	float m_minX = FLT_MAX;
