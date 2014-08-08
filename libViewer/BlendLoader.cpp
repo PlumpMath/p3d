@@ -102,7 +102,7 @@ bool BlendLoader::load(const char *data, size_t length)
 	return m_loaded;
 }
 
-uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype, const BlendData *blendData,
+void BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype, const BlendData *blendData,
 								  uint16_t* new_faces)
 {
 	uint32_t pos_offset;
@@ -115,16 +115,9 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 
 	uint64_t start = PlatformAdapter::currentMillis();
 
-	uint32_t result = 0;
 	P3dMap<VertexIndex, uint32_t>* vertexMap = nullptr;
 
 	fcount = blendData->totface;
-
-	if(fcount == 0)
-	{
-		// no faces of this type
-		return result;
-	}
 
 	// tris
 	pos_offset = 0;
@@ -140,13 +133,14 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 		{
 			nextChunk(chunk, vtype, new_offset, m_new_pos_count / 3, true);
 			m_chunks[chunk].material = mat;
-			m_chunks[chunk].hasUvs = blendData->uvs;
+			m_chunks[chunk].hasUvs = blendData->uvs != nullptr;
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
 		else if(mat != m_chunks[chunk].material)
 		{
 			nextChunk(chunk, vtype, new_offset, m_chunks[chunk].vertOffset, false);
 			m_chunks[chunk].material = mat;
+			m_chunks[chunk].hasUvs = blendData->uvs != nullptr;
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
 
@@ -155,6 +149,7 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 			// next chunk
 			nextChunk(chunk, vtype, new_offset, m_new_pos_count / 3, false);
 			m_chunks[chunk].material = mat;
+			m_chunks[chunk].hasUvs = blendData->uvs != nullptr;
 			vertexMap = m_vertex_maps[m_chunks[chunk].vertOffset];
 		}
 
@@ -193,8 +188,6 @@ uint32_t BlendLoader::reindexType(uint32_t &chunk, BlendLoader::VertexType vtype
 	m_chunks[chunk].vertCount = (m_new_pos_count - STRIDE * m_chunks[chunk].vertOffset) / 3;
 
 	logger.debug("reindex type Blender took: %lldms", PlatformAdapter::durationMillis(start));
-
-	return result;
 }
 
 void BlendLoader::nextChunk(uint32_t &chunk, BlendLoader::VertexType vtype, uint32_t new_offset,

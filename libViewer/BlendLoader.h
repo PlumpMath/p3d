@@ -140,7 +140,7 @@ public:
 	bool load(const char *data, size_t length);
 
 private:
-	uint32_t reindexType(uint32_t &chunk, VertexType vtype, const BlendData *blendData,
+	void reindexType(uint32_t &chunk, VertexType vtype, const BlendData *blendData,
 						 uint16_t *new_faces);
 	void copyVertData(uint32_t vertOffset, P3dMap<VertexIndex, uint32_t>* vertexMap, const BlendData& data,
 					  GLfloat* new_norm, GLfloat* new_uv, GLfloat* new_pos);
