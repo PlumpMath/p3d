@@ -98,3 +98,8 @@ extern "C" int materialCount()
 {
     return viewer.materialCount();
 }
+
+extern "C" void setMaterialProperty(int matIndex, const char *property, const char *value)
+{
+    logger.debug("setMaterialProperty %d %s=%s", matIndex, property, value);
+}

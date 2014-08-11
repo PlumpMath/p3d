@@ -7,7 +7,8 @@ EXPORTED_FUNCTIONS = "[\
 '_startRotateCam',\
 '_rotateCam',\
 '_resetCam',\
-'_materialCount'\
+'_materialCount',\
+'_setMaterialProperty'\
 ]"
 
 INCLUDE_DIRS = \

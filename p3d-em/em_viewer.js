@@ -1,6 +1,10 @@
 var modelToLoad = modelToLoad || {
-    binUrl: "samples/horse.bin"
+    binUrl: "samples/horse.bin",
+    jsonUrl: "samples/horse.json"
 };
+
+// wrapped c functions
+var setMaterialProperty;
 
 function mouseup( event ) {
     event.preventDefault();
@@ -45,20 +49,75 @@ function loadModel(data, extension) {
     Module.print("material count: " + Module._materialCount());
 }
 
+function handleMaterials(json)
+{
+    for(var matIndex = 0, matIndexL = json.materials.length; matIndex < matIndexL; ++matIndex) {
+        var mat = json.materials[matIndex];
+        for(var i = 0, il = mat.texture_assignment_ids.length; i < il; ++i) {
+            var taId = mat.texture_assignment_ids[i];
+            for(var j = 0, jl = json.texture_assignments.length; j < jl; ++j) {
+                var ta = json.texture_assignments[j];
+                if(ta.id === taId) {
+                    for(var k = 0, kl = json.textures.length; k < kl; ++k) {
+                        var tex = json.textures[k];
+                        if(tex.id === ta.texture_id) {
+                            console.log(matIndex, ta.texture_type, tex.url);
+                            if(ta.texture_type === "diff") {
+                                setMaterialProperty(matIndex, "diffuseTexture", tex.url);
+//                                Module._setMaterialProperty(matIndex,
+//                                                            Module.allocate(Module.intArrayFromString("diffuseTexture"),
+//                                                                            'i8', Module.ALLOC_STACK),
+//                                                            Module.allocate(Module.intArrayFromString(tex.url),
+//                                                                            'i8', Module.ALLOC_STACK));
+                            }
+                        }
+                        continue;
+                    }
+                    continue;
+                }
+            }
+        }
+    }
+}
+
 function postRun() {
     console.log("postRun");
 
+    setMaterialProperty = Module.cwrap('setMaterialProperty', 'void', ['number', 'string', 'string']);
+
+    var pending = {
+        json: null,
+        dataDone: false,
+        cb: handleMaterials,
+        check: function() {
+            if(pending.json && pending.dataDone) {
+                pending.cb(pending.json);
+            }
+        }
+    };
     var xhr = new XMLHttpRequest();
     xhr.open('GET', modelToLoad.binUrl, true);
     xhr.responseType = 'arraybuffer';
-
     xhr.onload = function(e) {
         if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
             loadModel(this.response, ".bin");
+            pending.dataDone = true;
+            pending.check();
         }
     };
-
     xhr.send();
+
+    xhr = new XMLHttpRequest();
+    xhr.open('GET', modelToLoad.jsonUrl, true);
+    xhr.responseType = 'json';
+    xhr.onload = function(e) {
+        if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
+            pending.json = this.response;
+            pending.check();
+        }
+    };
+    xhr.send();
+
 
     // setup mouse handling
     var canvas = Module.canvas;
