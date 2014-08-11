@@ -68,7 +68,10 @@ P3DCONVERTER_SOURCES = \
     p3dConvert.cpp
 
 
-SOURCES = main.cpp $(LIBVIEWER_SOURCES) $(ZLIB_SOURCES) $(P3DCONVERTER_SOURCES)
+SOURCES = \
+    main.cpp \
+    EmPlatformAdapter.cpp \
+    $(LIBVIEWER_SOURCES) $(ZLIB_SOURCES) $(P3DCONVERTER_SOURCES)
 OBJECTS = $(patsubst %.c, %.o, $(SOURCES:.cpp=.o))
 VPATH = \
     ../ext/glm \

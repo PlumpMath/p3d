@@ -3,10 +3,15 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += \
-    main.cpp
+INCLUDEPATH += ../libViewer
+INCLUDEPATH += ../ext/glm
 
-HEADERS +=
+SOURCES += \
+    main.cpp \
+    EmPlatformAdapter.cpp
+
+HEADERS += \
+    EmPlatformAdapter.h
 
 OTHER_FILES += \
     Makefile \

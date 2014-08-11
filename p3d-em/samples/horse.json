@@ -2,7 +2,7 @@
  "textures": [
   {
    "has_alpha": false,
-   "url": "/static/uploads/8/tex-1.jpg",
+   "url": "samples/horse_tex-1.jpg",
    "width": 0,
    "name": "Endi's horse spec",
    "format": "",
@@ -13,7 +13,7 @@
   },
   {
    "has_alpha": false,
-   "url": "/static/uploads/8/tex-2.jpg",
+   "url": "samples/horse_tex-2.jpg",
    "width": 0,
    "name": "Endi's horse norm",
    "format": "",
@@ -24,7 +24,7 @@
   },
   {
    "has_alpha": false,
-   "url": "/static/uploads/8/tex-3.jpg",
+   "url": "samples/horse_tex-3.jpg",
    "width": 0,
    "name": "Endi's horse diff",
    "format": "",

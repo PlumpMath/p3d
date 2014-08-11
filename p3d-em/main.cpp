@@ -4,7 +4,7 @@
 #include <emscripten/emscripten.h>
 #include "P3dViewer.h"
 #include "CameraNavigation.h"
-#include "PlatformAdapter.h"
+#include "EmPlatformAdapter.h"
 
 static P3dLogger logger("em.main");
 
@@ -16,7 +16,9 @@ int init_gl(void);
 void do_frame();
 void shutdown_gl();
 
-P3dViewer viewer;
+EmPlatformAdapter emPlatformAdapter;
+
+P3dViewer viewer(&emPlatformAdapter);
 
 void do_frame2(void* arg)
 {
@@ -49,12 +51,12 @@ void resize_gl(int width, int height )
 int init_gl()
 {
     if (glfwInit() != GL_TRUE) {
-        printf("glfwInit() failed\n");
+        logger.fatal("glfwInit() failed");
         return GL_FALSE;
     }
 
     if (glfwOpenWindow(width, height, 8, 8, 8, 8, 16, 0, GLFW_WINDOW) != GL_TRUE) {
-        printf("glfwOpenWindow() failed\n");
+        logger.fatal("glfwOpenWindow() failed");
         return GL_FALSE;
     }
 
@@ -101,5 +103,5 @@ extern "C" int materialCount()
 
 extern "C" void setMaterialProperty(int matIndex, const char *property, const char *value)
 {
-    logger.debug("setMaterialProperty %d %s=%s", matIndex, property, value);
+    viewer.setMaterialProperty(matIndex, property, value);
 }
