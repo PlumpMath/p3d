@@ -17,6 +17,8 @@
 #include "CameraNavigation.h"
 #include "QtPlatformAdapter.h"
 
+static P3dLogger logger("qt.QmlAppViewer", P3dLogger::LOG_DEBUG);
+
 QmlAppViewer::QmlAppViewer(QObject *parent) :
     QtQuick2ControlsApplicationViewer(parent)
 {
@@ -65,17 +67,17 @@ void QmlAppViewer::loadModel(const QUrl &model)
         m_extension = ".bin";
     }
     if(m_extension!=".unknown") {
-        qDebug() << "found a file: " << path;
+        logger.debug("found a file: %s", path.toUtf8().constData());
         QFile file(path);
         if(!file.exists())
         {
-            qWarning() << "File doesn't exist: " << model;
+            logger.warning("File doesn't exist: %s", model.toString().toUtf8().constData());
             return;
         }
 
         file.open(QFile::ReadOnly);
         m_ModelData = file.readAll();
-        qDebug() << "loaded" << m_ModelData.size() <<"bytes for" << m_extension;
+        logger.debug("loaded %d bytes for %s", m_ModelData.size(), m_extension.toUtf8().constData());
         setModelState(MS_PROCESSING);
         window->update();
 
@@ -185,7 +187,7 @@ void QmlAppViewer::onGLRender()
                                 {
                                     QString texUrl = tex["url"].toString();
                                     QString texType = texAssign["texture_type"].toString();
-                                    qDebug() << matIndex << ":" << texType << texUrl;
+                                    logger.debug("%d: %s %s", matIndex, texType.toUtf8().constData(), texUrl.toUtf8().constData());
                                     if(texType == "diff")
                                     {
                                         const char* fullUrl = (QString("http://p3d.in") + texUrl).toUtf8().constData();
@@ -198,9 +200,6 @@ void QmlAppViewer::onGLRender()
                 }
             }
         }
-
-        //m_P3dViewer->setMaterialProperty(0, "diffuseTexture", "http://secondlife.mitsi.com/Secondlife/Posts/UV-maps/uv_checker%20large.png");
-        //m_P3dViewer->setMaterialProperty(0, "diffuseTexture", "file:///home/pelle/blender_files/uvtest.jpg");
     }
 
     if(m_ClearModel)
@@ -227,7 +226,7 @@ void QmlAppViewer::onModelInfoReplyDone()
     QJsonObject viewerModel = (*m_ModelInfo)["viewer_model"].toObject();
     QString baseUrl = viewerModel["base_url"].toString();
     QString binUrl = "http://p3d.in" + baseUrl + ".r48.bin";
-    qDebug() << "bin url:" << binUrl;
+    logger.debug("bin url: %s", binUrl.toUtf8().constData());
     m_NetDataReply = m_NetMgr->get(QNetworkRequest(QUrl(binUrl)));
     connect(m_NetDataReply, SIGNAL(finished()), SLOT(onModelDataReplyDone()));
     m_NetInfoReply = 0;
@@ -244,7 +243,7 @@ void QmlAppViewer::onModelDataReplyDone()
     //TODO: threading
     m_extension = ".bin";
     m_ModelData = m_NetDataReply->readAll();
-    qDebug() << m_NetDataReply->url() << "returned" << m_ModelData.size() << "bytes";
+    logger.debug("%s returned %d bytes", m_NetDataReply->url().toString().toUtf8().constData(), m_ModelData.size());
     setModelState(MS_PROCESSING);
     window->update();
     m_NetDataReply = 0;
