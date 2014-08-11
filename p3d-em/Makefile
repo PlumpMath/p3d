@@ -1,5 +1,7 @@
 OPTIMIZE = -Oz
 LDOPTIMIZE = -O3 --closure 1
+#OPTIMIZE = -O0
+#LDOPTIMIZE = -O0
 
 EXPORTED_FUNCTIONS = "[\
 '_main',\
@@ -25,7 +27,7 @@ CFLAGS = -I. $(INCLUDE_DIRS) -Wall -Wextra $(WARNINGS) $(OPTIMIZE)
 CXXFLAGS = -I. $(INCLUDE_DIRS) -Wall -Wextra $(WARNINGS) -std=c++0x $(OPTIMIZE)
 #LDFLAGS = -s ASM_JS=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)  --embed-file shaders $(OPTIMIZE) $(LDOPTIMIZE)
 LDFLAGS = -s ASM_JS=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --preload-file shaders --memory-init-file 0 \
-    $(LDOPTIMIZE) --emrun
+    $(LDOPTIMIZE) --emrun --js-library library_p3d.js
 
 LIBVIEWER_DIR = ../libViewer
 LIBVIEWER_SOURCES = \
@@ -93,7 +95,7 @@ all: $(TARGET_GZ)
 $(CURDIR)/shaders: $(LIBVIEWER_DIR)/shaders
 	ln -s $< $@
 
-$(TARGET): $(OBJECTS) Makefile deps.txt $(CURDIR)/shaders $(SHADERS)
+$(TARGET): $(OBJECTS) Makefile deps.txt $(CURDIR)/shaders $(SHADERS) library_p3d.js
 	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $(OBJECTS)
 
 $(TARGET_GZ): $(TARGET)
