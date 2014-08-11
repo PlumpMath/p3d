@@ -331,6 +331,7 @@ void P3dViewer::drawFrame() {
 
 bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *extension)
 {
+    clearModel();
     BaseLoader* loader = BaseLoader::loaderFromExtension(extension);
     if(!loader)
     {
