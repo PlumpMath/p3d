@@ -1,5 +1,5 @@
 var modelToLoad = modelToLoad || {
-    binUrl: "samples/captain.bin"
+    binUrl: "samples/horse.bin"
 };
 
 function mouseup( event ) {

@@ -111,6 +111,8 @@ void ModelLoader::clear()
             delete item.second;
         }
         m_vertex_maps.clear();
+
+        m_mat_count = 1;
     }
 }
 

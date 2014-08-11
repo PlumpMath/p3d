@@ -1,0 +1,100 @@
+{
+ "textures": [
+  {
+   "has_alpha": false,
+   "url": "/static/uploads/8/tex-1.jpg",
+   "width": 0,
+   "name": "Endi's horse spec",
+   "format": "",
+   "owner": "pjoe",
+   "height": 0,
+   "id": 1,
+   "mapping": "uv"
+  },
+  {
+   "has_alpha": false,
+   "url": "/static/uploads/8/tex-2.jpg",
+   "width": 0,
+   "name": "Endi's horse norm",
+   "format": "",
+   "owner": "pjoe",
+   "height": 0,
+   "id": 2,
+   "mapping": "uv"
+  },
+  {
+   "has_alpha": false,
+   "url": "/static/uploads/8/tex-3.jpg",
+   "width": 0,
+   "name": "Endi's horse diff",
+   "format": "",
+   "owner": "pjoe",
+   "height": 0,
+   "id": 3,
+   "mapping": "uv"
+  }
+ ],
+ "texture_assignments": [
+  {
+   "texture_type": "spec",
+   "texture_id": 1,
+   "id": 1041
+  },
+  {
+   "texture_type": "norm",
+   "texture_id": 2,
+   "id": 1042
+  },
+  {
+   "texture_type": "diff",
+   "texture_id": 3,
+   "id": 1043
+  }
+ ],
+ "tags": [],
+ "material_assignments": [
+  {
+   "index": 0,
+   "id": 6697,
+   "material_id": 6697
+  }
+ ],
+ "materials": [
+  {
+   "settings": "{\"diff_tex_str\": 1.0, \"norm_str\": 1, \"shadesphere_saturation\": 0.0, \"shadesphere_lightness\": 0.0, \"material_type\": \"normal\", \"shadesphere_preset\": \"glossy-clay\", \"flat_shading\": false, \"spec_str\": 0.088, \"spec_col\": \"FFFFFF\", \"double_sided\": true, \"ao_col\": \"FFFFFF\", \"ao_str\": 1, \"diff_str\": 0.5, \"shadesphere_hue\": 0.0, \"bump_str\": 0.5, \"diff_col\": \"FFFFFF\", \"spec_shininess\": 0.556, \"tex_wrap\": \"repeat\", \"tex_filter\": \"linear\", \"alpha_clip\": 0.005}",
+   "id": 6697,
+   "texture_assignment_ids": [
+    1041,
+    1042,
+    1043
+   ],
+   "name": "Endi&amp;amp;#39;s horse Material"
+  }
+ ],
+ "viewer_model": {
+  "hits": 4641,
+  "added": "2012-03-01T20:18:37.990317+00:00",
+  "sys_tag_ids": [],
+  "name": "Endi's horse",
+  "format_version": 48,
+  "settings": "{\"material_mode\": \"single\"}",
+  "payload_size": 94226,
+  "modified": "2013-02-20T12:59:34.094675+00:00",
+  "base_url": "/static/uploads/8/Ui03b.p3d",
+  "shortid": "Ui03b",
+  "user_tag_ids": [],
+  "related_texture_ids": [
+   1,
+   2,
+   3
+  ],
+  "is_owner_plus": true,
+  "owner": "pjoe",
+  "material_assignment_ids": [
+   6697
+  ],
+  "privacy_mode": 2,
+  "thumbnail": "/static/uploads/8/image-b3a457672.png",
+  "description": ""
+ }
+}
