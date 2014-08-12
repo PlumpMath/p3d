@@ -27,7 +27,7 @@ CFLAGS = -I. $(INCLUDE_DIRS) -Wall -Wextra $(WARNINGS) $(OPTIMIZE)
 CXXFLAGS = -I. $(INCLUDE_DIRS) -Wall -Wextra $(WARNINGS) -std=c++0x $(OPTIMIZE)
 #LDFLAGS = -s ASM_JS=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)  --embed-file shaders $(OPTIMIZE) $(LDOPTIMIZE)
 LDFLAGS = -s ASM_JS=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) --preload-file shaders --memory-init-file 0 \
-    $(LDOPTIMIZE) --emrun --js-library library_p3d.js
+    $(LDOPTIMIZE) --js-library library_p3d.js
 
 LIBVIEWER_DIR = ../libViewer
 LIBVIEWER_SOURCES = \
