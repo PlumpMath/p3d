@@ -1,20 +1,41 @@
 var LibraryP3D = {
     $P3D__deps: ['glGenTextures', 'glBindTexture'],//['$Browser'],
     $P3D: {
+        pending: [],
         show: function() {
             console.log("ctx", Module.ctx);
         },
     },
-    p3d_load_texture: function(url, onload) {
+
+    p3d_cancel_textures: function() {
+        while(P3D.pending.length > 0) {
+            var pending = P3D.pending.pop();
+            pending.canceled = true;
+            Runtime.dynCall('vii', pending.onload, [pending.arg, 0]);
+        }
+    },
+
+    p3d_load_texture: function(arg, url, onload) {
         var _url = Pointer_stringify(url);
-        console.log("p3d_load_texture", _url);
+        console.log("p3d_load_texture", arg, _url);
         var gl = Module.ctx;
-        console.log("gl", gl);
         var img = new Image();
+        var pending = {
+            arg: arg,
+            onload: onload,
+            canceled: false
+        };
+        P3D.pending.push(pending);
         img.onload = function() {
             console.log("img loaded");
+            if(pending.canceled) return;
+
+            // remove from pending list
+            var index = P3D.pending.indexOf(pending);
+            console.log("pending index", index);
+            if(index >= 0) P3D.pending.splice(index, 1);
+
             var texIdPtr = _malloc(4);
-            console.log("GL", GL);
             _glGenTextures(1, texIdPtr);
             var texId = getValue(texIdPtr, 'i32');
             _free(texIdPtr);
@@ -28,7 +49,7 @@ var LibraryP3D = {
 
             _glBindTexture(gl.TEXTURE_2D, 0);
 
-            Runtime.dynCall('vi', onload, [texId]);
+            Runtime.dynCall('vii', pending.onload, [pending.arg, texId]);
        };
         img.src = _url;
     }

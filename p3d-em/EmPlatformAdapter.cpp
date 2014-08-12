@@ -1,18 +1,28 @@
 #include "EmPlatformAdapter.h"
 #include <emscripten/emscripten.h>
+#include <GL/gl.h>
 
 static P3dLogger logger("em.EmPlatformAdapter");
 
-typedef void (*p3d_load_texture_onload_func)(int);
+typedef void (*p3d_load_texture_onload_func)(void*, int);
 
-extern "C" void p3d_load_texture(const char* url, p3d_load_texture_onload_func onload);
+extern "C" void p3d_load_texture(void* arg, const char* url, p3d_load_texture_onload_func onload);
+extern "C" void p3d_cancel_textures();
 
-static std::function<void(uint32_t)> tex_callback;
+struct PendingTex
+{
+    std::function<void(uint32_t)> callback;
+};
 
-static void tex_onload(int texId)
+static void tex_onload(void* arg, int texId)
 {
     logger.debug("c++ got texId %d", texId);
-    tex_callback(texId);
+    PendingTex* pending = static_cast<PendingTex*>(arg);
+    if(texId)
+    {
+        pending->callback(texId);
+    }
+    delete pending;
 }
 
 EmPlatformAdapter::EmPlatformAdapter()
@@ -22,7 +32,20 @@ EmPlatformAdapter::EmPlatformAdapter()
 void EmPlatformAdapter::loadTexture(const char* name, std::function<void(uint32_t)> callback)
 {
     logger.debug("load tex: %s", name);
-    tex_callback = callback;
-    p3d_load_texture(name, tex_onload);
+    PendingTex* pending = new PendingTex();
+    pending->callback = callback;
+    p3d_load_texture(pending, name, tex_onload);
+}
+
+void EmPlatformAdapter::cancelTextureLoads()
+{
+    logger.debug("Cancel Textures");
+    p3d_cancel_textures();
+}
+
+void EmPlatformAdapter::deleteTexture(uint32_t textureId)
+{
+    logger.debug("delete texture id %d", textureId);
+    glDeleteTextures(1, &textureId);
 }
 
