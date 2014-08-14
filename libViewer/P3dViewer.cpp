@@ -9,6 +9,8 @@
 // value_ptr
 #include <glm/gtc/type_ptr.hpp>
 
+#include <cstdlib>
+
 static P3dLogger logger("core.P3dViewer", P3dLogger::LOG_DEBUG);
 
 const float PI = 3.14159265358979f;
@@ -367,13 +369,21 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
         return;
     }
 
+    P3dMaterial& material = m_Materials[materialIndex];
+
     if(!strcmp("diffuseTexture", property))
     {
-        PlatformAdapter::adapter->loadTexture(value, [=](uint32_t texId)
+        PlatformAdapter::adapter->loadTexture(value, [=,&material](uint32_t texId)
         {
-            m_Materials[materialIndex].diffuseTexture = texId;
+            material.diffuseTexture = texId;
         });
     }
 
-
+    if(!strcmp("diff_col", property))
+    {
+        uint32_t uval = strtoul(value, nullptr, 16);
+        material.diff_col.r = ((uval & 0xff0000) >> 16) / 255.0f;
+        material.diff_col.g = ((uval & 0xff00) >> 8) / 255.0f;
+        material.diff_col.b = (uval & 0xff) / 255.0f;
+    }
 }
