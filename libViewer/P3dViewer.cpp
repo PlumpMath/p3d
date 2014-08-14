@@ -4,9 +4,6 @@
 #include "CameraNavigation.h"
 #include "glwrapper.h"
 
-#define GLM_FORCE_RADIANS
-// vec3, vec4, ivec4, mat4
-#include <glm/glm.hpp>
 // translate, rotate, scale, perspective
 #include <glm/gtc/matrix_transform.hpp>
 // value_ptr
@@ -248,6 +245,7 @@ void P3dViewer::drawFrame() {
             if(m_ModelLoader->indexCount(chunk))
             {
                 GLuint arrayBuffer;
+                P3dMaterial& material = m_Materials[m_ModelLoader->material(chunk)];
 
                 arrayBuffer = m_ModelLoader->posBuffer(chunk);
                 glBindBuffer(GL_ARRAY_BUFFER, arrayBuffer);
@@ -290,7 +288,7 @@ void P3dViewer::drawFrame() {
                     uDiffuseColor = glGetUniformLocation(m_ProgramObjectUv, "uDiffuseColor");
 
                     // texure
-                    GLuint diffuseTexId = m_Materials[m_ModelLoader->material(chunk)].diffuseTexture;
+                    GLuint diffuseTexId = material.diffuseTexture;
                     glUniform1i(m_UniformEnableDiffuse, diffuseTexId != 0);
                     if(diffuseTexId)
                     {
@@ -308,16 +306,7 @@ void P3dViewer::drawFrame() {
                     uDiffuseColor = glGetUniformLocation(m_ProgramObject, "uDiffuseColor");
                 }
 
-//                static glm::vec3 colors[] = {
-//                    glm::vec3(1.0f, 1.0f, 1.0f),
-//                    glm::vec3(1.0f, 0.0f, 0.0f),
-//                    glm::vec3(0.0f, 1.0f, 0.0f),
-//                    glm::vec3(0.0f, 0.0f, 1.0f),
-//                };
-
-//                glm::vec3& color = colors[m_ModelLoader->material(chunk) % (sizeof(colors) / sizeof(colors[0]))];
-//                glUniform3f(uDiffuseColor, color.r, color.g, color.b);
-                glUniform3f(uDiffuseColor, 1.0f, 1.0f, 1.0f);
+                glUniform3fv(uDiffuseColor, 1, glm::value_ptr(material.diff_col));
 
                 GLsizei count = m_ModelLoader->indexCount(chunk);
                 uint32_t offset = m_ModelLoader->indexOffset(chunk);

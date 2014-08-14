@@ -177,12 +177,25 @@ void QmlAppViewer::onGLRender()
 
         if(m_ModelInfo)
         {
-            // set diffuse textures
-            //TODO: optimize using maps
             QJsonArray mats = m_ModelInfo->value("materials").toArray();
             for(int matIndex = 0, matIndexL = mats.size(); matIndex < matIndexL; ++matIndex)
             {
                 QJsonObject mat = mats[matIndex].toObject();
+                QJsonObject matSettings = QJsonDocument::fromJson(mat["settings"].toString().toUtf8()).object();
+                for(auto itr = matSettings.constBegin(); itr != matSettings.constEnd(); ++itr)
+                {
+                    //TODO: separate setMaterialProperty for doubles?
+                    QString value = itr.value().toString();
+                    if(itr.value().isDouble())
+                    {
+                        value = QString::number(itr.value().toDouble());
+                    }
+                    m_P3dViewer->setMaterialProperty(matIndex, itr.key().toUtf8().constData(),
+                                                     value.toUtf8().constData());
+                }
+
+                // set diffuse textures
+                //TODO: optimize using maps
                 QJsonArray texAssigns = m_ModelInfo->value("texture_assignments").toArray();
                 QJsonArray texs = m_ModelInfo->value("textures").toArray();
                 for(QJsonValue texAssignId: mat["texture_assignment_ids"].toArray())

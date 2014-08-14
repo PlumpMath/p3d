@@ -4,6 +4,10 @@
 #include <cstdlib>
 #include "P3dVector.h"
 
+#define GLM_FORCE_RADIANS
+// vec3, vec4, ivec4, mat4
+#include <glm/glm.hpp>
+
 typedef int GLint;
 typedef unsigned int GLuint;
 typedef unsigned int GLenum;
@@ -41,6 +45,7 @@ private:
     struct P3dMaterial
     {
         GLuint diffuseTexture = 0;
+        glm::vec3 diff_col{1.0, 1.0, 1.0};
     };
 
     GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);
