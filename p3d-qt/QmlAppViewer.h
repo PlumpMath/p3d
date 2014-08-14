@@ -58,6 +58,7 @@ private:
     bool m_ClearModel;
     QString m_extension;
     QJsonObject* m_ModelInfo = nullptr;
+    QString m_urlPrefix;
 };
 
 #endif // QMLAPPVIEWER_H

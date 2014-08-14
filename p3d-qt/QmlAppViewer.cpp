@@ -65,6 +65,19 @@ void QmlAppViewer::loadModel(const QUrl &model)
     else if(fileName.endsWith(".bin"))
     {
         m_extension = ".bin";
+
+        QString infoPath = path;
+        infoPath.replace(QRegExp("\\.bin$"), ".json");
+        QFile file(infoPath);
+        if(file.exists())
+        {
+            file.open(QFile::ReadOnly);
+            QByteArray data = file.readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            m_ModelInfo = new QJsonObject(doc.object());
+            QFileInfo fi(infoPath);
+            m_urlPrefix = "file://" + fi.absoluteDir().path() + "/";
+        }
     }
     if(m_extension!=".unknown") {
         logger.debug("found a file: %s", path.toUtf8().constData());
@@ -190,8 +203,13 @@ void QmlAppViewer::onGLRender()
                                     logger.debug("%d: %s %s", matIndex, texType.toUtf8().constData(), texUrl.toUtf8().constData());
                                     if(texType == "diff")
                                     {
-                                        const char* fullUrl = (QString("http://p3d.in") + texUrl).toUtf8().constData();
-                                        m_P3dViewer->setMaterialProperty(matIndex, "diffuseTexture", fullUrl);
+                                        if(m_urlPrefix.startsWith("file://"))
+                                        {
+                                            // assume texture file is in same dir as .bin
+                                            texUrl = QFileInfo(texUrl).fileName();
+                                        }
+                                        QString fullUrl = m_urlPrefix + texUrl;
+                                        m_P3dViewer->setMaterialProperty(matIndex, "diffuseTexture", fullUrl.toUtf8().constData());
                                     }
                                 }
                             }
@@ -225,7 +243,8 @@ void QmlAppViewer::onModelInfoReplyDone()
     m_ModelInfo = new QJsonObject(doc.object());
     QJsonObject viewerModel = (*m_ModelInfo)["viewer_model"].toObject();
     QString baseUrl = viewerModel["base_url"].toString();
-    QString binUrl = "http://p3d.in" + baseUrl + ".r48.bin";
+    m_urlPrefix = "http://p3d.in";
+    QString binUrl = m_urlPrefix + baseUrl + ".r48.bin";
     logger.debug("bin url: %s", binUrl.toUtf8().constData());
     m_NetDataReply = m_NetMgr->get(QNetworkRequest(QUrl(binUrl)));
     connect(m_NetDataReply, SIGNAL(finished()), SLOT(onModelDataReplyDone()));

@@ -30,7 +30,7 @@ void QtPlatformAdapter::loadTexture(const char *name, std::function<void(uint32_
     QUrl url(name);
     if(url.isLocalFile())
     {
-        QOpenGLTexture *texture = new QOpenGLTexture(QImage(url.toLocalFile()).mirrored());
+        QOpenGLTexture *texture = new QOpenGLTexture(QImage(url.toLocalFile()));
         texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
         texture->setMagnificationFilter(QOpenGLTexture::Linear);
         m_textures.insert(texture->textureId(), texture);
