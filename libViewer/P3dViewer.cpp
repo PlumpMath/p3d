@@ -371,6 +371,8 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
 
     P3dMaterial& material = m_Materials[materialIndex];
 
+    logger.verbose("setMaterialProperty %d: %s = %s", materialIndex, property, value);
+
     if(!strcmp("diffuseTexture", property))
     {
         PlatformAdapter::adapter->loadTexture(value, [=,&material](uint32_t texId)

@@ -53,6 +53,14 @@ function handleMaterials(json)
 {
     for(var matIndex = 0, matIndexL = json.materials.length; matIndex < matIndexL; ++matIndex) {
         var mat = json.materials[matIndex];
+        var matSettings = JSON.parse(mat.settings);
+        var keys = Object.keys(matSettings);
+        for(var key = 0, keyl = keys.length; key < keyl; ++key) {
+            var propName = keys[key];
+            var propValue = "" + matSettings[propName];
+            setMaterialProperty(matIndex, propName, propValue);
+        }
+
         for(var i = 0, il = mat.texture_assignment_ids.length; i < il; ++i) {
             var taId = mat.texture_assignment_ids[i];
             for(var j = 0, jl = json.texture_assignments.length; j < jl; ++j) {
@@ -64,11 +72,6 @@ function handleMaterials(json)
                             console.log(matIndex, ta.texture_type, tex.url);
                             if(ta.texture_type === "diff") {
                                 setMaterialProperty(matIndex, "diffuseTexture", tex.url);
-//                                Module._setMaterialProperty(matIndex,
-//                                                            Module.allocate(Module.intArrayFromString("diffuseTexture"),
-//                                                                            'i8', Module.ALLOC_STACK),
-//                                                            Module.allocate(Module.intArrayFromString(tex.url),
-//                                                                            'i8', Module.ALLOC_STACK));
                             }
                         }
                         continue;
