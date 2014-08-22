@@ -1,155 +1,199 @@
-var modelToLoad = modelToLoad || {
-    binUrl: "samples/horse.bin",
-    jsonUrl: "samples/horse.json"
+var Module = Module || {
+    preRun: [],
+    postRun: [],
+    print: function(text) {
+        console.log(text);
+    },
+    printErr: function(text) {
+        console.log(text);
+    }
 };
 
-// wrapped c functions
-var setMaterialProperty;
+var P3D = (function(){
+    var p3d = {};
 
-function mouseup( event ) {
-    event.preventDefault();
-    event.stopPropagation();
-    document.removeEventListener( 'mousemove', mousemove );
-    document.removeEventListener( 'mouseup', mouseup );
-}
-
-function mousemove(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    var canvas = Module.canvas;
-    var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
-    var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
-    //console.log("mouse move", x, y);
-    Module._rotateCam(x, y);
-
-}
-
-function mousedown(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    var canvas = Module.canvas;
-    var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
-    var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
-    //console.log("mouse down", x, y);
-    Module._startRotateCam(x, y);
-
-    document.addEventListener( 'mousemove', mousemove, false );
-    document.addEventListener( 'mouseup', mouseup, false );
-}
-
-function loadModel(data, extension) {
-    var size = data.byteLength;
-    Module.print("loaded bytes: " + size);
-    var buf = Module._malloc(size);
-    Module.HEAPU8.set(new Uint8Array(data), buf);
-    Module._loadModel(buf, size, Module.allocate(Module.intArrayFromString(extension), 'i8', Module.ALLOC_STACK));
-    Module._free(buf);
-    Module.print("material count: " + Module._materialCount());
-}
-
-function handleMaterials(json)
-{
-    for(var matIndex = 0, matIndexL = json.materials.length; matIndex < matIndexL; ++matIndex) {
-        var mat = json.materials[matIndex];
-        var matSettings = JSON.parse(mat.settings);
-        var keys = Object.keys(matSettings);
-        for(var key = 0, keyl = keys.length; key < keyl; ++key) {
-            var propName = keys[key];
-            var propValue = "" + matSettings[propName];
-            setMaterialProperty(matIndex, propName, propValue);
+    p3d.loadBin = function(binUrl, jsonUrl) {
+        if(moduleRunning) {
+            loadBin(binUrl, jsonUrl);
+        } else {
+            Module.postRun.push(loadBin.bind(this, binUrl, jsonUrl));
         }
+    }
 
-        for(var i = 0, il = mat.texture_assignment_ids.length; i < il; ++i) {
-            var taId = mat.texture_assignment_ids[i];
-            for(var j = 0, jl = json.texture_assignments.length; j < jl; ++j) {
-                var ta = json.texture_assignments[j];
-                if(ta.id === taId) {
-                    for(var k = 0, kl = json.textures.length; k < kl; ++k) {
-                        var tex = json.textures[k];
-                        if(tex.id === ta.texture_id) {
-                            console.log(matIndex, ta.texture_type, tex.url);
-                            if(ta.texture_type === "diff") {
-                                setMaterialProperty(matIndex, "diffuseTexture", tex.url);
+    p3d.loadBlend = function(blendUrl) {
+        if(moduleRunning) {
+            loadBlend(blendUrl);
+        } else {
+            Module.postRun.push(loadBlend.bind(this, blendUrl));
+        }
+    }
+
+    var moduleRunning = false;
+
+    // wrapped c functions
+    var setMaterialProperty;
+
+    function mouseup( event ) {
+        event.preventDefault();
+        event.stopPropagation();
+        document.removeEventListener( 'mousemove', mousemove );
+        document.removeEventListener( 'mouseup', mouseup );
+    }
+
+    function mousemove(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var canvas = Module.canvas;
+        var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
+        var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
+        //console.log("mouse move", x, y);
+        Module._rotateCam(x, y);
+
+    }
+
+    function mousedown(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var canvas = Module.canvas;
+        var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
+        var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
+        //console.log("mouse down", x, y);
+        Module._startRotateCam(x, y);
+
+        document.addEventListener( 'mousemove', mousemove, false );
+        document.addEventListener( 'mouseup', mouseup, false );
+    }
+
+    function loadModel(data, extension) {
+        var size = data.byteLength;
+        Module.print("loaded bytes: " + size);
+        var buf = Module._malloc(size);
+        Module.HEAPU8.set(new Uint8Array(data), buf);
+        Module._loadModel(buf, size, Module.allocate(Module.intArrayFromString(extension), 'i8', Module.ALLOC_STACK));
+        Module._free(buf);
+        Module.print("material count: " + Module._materialCount());
+    }
+
+    function handleMaterials(json)
+    {
+        for(var matIndex = 0, matIndexL = json.materials.length; matIndex < matIndexL; ++matIndex) {
+            var mat = json.materials[matIndex];
+            var matSettings = JSON.parse(mat.settings);
+            var keys = Object.keys(matSettings);
+            for(var key = 0, keyl = keys.length; key < keyl; ++key) {
+                var propName = keys[key];
+                var propValue = "" + matSettings[propName];
+                setMaterialProperty(matIndex, propName, propValue);
+            }
+
+            for(var i = 0, il = mat.texture_assignment_ids.length; i < il; ++i) {
+                var taId = mat.texture_assignment_ids[i];
+                for(var j = 0, jl = json.texture_assignments.length; j < jl; ++j) {
+                    var ta = json.texture_assignments[j];
+                    if(ta.id === taId) {
+                        for(var k = 0, kl = json.textures.length; k < kl; ++k) {
+                            var tex = json.textures[k];
+                            if(tex.id === ta.texture_id) {
+                                console.log(matIndex, ta.texture_type, tex.url);
+                                if(ta.texture_type === "diff") {
+                                    setMaterialProperty(matIndex, "diffuseTexture", tex.url);
+                                }
                             }
+                            continue;
                         }
                         continue;
                     }
-                    continue;
                 }
             }
         }
     }
-}
 
-function postRun() {
-    console.log("postRun");
+    function postRun() {
+        moduleRunning = true;
 
-    setMaterialProperty = Module.cwrap('setMaterialProperty', 'void', ['number', 'string', 'string']);
+        setMaterialProperty = Module.cwrap('setMaterialProperty', 'void', ['number', 'string', 'string']);
 
-    var pending = {
-        json: null,
-        dataDone: false,
-        cb: handleMaterials,
-        check: function() {
-            if(pending.json && pending.dataDone) {
-                pending.cb(pending.json);
+        // setup mouse handling
+        var canvas = Module.canvas;
+        canvas.addEventListener( 'mousedown', mousedown, false );
+        canvas.addEventListener( 'dblclick', Module._resetCam, false);
+    };
+
+    function loadBin(binUrl, jsonUrl) {
+        var pending = {
+            json: null,
+            dataDone: false,
+            cb: handleMaterials,
+            check: function() {
+                if(pending.json && pending.dataDone) {
+                    pending.cb(pending.json);
+                }
             }
+        };
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', binUrl, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
+                loadModel(this.response, ".bin");
+                pending.dataDone = true;
+                pending.check();
+            }
+        };
+        xhr.send();
+
+        if(jsonUrl) {
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', jsonUrl, true);
+            xhr.responseType = 'json';
+            xhr.onload = function(e) {
+                if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
+                    pending.json = this.response;
+                    pending.check();
+                }
+            };
+            xhr.send();
         }
-    };
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', modelToLoad.binUrl, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = function(e) {
-        if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
-            loadModel(this.response, ".bin");
-            pending.dataDone = true;
-            pending.check();
-        }
-    };
-    xhr.send();
-
-    xhr = new XMLHttpRequest();
-    xhr.open('GET', modelToLoad.jsonUrl, true);
-    xhr.responseType = 'json';
-    xhr.onload = function(e) {
-        if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
-            pending.json = this.response;
-            pending.check();
-        }
-    };
-    xhr.send();
-
-
-    // setup mouse handling
-    var canvas = Module.canvas;
-    canvas.addEventListener( 'mousedown', mousedown, false );
-    canvas.addEventListener( 'dblclick', Module._resetCam, false);
-};
-
-function handleFileSelect(evt) {
-    var file = evt.target.files[0];
-    console.log("loading:", file.name);
-    var extension = /\.[^.]+$/.exec(file.name);
-    if(!extension) {
-        console.log(" filename doesn't have extension");
-        return;
     }
-    extension = extension[0];
-    console.log(" extension:", extension);
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        loadModel(reader.result, extension);
+
+    function loadBlend(blendUrl) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', blendUrl, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
+                loadModel(this.response, ".blend");
+            }
+        };
+        xhr.send();
     }
-    reader.readAsArrayBuffer(file);
-}
-var fileElem = document.getElementById('modelFile');
-if(fileElem) {
-    fileElem.addEventListener('change', handleFileSelect, false);
-}
 
-Module.postRun.push(postRun);
-Module.TOTAL_MEMORY = 16 * 1024 * 1024;
+    function handleFileSelect(evt) {
+        var file = evt.target.files[0];
+        console.log("loading:", file.name);
+        var extension = /\.[^.]+$/.exec(file.name);
+        if(!extension) {
+            console.log(" filename doesn't have extension");
+            return;
+        }
+        extension = extension[0];
+        console.log(" extension:", extension);
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            loadModel(reader.result, extension);
+        }
+        reader.readAsArrayBuffer(file);
+    }
+    var fileElem = document.getElementById('modelFile');
+    if(fileElem) {
+        fileElem.addEventListener('change', handleFileSelect, false);
+    }
 
+    Module.postRun.push(postRun);
+    Module.TOTAL_MEMORY = 16 * 1024 * 1024;
+
+    return p3d;
+}());
 

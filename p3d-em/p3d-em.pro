@@ -19,5 +19,6 @@ OTHER_FILES += \
     .gitignore \
     em_test.html \
     em_viewer.js \
-    library_p3d.js
+    library_p3d.js \
+    p3d_blend_minimal.html
 

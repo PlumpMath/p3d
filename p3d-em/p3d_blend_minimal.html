@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>p3d viewer .blend sample</title>
+    <style>
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten { border: 0px none; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <script type="text/javascript" src="em_viewer.js"></script>
+    <script type='text/javascript'>
+        Module.canvas = document.getElementById('canvas');
+        P3D.loadBlend('samples/monkey.blend');
+    </script>
+    <script async type="text/javascript" src="em_test.js"></script>
+  </body>
+</html>
