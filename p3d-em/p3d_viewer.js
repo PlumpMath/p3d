@@ -9,7 +9,7 @@ var Module = Module || {
     }
 };
 
-var P3D = (function(){
+var P3DViewer = (function(){
     var p3d = {};
 
     p3d.loadBin = function(binUrl, jsonUrl) {

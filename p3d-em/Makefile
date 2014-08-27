@@ -85,7 +85,7 @@ VPATH = \
     $(P3DCONVERTER_DIR)/FileFormats/Blend/Generated \
     $(P3DCONVERTER_DIR)/P3dConvert
 
-TARGET = em_test.js
+TARGET = p3d_engine.js
 TARGET_GZ = $(TARGET).gz
 SHADERS = $(shell find $(LIBVIEWER_DIR)/shaders/ -name "*.glsl")
 

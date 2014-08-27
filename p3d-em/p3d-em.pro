@@ -18,7 +18,7 @@ OTHER_FILES += \
     shaders/vertex.glsl \
     .gitignore \
     em_test.html \
-    em_viewer.js \
     library_p3d.js \
-    p3d_blend_minimal.html
+    p3d_blend_minimal.html \
+    p3d_viewer.js
 
