@@ -8,8 +8,9 @@
 
 static P3dLogger logger("em.main");
 
-const int width = 853;
-const int height = 480;
+int width = 853;
+int height = 480;
+int isFullScreen = 0;
 
 
 int init_gl(void);
@@ -29,6 +30,7 @@ void do_frame2(void* arg)
 int main(void) 
 {
     logger.debug("running main");
+    emscripten_get_canvas_size(&width, &height, &isFullScreen);
     if (init_gl() == GL_TRUE) {
         viewer.onSurfaceCreated();
         viewer.onSurfaceChanged(width, height);
