@@ -111,6 +111,14 @@ void P3dConverter::extract_geometry(Object* ob) {
 		}
 	/* mesh data since bmesh */
 	} else if (me->totpoly) {
+		auto mtpoly = me->mtpoly;
+		if(mtpoly) {
+			fbtPrintf("UV IMAGE: %s\n", mtpoly->tpage->name);
+		}
+		else
+		{
+			fbtPrintf("no UV IMAGE\n");
+		}
 		auto mpuv = me->mloopuv;
 		/* count tris */
 		auto mp = me->mpoly;
