@@ -77,7 +77,9 @@ ApplicationWindow {
         onPressed: {
             oldX = mouseX;
             oldY = mouseY;
-            viewer.startRotateCamera(mouseX / width * 2 - 1, -mouseY / height * 2 + 1);
+            if(mouse.buttons & Qt.LeftButton) {
+                viewer.startRotateCamera(mouseX / width * 2 - 1, -mouseY / height * 2 + 1);
+            }
         }
         onDoubleClicked: {
             viewer.resetCamera();

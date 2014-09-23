@@ -9,6 +9,7 @@ EXPORTED_FUNCTIONS = "[\
 '_startRotateCam',\
 '_rotateCam',\
 '_resetCam',\
+'_zoomCam',\
 '_materialCount',\
 '_setMaterialProperty'\
 ]"

@@ -11,6 +11,8 @@ var Module = Module || {
 
 var P3DViewer = (function(){
     var p3d = {};
+    var oldMouseX = 0;
+    var oldMouseY = 0;
 
     p3d.loadBin = function(binUrl, jsonUrl) {
         if(moduleRunning) {
@@ -48,8 +50,13 @@ var P3DViewer = (function(){
         var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
         var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
         //console.log("mouse move", x, y);
-        Module._rotateCam(x, y);
-
+        if(event.button === 0) {
+            Module._rotateCam(x, y);
+        } else if(event.button === 1) {
+            Module._zoomCam((y - oldMouseY) * 5);
+        }
+        oldMouseX = x;
+        oldMouseY = y;
     }
 
     function mousedown(event) {
@@ -59,6 +66,8 @@ var P3DViewer = (function(){
         var canvas = Module.canvas;
         var x = (event.clientX - canvas.width * 0.5 - canvas.getBoundingClientRect().left) / (canvas.width * 0.5);
         var y = (canvas.height * 0.5 + canvas.getBoundingClientRect().top - event.clientY) / (canvas.height * 0.5);
+        oldMouseX = x;
+        oldMouseY = y;
         //console.log("mouse down", x, y);
         Module._startRotateCam(x, y);
 

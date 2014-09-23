@@ -98,6 +98,11 @@ extern "C" void resetCam()
     viewer.cameraNavigation()->reset();
 }
 
+extern "C" void zoomCam(float zoomDist)
+{
+    viewer.cameraNavigation()->zoom(zoomDist);
+}
+
 extern "C" int materialCount()
 {
     return viewer.materialCount();
