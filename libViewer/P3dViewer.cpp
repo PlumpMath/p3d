@@ -235,8 +235,10 @@ void P3dViewer::drawFrame() {
         glDisable(GL_SCISSOR_TEST);
 
         // MVP
-        float nearPlane = m_ModelLoader->boundingRadius() * 2.2f;
-        float farPlane = m_ModelLoader->boundingRadius() * 3.8f;
+        float camDist = m_CameraNavigation->cameraDist();
+        float nearPlane = camDist - m_ModelLoader->boundingRadius() * 1.1f;
+        if(nearPlane <= 0) nearPlane = 0.01f;
+        float farPlane = camDist + m_ModelLoader->boundingRadius() * 2.2f;
         glm::mat4 view = m_CameraNavigation->viewMatrix();
         glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, nearPlane, farPlane);
         glm::mat4 model = glm::mat4(1.0f);

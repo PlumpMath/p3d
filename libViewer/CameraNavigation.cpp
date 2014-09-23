@@ -65,6 +65,16 @@ void CameraNavigation::rotate(float x, float y)
     logger.verbose("cam pos: %f, %f, %f", m_pos.x, m_pos.y, m_pos.z);
 }
 
+void CameraNavigation::zoom(float zoomDist)
+{
+    glm::vec3 eyeDir = glm::normalize(m_target - m_pos);
+    glm::vec3 diff = eyeDir * zoomDist * m_boundingRadius;
+    if(glm::length(glm::normalize(m_target - m_pos - diff) - eyeDir) < 0.1f)
+    {
+        m_pos += diff;
+    }
+}
+
 glm::vec3 CameraNavigation::getArcballVector(float x, float y)
 {
     glm::vec3 mouseOnBall(x, y, 0);

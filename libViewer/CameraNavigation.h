@@ -26,6 +26,12 @@ public:
     //! \arg y mouse y in [-1,1]
     virtual void rotate(float x, float y);
 
+    //! \brief zoom by moving camera
+    virtual void zoom(float zoomDist);
+
+    //! \brief camera distance from origin
+    float cameraDist() const { return glm::length(m_pos); }
+
 protected:
     glm::vec3 getArcballVector(float x, float y);
 

@@ -141,6 +141,12 @@ void QmlAppViewer::resetCamera()
     window->update();
 }
 
+void QmlAppViewer::zoomCamera(float zoomDist)
+{
+    m_P3dViewer->cameraNavigation()->zoom(zoomDist);
+    window->update();
+}
+
 void QmlAppViewer::onWindowReady()
 {
     connect(window, SIGNAL(beforeRendering()), SLOT(onGLRender()), Qt::DirectConnection);

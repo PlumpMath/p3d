@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE void startRotateCamera(float x, float y);
     Q_INVOKABLE void rotateCamera(float x, float y);
     Q_INVOKABLE void resetCamera();
+    Q_INVOKABLE void zoomCamera(float zoomDist);
 
 signals:
     void modelStateChanged();

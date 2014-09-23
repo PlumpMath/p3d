@@ -44,21 +44,36 @@ ApplicationWindow {
 
     MouseArea {
         anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.RightButton |  Qt.MiddleButton
         property real oldX: -1
         property real oldY: -1
 
-        function move() {
-            var dx = mouseX - oldX;
-            var dy = mouseY - oldY;
+        function move(mx, my) {
+            var dx = mx - oldX;
+            var dy = my - oldY;
             /*if(dx != 0.0 || dy != 0.0)*/ {
-                viewer.rotateCamera(mouseX / width * 2 - 1, -mouseY / height * 2 + 1);
-                oldX = mouseX;
-                oldY = mouseY;
+                viewer.rotateCamera(mx / width * 2 - 1, -my / height * 2 + 1);
+                oldX = mx;
+                oldY = my;
             }
         }
 
-        onMouseXChanged: move()
-        onMouseYChanged: move();
+        function zoom(mx, my) {
+            var dx = mx - oldX;
+            var dy = my - oldY;
+            var dist = dy / height;
+            viewer.zoomCamera(dist * 5);
+            oldX = mx;
+            oldY = my;
+        }
+
+        onPositionChanged: {
+            if(mouse.buttons & Qt.LeftButton) {
+                move(mouse.x, mouse.y);
+            } else if(mouse.buttons & Qt.MiddleButton) {
+                zoom(mouse.x, mouse.y);
+            }
+        }
         onPressed: {
             oldX = mouseX;
             oldY = mouseY;
