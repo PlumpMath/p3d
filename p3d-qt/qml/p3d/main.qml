@@ -48,7 +48,7 @@ ApplicationWindow {
         property real oldX: -1
         property real oldY: -1
 
-        function move(mx, my) {
+        function rotate(mx, my) {
             var dx = mx - oldX;
             var dy = my - oldY;
             /*if(dx != 0.0 || dy != 0.0)*/ {
@@ -67,11 +67,21 @@ ApplicationWindow {
             oldY = my;
         }
 
+        function pan(mx, my) {
+            var dx = mx - oldX;
+            var dy = my - oldY;
+            viewer.panCamera(dx / height * 0.41, dy / height * 0.41);
+            oldX = mx;
+            oldY = my;
+        }
+
         onPositionChanged: {
             if(mouse.buttons & Qt.LeftButton) {
-                move(mouse.x, mouse.y);
+                rotate(mouse.x, mouse.y);
             } else if(mouse.buttons & Qt.MiddleButton) {
                 zoom(mouse.x, mouse.y);
+            } else if(mouse.buttons & Qt.RightButton) {
+                pan(mouse.x, mouse.y);
             }
         }
         onPressed: {

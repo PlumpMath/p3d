@@ -54,7 +54,10 @@ var P3DViewer = (function(){
             Module._rotateCam(x, y);
         } else if(event.button === 1) {
             Module._zoomCam((y - oldMouseY) * 5);
+        } else if(event.button === 2) {
+            Module._panCam((x - oldMouseX) * (canvas.width / canvas.height) * 0.205, (oldMouseY - y) * 0.205);
         }
+
         oldMouseX = x;
         oldMouseY = y;
     }
@@ -69,7 +72,9 @@ var P3DViewer = (function(){
         oldMouseX = x;
         oldMouseY = y;
         //console.log("mouse down", x, y);
-        Module._startRotateCam(x, y);
+        if(event.button === 0) {
+            Module._startRotateCam(x, y);
+        }
 
         document.addEventListener( 'mousemove', mousemove, false );
         document.addEventListener( 'mouseup', mouseup, false );

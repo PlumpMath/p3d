@@ -147,6 +147,12 @@ void QmlAppViewer::zoomCamera(float zoomDist)
     window->update();
 }
 
+void QmlAppViewer::panCamera(float x, float y)
+{
+    m_P3dViewer->cameraNavigation()->pan(x, y);
+    window->update();
+}
+
 void QmlAppViewer::onWindowReady()
 {
     connect(window, SIGNAL(beforeRendering()), SLOT(onGLRender()), Qt::DirectConnection);

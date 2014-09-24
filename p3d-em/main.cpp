@@ -103,6 +103,11 @@ extern "C" void zoomCam(float zoomDist)
     viewer.cameraNavigation()->zoom(zoomDist);
 }
 
+extern "C" void panCam(float x, float y)
+{
+    viewer.cameraNavigation()->pan(x, y);
+}
+
 extern "C" int materialCount()
 {
     return viewer.materialCount();

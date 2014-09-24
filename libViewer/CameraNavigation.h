@@ -29,6 +29,11 @@ public:
     //! \brief zoom by moving camera
     virtual void zoom(float zoomDist);
 
+    //! \brief pan camera
+    //! \arg x mouse x in [-1,1]
+    //! \arg y mouse y in [-1,1]
+    virtual void pan(float x, float y);
+
     //! \brief camera distance from origin
     float cameraDist() const { return glm::length(m_pos); }
 
