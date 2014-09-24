@@ -84,6 +84,11 @@ ApplicationWindow {
         onDoubleClicked: {
             viewer.resetCamera();
         }
+        onWheel: {
+            oldX = mouseX;
+            oldY = mouseY;
+            viewer.zoomCamera(wheel.angleDelta.y * 0.01);
+        }
     }
 
     Rectangle {

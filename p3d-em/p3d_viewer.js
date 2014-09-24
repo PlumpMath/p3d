@@ -75,6 +75,12 @@ var P3DViewer = (function(){
         document.addEventListener( 'mouseup', mouseup, false );
     }
 
+    function mousewheel(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        Module._zoomCam((event.deltaY/Module.canvas.height) * 5);
+    }
+
     function loadModel(data, extension) {
         var size = data.byteLength;
         Module.print("loaded bytes: " + size);
@@ -127,6 +133,7 @@ var P3DViewer = (function(){
         // setup mouse handling
         var canvas = Module.canvas;
         canvas.addEventListener( 'mousedown', mousedown, false );
+        canvas.addEventListener( 'wheel', mousewheel, false );
         canvas.addEventListener( 'dblclick', Module._resetCam, false);
     };
 
