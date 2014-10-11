@@ -101,6 +101,8 @@ private:
 
 	/** Handle to .blend file. */
 	fbtBlend m_fp;
+
+	char* uvname = nullptr;
 };
 
 #endif

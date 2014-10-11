@@ -46,6 +46,12 @@ public:
 			uv_index += mesh->totuv;
 			fs_index += mesh->totface;
 		}
+
+		if(converter.uvname) {
+			uvimage = new char[strlen(converter.uvname)];
+			strcpy(uvimage, converter.uvname, strlen(converter.uvname));
+			logger.debeug("UV image in BlendData: %s", uvimage);
+		}
 	}
 
 	void clearBlendData() {
@@ -53,6 +59,7 @@ public:
 		if(verts) delete [] verts;
 		if(faces) delete [] faces;
 		if(uvs) delete [] uvs;
+		if(uvimage) delete [] uvimage;
 		verts = nullptr;
 		faces = nullptr;
 		uvs = nullptr;
@@ -77,6 +84,8 @@ public:
 	uint32_t totuv = 0;
 	float *uvs = nullptr;
 	size_t uvbytes = 0;
+
+	char* uvimage = nullptr;
 
 	bool isloaded = false;
 private:
