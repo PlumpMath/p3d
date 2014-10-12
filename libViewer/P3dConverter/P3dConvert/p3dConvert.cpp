@@ -115,8 +115,8 @@ void P3dConverter::extract_geometry(Object* ob) {
 		auto mtpoly = me->mtpoly;
 		if(mtpoly) {
 			fbtPrintf("UV IMAGE: %s\n", mtpoly->tpage->name);
-			uvname = new char[strlen(mtpoly->tpage->name);
-			strcpy(uvname, mtpoly->tpage->name, strlen(mtpoly->tpage->name);
+            uvname = new char[strlen(mtpoly->tpage->name)];
+            strncpy(uvname, mtpoly->tpage->name, strlen(mtpoly->tpage->name));
 		}
 		else
 		{

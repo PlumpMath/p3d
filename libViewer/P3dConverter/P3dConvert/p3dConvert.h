@@ -83,6 +83,8 @@ public:
 		return t;
 	}
 
+    char* uvname = nullptr;
+
 private:
 	/** copy vertex data from loop. */
 	void loop_data(MLoopUV* mpuv, P3dMesh* mesh, int curf, MLoop* loop, MLoopUV* luv);
@@ -101,8 +103,6 @@ private:
 
 	/** Handle to .blend file. */
 	fbtBlend m_fp;
-
-	char* uvname = nullptr;
 };
 
 #endif
