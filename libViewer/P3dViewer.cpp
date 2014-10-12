@@ -189,11 +189,17 @@ void P3dViewer::onSurfaceCreated() {
     }
 #endif
 
-    m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl");
+    m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
+                                  "#define MAX_DIR_LIGHTS 4\n");
     m_UniformMVP = getUniform(m_ProgramObject, "uMVP");
+    m_UniformViewMatrix = getUniform(m_ProgramObject, "viewMatrix");
 
-    m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl", "#define HAS_UV\n#define USE_DIFFUSE_TEXTURE\n");
+    m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
+                                    "#define MAX_DIR_LIGHTS 4\n"
+                                    "#define HAS_UV\n"
+                                    "#define USE_DIFFUSE_TEXTURE\n");
     m_UniformMVPUv = getUniform(m_ProgramObjectUv, "uMVP");
+    m_UniformViewMatrixUv = getUniform(m_ProgramObjectUv, "viewMatrix");
     m_UniformTDiffuse = getUniform(m_ProgramObjectUv, "tDiffuse");
     m_UniformEnableDiffuse = getUniform(m_ProgramObjectUv, "enableDiffuse");
 
@@ -242,7 +248,9 @@ void P3dViewer::drawFrame() {
         glm::mat4 view = m_CameraNavigation->viewMatrix();
         glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, nearPlane, farPlane);
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 MVP = proj * view * model;
+        glm::mat4 modelView = view * model;
+        glm::mat4 MVP = proj * modelView;
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelView)));
 
         for(int chunk = 0, chunkl = m_ModelLoader->chunkCount(); chunk < chunkl; ++chunk)
         {
@@ -282,14 +290,15 @@ void P3dViewer::drawFrame() {
 
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
+                GLuint programObject = 0;
                 GLuint uDiffuseColor = 0;
                 if(m_ModelLoader->hasUvs(chunk))
                 {
                     // has uvs
+                    programObject = m_ProgramObjectUv;
                     glUseProgram(m_ProgramObjectUv);
                     glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-
-                    uDiffuseColor = glGetUniformLocation(m_ProgramObjectUv, "uDiffuseColor");
+                    glUniformMatrix4fv(m_UniformViewMatrixUv, 1, GL_FALSE, glm::value_ptr(view));
 
                     // texure
                     GLuint diffuseTexId = material.diffuseTexture;
@@ -304,13 +313,37 @@ void P3dViewer::drawFrame() {
                 else
                 {
                     // no uvs
+                    programObject = m_ProgramObject;
                     glUseProgram(m_ProgramObject);
                     glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-
-                    uDiffuseColor = glGetUniformLocation(m_ProgramObject, "uDiffuseColor");
+                    glUniformMatrix4fv(m_UniformViewMatrix, 1, GL_FALSE, glm::value_ptr(view));
                 }
-
+                uDiffuseColor = glGetUniformLocation(programObject, "uDiffuseColor");
                 glUniform3fv(uDiffuseColor, 1, glm::value_ptr(material.diff_col));
+
+                GLuint uNormalMatrix = glGetUniformLocation(programObject, "normalMatrix");
+                glUniformMatrix3fv(uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
+                // lights
+                GLuint directionalLightColor = 0;
+                GLuint directionalLightDirection = 0;
+                directionalLightColor = glGetUniformLocation(programObject, "directionalLightColor");
+                directionalLightDirection = glGetUniformLocation(programObject, "directionalLightDirection");
+                glm::vec3 lightColors[4] = {
+                    glm::vec3(0xff, 0xfa, 0xf0) * (1.15f / 255.0f),
+                    glm::vec3(0xb3, 0xe5, 0xff) * (0.55f / 255.0f),
+                    glm::vec3(0xfd, 0xff, 0xcc) * (0.55f / 255.0f),
+                    glm::vec3(0xb3, 0xe5, 0xff) * (0.55f / 255.0f)
+                };
+                glm::vec3 lightDirs[4] = {
+                    glm::vec3(10, 10, 10) * normalMatrix,
+                    glm::vec3(-5, 10, 5) * normalMatrix,
+                    glm::vec3(0, -10, 5) * normalMatrix,
+                    glm::vec3(0, 0, -10) * normalMatrix
+                };
+
+                glUniform3fv(directionalLightColor, 4, reinterpret_cast<GLfloat*>(lightColors));
+                glUniform3fv(directionalLightDirection, 4, reinterpret_cast<GLfloat*>(lightDirs));
 
                 GLsizei count = m_ModelLoader->indexCount(chunk);
                 uint32_t offset = m_ModelLoader->indexOffset(chunk);

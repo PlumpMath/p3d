@@ -11,13 +11,14 @@ attribute vec2 aUv;
 #endif
 
 uniform mat4 uMVP;
+uniform mat3 normalMatrix;
 
 varying vec2 vUv;
 varying vec3 vNormal;
 
 void main(void)
 {
-    vNormal = aNormal;
+    vNormal = normalMatrix * aNormal;
 #ifdef HAS_UV
     vUv = aUv;
 #else

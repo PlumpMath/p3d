@@ -60,6 +60,8 @@ private:
 
     GLint m_UniformMVP;
     GLint m_UniformMVPUv;
+    GLint m_UniformViewMatrix;
+    GLint m_UniformViewMatrixUv;
     GLint m_UniformTDiffuse;
     GLint m_UniformEnableDiffuse;
 
