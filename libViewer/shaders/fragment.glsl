@@ -23,7 +23,7 @@ uniform vec3 uDiffuseColor;
 void main(void)
 {
     gl_FragColor = vec4( 1.0 );
-    vec3 normal = vNormal;
+    vec3 normal = normalize(vNormal);
     
     // diffuse
     gl_FragColor.xyz *= uDiffuseColor;

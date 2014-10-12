@@ -41,8 +41,14 @@ P3dViewer::~P3dViewer()
 void P3dViewer::clear()
 {
     // free shaders
-    if(m_ProgramObject) glDeleteProgram(m_ProgramObject);
-    if(m_ProgramObjectUv) glDeleteProgram(m_ProgramObjectUv);
+    for(GLuint& program: m_Programs)
+    {
+        if(program)
+        {
+            glDeleteProgram(program);
+            program = 0;
+        }
+    }
     m_InitOk = false;
 }
 
@@ -189,19 +195,18 @@ void P3dViewer::onSurfaceCreated() {
     }
 #endif
 
-    m_ProgramObject = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
-                                  "#define MAX_DIR_LIGHTS 4\n");
-    m_UniformMVP = getUniform(m_ProgramObject, "uMVP");
-    m_UniformViewMatrix = getUniform(m_ProgramObject, "viewMatrix");
+    GLuint program;
+    program = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
+                          "#define MAX_DIR_LIGHTS 4\n");
+    m_Programs[BASIC] = program;
 
-    m_ProgramObjectUv = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
-                                    "#define MAX_DIR_LIGHTS 4\n"
-                                    "#define HAS_UV\n"
-                                    "#define USE_DIFFUSE_TEXTURE\n");
-    m_UniformMVPUv = getUniform(m_ProgramObjectUv, "uMVP");
-    m_UniformViewMatrixUv = getUniform(m_ProgramObjectUv, "viewMatrix");
-    m_UniformTDiffuse = getUniform(m_ProgramObjectUv, "tDiffuse");
-    m_UniformEnableDiffuse = getUniform(m_ProgramObjectUv, "enableDiffuse");
+    program = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
+                          "#define MAX_DIR_LIGHTS 4\n"
+                          "#define HAS_UV\n"
+                          "#define USE_DIFFUSE_TEXTURE\n");
+    m_Programs[UVS] = program;
+    m_UniformTDiffuse = getUniform(program, "tDiffuse");
+    m_UniformEnableDiffuse = getUniform(program, "enableDiffuse");
 
     int depth;
     glGetIntegerv(GL_DEPTH_BITS, &depth);
@@ -252,6 +257,11 @@ void P3dViewer::drawFrame() {
         glm::mat4 MVP = proj * modelView;
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelView)));
 
+        bool commonUniformsSet[sizeof(m_Programs)/sizeof(m_Programs[0])];
+        memset(commonUniformsSet, 0, sizeof(commonUniformsSet));
+
+        programs currentProgram = BASIC;
+
         for(int chunk = 0, chunkl = m_ModelLoader->chunkCount(); chunk < chunkl; ++chunk)
         {
             if(m_ModelLoader->indexCount(chunk))
@@ -291,17 +301,16 @@ void P3dViewer::drawFrame() {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
                 GLuint programObject = 0;
-                GLuint uDiffuseColor = 0;
+                GLint uDiffuseColor = 0;
                 if(m_ModelLoader->hasUvs(chunk))
                 {
                     // has uvs
-                    programObject = m_ProgramObjectUv;
-                    glUseProgram(m_ProgramObjectUv);
-                    glUniformMatrix4fv(m_UniformMVPUv, 1, GL_FALSE, glm::value_ptr(MVP));
-                    glUniformMatrix4fv(m_UniformViewMatrixUv, 1, GL_FALSE, glm::value_ptr(view));
+                    currentProgram = UVS;
+                    programObject = m_Programs[currentProgram];
+                    glUseProgram(programObject);
 
                     // texure
-                    GLuint diffuseTexId = material.diffuseTexture;
+                    GLint diffuseTexId = material.diffuseTexture;
                     glUniform1i(m_UniformEnableDiffuse, diffuseTexId != 0);
                     if(diffuseTexId)
                     {
@@ -313,37 +322,54 @@ void P3dViewer::drawFrame() {
                 else
                 {
                     // no uvs
-                    programObject = m_ProgramObject;
-                    glUseProgram(m_ProgramObject);
-                    glUniformMatrix4fv(m_UniformMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-                    glUniformMatrix4fv(m_UniformViewMatrix, 1, GL_FALSE, glm::value_ptr(view));
+                    currentProgram = BASIC;
+                    programObject = m_Programs[currentProgram];
+                    glUseProgram(programObject);
                 }
+
                 uDiffuseColor = glGetUniformLocation(programObject, "uDiffuseColor");
-                glUniform3fv(uDiffuseColor, 1, glm::value_ptr(material.diff_col));
+                glm::vec3 diff_color = material.diff_col;
+                if(!material.diffuseTexture)
+                {
+                    diff_color *= material.diff_str;
+                }
+                else
+                {
+                    diff_color *= material.diff_tex_str;
+                }
+                glUniform3fv(uDiffuseColor, 1, glm::value_ptr(diff_color));
 
-                GLuint uNormalMatrix = glGetUniformLocation(programObject, "normalMatrix");
-                glUniformMatrix3fv(uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+                // common uniforms
+                if(!commonUniformsSet[currentProgram])
+                {
+                    commonUniformsSet[currentProgram] = true;
+                    GLint uMPV = getUniform(programObject, "uMVP");
+                    glUniformMatrix4fv(uMPV, 1, GL_FALSE, glm::value_ptr(MVP));
+                    GLint uViewMatrix = getUniform(programObject, "viewMatrix");
+                    glUniformMatrix4fv(uViewMatrix, 1, GL_FALSE, glm::value_ptr(view));
 
-                // lights
-                GLuint directionalLightColor = 0;
-                GLuint directionalLightDirection = 0;
-                directionalLightColor = glGetUniformLocation(programObject, "directionalLightColor");
-                directionalLightDirection = glGetUniformLocation(programObject, "directionalLightDirection");
-                glm::vec3 lightColors[4] = {
-                    glm::vec3(0xff, 0xfa, 0xf0) * (1.15f / 255.0f),
-                    glm::vec3(0xb3, 0xe5, 0xff) * (0.55f / 255.0f),
-                    glm::vec3(0xfd, 0xff, 0xcc) * (0.55f / 255.0f),
-                    glm::vec3(0xb3, 0xe5, 0xff) * (0.55f / 255.0f)
-                };
-                glm::vec3 lightDirs[4] = {
-                    glm::vec3(10, 10, 10) * normalMatrix,
-                    glm::vec3(-5, 10, 5) * normalMatrix,
-                    glm::vec3(0, -10, 5) * normalMatrix,
-                    glm::vec3(0, 0, -10) * normalMatrix
-                };
+                    GLint uNormalMatrix = getUniform(programObject, "normalMatrix");
+                    glUniformMatrix3fv(uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
-                glUniform3fv(directionalLightColor, 4, reinterpret_cast<GLfloat*>(lightColors));
-                glUniform3fv(directionalLightDirection, 4, reinterpret_cast<GLfloat*>(lightDirs));
+                    // lights
+                    GLint directionalLightColor = getUniform(programObject, "directionalLightColor");
+                    GLint directionalLightDirection = getUniform(programObject, "directionalLightDirection");
+                    glm::vec3 lightColors[4] = {
+                        glm::vec3(0xff, 0xfa, 0xf0) * (1.15f / 255.0f),
+                        glm::vec3(0xb3, 0xe5, 0xff) * (0.55f / 255.0f),
+                        glm::vec3(0xfd, 0xff, 0xcc) * (0.55f / 255.0f),
+                        glm::vec3(0xb3, 0xe5, 0xff) * (0.55f / 255.0f)
+                    };
+                    glm::vec3 lightDirs[4] = {
+                        glm::vec3(10, 10, 10) * normalMatrix,
+                        glm::vec3(-5, 10, 5) * normalMatrix,
+                        glm::vec3(0, -10, 5) * normalMatrix,
+                        glm::vec3(0, 0, -10) * normalMatrix
+                    };
+
+                    glUniform3fv(directionalLightColor, 4, reinterpret_cast<GLfloat*>(lightColors));
+                    glUniform3fv(directionalLightDirection, 4, reinterpret_cast<GLfloat*>(lightDirs));
+                }
 
                 GLsizei count = m_ModelLoader->indexCount(chunk);
                 uint32_t offset = m_ModelLoader->indexOffset(chunk);
@@ -422,5 +448,15 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
         material.diff_col.r = ((uval & 0xff0000) >> 16) / 255.0f;
         material.diff_col.g = ((uval & 0xff00) >> 8) / 255.0f;
         material.diff_col.b = (uval & 0xff) / 255.0f;
+    }
+
+    if(!strcmp("diff_str", property))
+    {
+        material.diff_str = atof(value);
+    }
+
+    if(!strcmp("diff_tex_str", property))
+    {
+        material.diff_tex_str = atof(value);
     }
 }
