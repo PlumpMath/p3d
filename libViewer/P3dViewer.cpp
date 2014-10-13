@@ -198,12 +198,14 @@ void P3dViewer::onSurfaceCreated() {
     GLuint program;
     program = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
                           "#define MAX_DIR_LIGHTS 4\n"
+                          "#define GAMMA_INPUT\n"
                           "#define GAMMA_OUTPUT\n"
                           );
     m_Programs[BASIC] = program;
 
     program = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
                           "#define MAX_DIR_LIGHTS 4\n"
+                          "#define GAMMA_INPUT\n"
                           "#define GAMMA_OUTPUT\n"
                           "#define HAS_UV\n"
                           "#define USE_DIFFUSE_TEXTURE\n"
@@ -427,6 +429,30 @@ int P3dViewer::materialCount()
     return m_ModelLoader->materialCount();
 }
 
+void P3dViewer::parseColor(glm::vec3& color, const char *value)
+{
+    uint32_t uval = strtoul(value, nullptr, 16);
+    if(strlen(value) == 3)
+    {
+        int val;
+        val = (uval & 0xf00) >> 8;
+        val = val | val << 4;
+        color.r = val / 255.0f;
+        val = (uval & 0xf0) >> 4;
+        val = val | val << 4;
+        color.g = val / 255.0f;
+        val = uval & 0xf;
+        val = val | val << 4;
+        color.b = val / 255.0f;
+    }
+    else
+    {
+        color.r = ((uval & 0xff0000) >> 16) / 255.0f;
+        color.g = ((uval & 0xff00) >> 8) / 255.0f;
+        color.b = (uval & 0xff) / 255.0f;
+    }
+}
+
 void P3dViewer::setMaterialProperty(int materialIndex, const char *property, const char *value)
 {
     if(materialIndex >= materialCount())
@@ -448,10 +474,7 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
 
     if(!strcmp("diff_col", property))
     {
-        uint32_t uval = strtoul(value, nullptr, 16);
-        material.diff_col.r = ((uval & 0xff0000) >> 16) / 255.0f;
-        material.diff_col.g = ((uval & 0xff00) >> 8) / 255.0f;
-        material.diff_col.b = (uval & 0xff) / 255.0f;
+        parseColor(material.diff_col, value);
     }
 
     if(!strcmp("diff_str", property))

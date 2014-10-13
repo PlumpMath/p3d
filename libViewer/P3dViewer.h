@@ -41,6 +41,7 @@ public:
     int materialCount();
     void setMaterialProperty(int materialIndex, const char* property, const char* value);
 
+    void parseColor(glm::vec3 &color, const char *value);
 private:
     struct P3dMaterial
     {
