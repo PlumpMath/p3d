@@ -83,7 +83,7 @@ var P3DViewer = (function(){
     function mousewheel(event) {
         event.preventDefault();
         event.stopPropagation();
-        Module._zoomCam((event.deltaY/Module.canvas.height) * 5);
+        Module._zoomCam((event.deltaY/Module.canvas.height) * -5);
     }
 
     function loadModel(data, extension) {
