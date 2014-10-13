@@ -197,13 +197,17 @@ void P3dViewer::onSurfaceCreated() {
 
     GLuint program;
     program = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
-                          "#define MAX_DIR_LIGHTS 4\n");
+                          "#define MAX_DIR_LIGHTS 4\n"
+                          "#define GAMMA_OUTPUT\n"
+                          );
     m_Programs[BASIC] = program;
 
     program = loadProgram("shaders/vertex.glsl", "shaders/fragment.glsl",
                           "#define MAX_DIR_LIGHTS 4\n"
+                          "#define GAMMA_OUTPUT\n"
                           "#define HAS_UV\n"
-                          "#define USE_DIFFUSE_TEXTURE\n");
+                          "#define USE_DIFFUSE_TEXTURE\n"
+                          );
     m_Programs[UVS] = program;
     m_UniformTDiffuse = getUniform(program, "tDiffuse");
     m_UniformEnableDiffuse = getUniform(program, "enableDiffuse");

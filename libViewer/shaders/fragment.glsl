@@ -77,6 +77,10 @@ void main(void)
     gl_FragColor.xyz = gl_FragColor.xyz * dirDiffuse + dirSpecular;
 #endif
 
+#ifdef GAMMA_OUTPUT
+    gl_FragColor.xyz = sqrt( gl_FragColor.xyz );
+#endif
+
     // for debugging
     //gl_FragColor = vec4(vUv, 0.5, 1.0);
     //gl_FragColor = vec4(vNormal, 1.0);
