@@ -87,6 +87,10 @@ bool BlendLoader::load(const char *data, size_t length)
 				new_pos, new_norm, new_uv, m_total_index_count,
 				new_faces, m_chunks.size(), m_chunks.data());
 
+	if(blendData.uvimage && strlen(blendData.uvimage)>0) {
+		m_modelLoader->materialsInfo()->setMaterialProperty(0, "diffuseTexture", blendData.uvimage);
+	}
+
 	delete [] new_norm;
 	delete [] new_uv;
 	delete [] new_pos;
