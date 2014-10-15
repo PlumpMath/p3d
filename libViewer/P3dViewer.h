@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include "P3dVector.h"
+#include "IMaterialsInfo.h"
 
 #define GLM_FORCE_RADIANS
 // vec3, vec4, ivec4, mat4
@@ -22,7 +23,7 @@ const GLuint ATTRIB_POSITION = 0;
 const GLuint ATTRIB_NORMAL = 1;
 const GLuint ATTRIB_UV = 2;
 
-class P3dViewer
+class P3dViewer: public IMaterialsInfo
 {
 public:
     //! \brief creates a P3dViewer

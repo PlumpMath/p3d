@@ -11,7 +11,7 @@
 #include "BaseLoader.h"
 
 struct GLBuffers;
-class BlendData;
+class IMaterialsInfo;
 
 class ModelLoader
 {
@@ -23,8 +23,12 @@ public:
         VT_POS = 3
     };
 
-    ModelLoader();
+    explicit ModelLoader(IMaterialsInfo* materialsInfo = nullptr);
     virtual ~ModelLoader();
+
+    //accessors
+    IMaterialsInfo* materialsInfo() {return m_materialInfo;}
+
     bool isLoaded() { return m_loaded; }
     void setIsLoaded(bool newValue) { m_loaded = newValue; }
     void clear();
@@ -43,8 +47,9 @@ public:
     void createModel(uint32_t posCount, uint32_t normCount, uint32_t emptyNormCount, uint32_t uvCount,
                      float* posBuffer, float* normBuffer, float* uvBuffer, uint32_t indexCount,
                      uint16_t* indexBuffer, uint32_t chunkCount, const MeshChunk *chunks);
-
 private:
+    IMaterialsInfo* m_materialInfo = nullptr;
+
     struct VertexIndex
     {
         uint32_t pos;

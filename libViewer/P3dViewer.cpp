@@ -24,7 +24,7 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
         PlatformAdapter::adapter = new PlatformAdapter();
     }
 
-    m_ModelLoader = new ModelLoader();
+    m_ModelLoader = new ModelLoader(this);
     m_CameraNavigation = new CameraNavigation();
 
     logger.debug("Viewer constructed");

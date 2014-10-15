@@ -9,20 +9,10 @@ TEMPLATE = lib
 CONFIG += staticlib
 INCLUDEPATH += ../ext/glm
 
-SOURCES += P3dViewer.cpp \
-    PlatformAdapter.cpp \
-    ModelLoader.cpp \
-    CameraNavigation.cpp \
-    P3dLogger.cpp
+SOURCES += *.cpp
 
-HEADERS += P3dViewer.h \
-    glwrapper.h \
-    PlatformAdapter.h \
-    ModelLoader.h \
-    P3dVector.h \
-    P3dMap.h \
-    CameraNavigation.h \
-    P3dLogger.h
+HEADERS += *.h
+
 unix {
     target.path = /usr/lib
     INSTALLS += target

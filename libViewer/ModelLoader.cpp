@@ -71,8 +71,9 @@ struct P3dHash<glm::vec3>
     }
 };
 
-ModelLoader::ModelLoader()
+ModelLoader::ModelLoader(IMaterialsInfo *materialsInfo)
 {
+    m_materialInfo = materialsInfo;
     m_loaded = false;
     m_minX = FLT_MAX;
     m_maxX = FLT_MIN;
