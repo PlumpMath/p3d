@@ -19,5 +19,4 @@ unix {
 }
 
 OTHER_FILES += \
-    shaders/fragment.glsl \
-    shaders/vertex.glsl
+    shaders/*.glsl

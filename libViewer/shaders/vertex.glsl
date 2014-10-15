@@ -11,10 +11,13 @@ attribute vec2 aUv;
 #endif
 
 uniform mat4 uMVP;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 uniform mat3 normalMatrix;
 
 varying vec2 vUv;
 varying vec3 vNormal;
+varying vec3 vViewPosition;
 
 void main(void)
 {
@@ -25,5 +28,8 @@ void main(void)
     vUv = vec2(0.0, 0.0);
 #endif
 
-    gl_Position = uMVP * vec4(aPosition, 1.0);
+    vec4 mvPosition = modelViewMatrix * vec4( aPosition, 1.0 );
+    vViewPosition = -mvPosition.xyz;
+
+    gl_Position = projectionMatrix * mvPosition;
 }

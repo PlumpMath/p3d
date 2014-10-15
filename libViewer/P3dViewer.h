@@ -47,9 +47,16 @@ private:
     struct P3dMaterial
     {
         GLuint diffuseTexture = 0;
+
+        // diffuse
         glm::vec3 diff_col{1.0, 1.0, 1.0};
         float diff_str = 0.5f;
         float diff_tex_str = 1.0f;
+
+        // specular
+        glm::vec3 spec_col{1.0, 1.0, 1.0};
+        float spec_shininess = 0.1f;
+        float spec_str = 0.15f;
     };
 
     GLuint loadShader(GLenum type, const char *shaderSrc, size_t shaderSize, const char *shaderName);

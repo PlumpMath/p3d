@@ -11,7 +11,7 @@
 
 #include <cstdlib>
 
-static P3dLogger logger("core.P3dViewer", P3dLogger::LOG_DEBUG);
+static P3dLogger logger("core.P3dViewer", P3dLogger::LOG_VERBOSE);
 
 const float PI = 3.14159265358979f;
 const float D2R = PI / 180;
@@ -200,6 +200,7 @@ void P3dViewer::onSurfaceCreated() {
                           "#define MAX_DIR_LIGHTS 4\n"
                           "#define GAMMA_INPUT\n"
                           "#define GAMMA_OUTPUT\n"
+                          "#define PHYSICALLY_BASED_SHADING\n"
                           );
     m_Programs[BASIC] = program;
 
@@ -207,6 +208,7 @@ void P3dViewer::onSurfaceCreated() {
                           "#define MAX_DIR_LIGHTS 4\n"
                           "#define GAMMA_INPUT\n"
                           "#define GAMMA_OUTPUT\n"
+                          "#define PHYSICALLY_BASED_SHADING\n"
                           "#define HAS_UV\n"
                           "#define USE_DIFFUSE_TEXTURE\n"
                           );
@@ -260,7 +262,6 @@ void P3dViewer::drawFrame() {
         glm::mat4 proj = glm::perspective(25.0f * D2R, 1.0f * m_Width / m_Height, nearPlane, farPlane);
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 modelView = view * model;
-        glm::mat4 MVP = proj * modelView;
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelView)));
 
         bool commonUniformsSet[sizeof(m_Programs)/sizeof(m_Programs[0])];
@@ -307,7 +308,6 @@ void P3dViewer::drawFrame() {
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ModelLoader->indexBuffer());
 
                 GLuint programObject = 0;
-                GLint uDiffuseColor = 0;
                 if(m_ModelLoader->hasUvs(chunk))
                 {
                     // has uvs
@@ -333,7 +333,8 @@ void P3dViewer::drawFrame() {
                     glUseProgram(programObject);
                 }
 
-                uDiffuseColor = glGetUniformLocation(programObject, "uDiffuseColor");
+                // diffuse
+                GLint uDiffuseColor = getUniform(programObject, "uDiffuseColor");
                 glm::vec3 diff_color = material.diff_col;
                 if(!material.diffuseTexture)
                 {
@@ -345,12 +346,22 @@ void P3dViewer::drawFrame() {
                 }
                 glUniform3fv(uDiffuseColor, 1, glm::value_ptr(diff_color));
 
+                // specular
+                GLint uSpecularColor = getUniform(programObject, "uSpecularColor");
+                glm::vec3 spec_color = material.spec_col;
+                spec_color *= material.spec_str;
+                glUniform3fv(uSpecularColor, 1, glm::value_ptr(spec_color));
+                GLint uShininess = getUniform(programObject, "uShininess");
+                glUniform1f(uShininess, material.spec_shininess * 255.0f);
+
                 // common uniforms
                 if(!commonUniformsSet[currentProgram])
                 {
                     commonUniformsSet[currentProgram] = true;
-                    GLint uMPV = getUniform(programObject, "uMVP");
-                    glUniformMatrix4fv(uMPV, 1, GL_FALSE, glm::value_ptr(MVP));
+                    GLint modelViewMatrix = getUniform(programObject, "modelViewMatrix");
+                    glUniformMatrix4fv(modelViewMatrix, 1, GL_FALSE, glm::value_ptr(modelView));
+                    GLint projectionMatrix = getUniform(programObject, "projectionMatrix");
+                    glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE, glm::value_ptr(proj));
                     GLint uViewMatrix = getUniform(programObject, "viewMatrix");
                     glUniformMatrix4fv(uViewMatrix, 1, GL_FALSE, glm::value_ptr(view));
 
@@ -464,6 +475,7 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
 
     logger.verbose("setMaterialProperty %d: %s = %s", materialIndex, property, value);
 
+    // diffuse
     if(!strcmp("diffuseTexture", property))
     {
         PlatformAdapter::adapter->loadTexture(value, [=,&material](uint32_t texId)
@@ -471,19 +483,31 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
             material.diffuseTexture = texId;
         });
     }
-
     if(!strcmp("diff_col", property))
     {
         parseColor(material.diff_col, value);
     }
-
     if(!strcmp("diff_str", property))
     {
         material.diff_str = atof(value);
     }
-
     if(!strcmp("diff_tex_str", property))
     {
         material.diff_tex_str = atof(value);
     }
+
+    // specular
+    if(!strcmp("spec_col", property))
+    {
+        parseColor(material.spec_col, value);
+    }
+    if(!strcmp("spec_str", property))
+    {
+        material.spec_str = atof(value);
+    }
+    if(!strcmp("spec_shininess", property))
+    {
+        material.spec_shininess = atof(value);
+    }
+
 }

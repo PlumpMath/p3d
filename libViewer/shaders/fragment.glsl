@@ -5,8 +5,24 @@ precision mediump float;
 #endif
 
 varying vec2 vUv;
+uniform vec3 uAmbientColor;
+uniform vec3 uSpecularColor;
+uniform float uShininess;
+
+#ifdef USE_SPEC_TEX
+    uniform sampler2D tSpecular;
+    uniform bool enableSpecular;
+#endif
+#ifdef USE_SPEC_SHINE_TEX
+    uniform sampler2D tSpecularShine;
+    uniform bool enableSpecularShine;
+#endif
+
 varying vec3 vNormal;
 
+uniform vec3 ambientLightColor;
+
+varying vec3 vViewPosition;
 uniform mat4 viewMatrix;
 
 uniform vec3 uDiffuseColor;
@@ -23,7 +39,7 @@ uniform vec3 uDiffuseColor;
 void main(void)
 {
     gl_FragColor = vec4( 1.0 );
-    vec3 normal = normalize(vNormal);
+    vec3 normal = vNormal;
     
     // diffuse
     gl_FragColor.xyz *= uDiffuseColor;
@@ -39,6 +55,23 @@ void main(void)
         gl_FragColor = gl_FragColor * diffuseColor;
 #endif
     }
+#endif
+
+    // flip double sided normal
+    normal = normalize( normal * ( -1.0 + 2.0 * float( gl_FrontFacing ) ) );
+    vec3 viewPosition = normalize( vViewPosition );
+
+    // specular intensity
+    vec3 specularTex = vec3( 1.0 );
+#ifdef USE_SPEC_TEX
+    if( enableSpecular )
+        specularTex = texture2D( tSpecular, vUv ).xyz;
+#endif
+
+    // specular shininess
+    float specShininess = uShininess;
+#ifdef USE_SPEC_SHINE_TEX
+    if (enableSpecularShine) specShininess *= texture2D( tSpecularShine, vUv ).x;
 #endif
 
     // lights
@@ -57,7 +90,6 @@ void main(void)
         dirDiffuse += directionalLightColor[ i ] * dirDiffuseWeight;
 
         // specular
-#if 0 //disable spec
         vec3 dirHalfVector = normalize( dirVector + viewPosition );
         float dirDotNormalHalf = max( dot( normal, dirHalfVector ), 0.0 );
         vec3 dirSpecularWeight = specularTex * max( pow( dirDotNormalHalf, specShininess + 0.0001 ), 0.0 );
@@ -70,7 +102,6 @@ void main(void)
 #else
         dirSpecular += directionalLightColor[ i ] * uSpecularColor * dirSpecularWeight * dirDiffuseWeight;
 #endif
-#endif // disbale spec
     }
 
     //gl_FragColor.xyz = gl_FragColor.xyz * ( dirDiffuse + ambientLightColor * uAmbientColor) + dirSpecular;
