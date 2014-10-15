@@ -41,6 +41,8 @@ bool BlendLoader::load(const char *data, size_t length)
 		m_new_f4_start[vtype] = 0;
 	}
 
+	if(strlen(blendData.uvimage)>0) m_mat_count = 1;
+
 	/* for now we do only VT_POS */
 	m_new_index_count[VT_POS] = blendData.totface * 3;
 	m_new_f3_start[VT_POS] = 0;
