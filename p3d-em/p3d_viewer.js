@@ -119,6 +119,8 @@ var P3DViewer = (function(){
                                 console.log(matIndex, ta.texture_type, tex.url);
                                 if(ta.texture_type === "diff") {
                                     setMaterialProperty(matIndex, "diffuseTexture", tex.url);
+                                } else if(ta.texture_type === "spec") {
+                                    setMaterialProperty(matIndex, "specTexture", tex.url);
                                 }
                             }
                             continue;

@@ -11,7 +11,7 @@
 
 #include <cstdlib>
 
-static P3dLogger logger("core.P3dViewer", P3dLogger::LOG_VERBOSE);
+static P3dLogger logger("core.P3dViewer", P3dLogger::LOG_DEBUG);
 
 const float PI = 3.14159265358979f;
 const float D2R = PI / 180;
@@ -211,10 +211,9 @@ void P3dViewer::onSurfaceCreated() {
                           "#define PHYSICALLY_BASED_SHADING\n"
                           "#define HAS_UV\n"
                           "#define USE_DIFFUSE_TEXTURE\n"
+                          "#define USE_SPEC_TEX\n"
                           );
     m_Programs[UVS] = program;
-    m_UniformTDiffuse = getUniform(program, "tDiffuse");
-    m_UniformEnableDiffuse = getUniform(program, "enableDiffuse");
 
     int depth;
     glGetIntegerv(GL_DEPTH_BITS, &depth);
@@ -315,14 +314,28 @@ void P3dViewer::drawFrame() {
                     programObject = m_Programs[currentProgram];
                     glUseProgram(programObject);
 
-                    // texure
+                    // diff texure
                     GLint diffuseTexId = material.diffuseTexture;
-                    glUniform1i(m_UniformEnableDiffuse, diffuseTexId != 0);
+                    GLint enableDiffuse = getUniform(programObject, "enableDiffuse");
+                    glUniform1i(enableDiffuse, diffuseTexId != 0);
                     if(diffuseTexId)
                     {
                         glActiveTexture(GL_TEXTURE0);
                         glBindTexture(GL_TEXTURE_2D, diffuseTexId);
-                        glUniform1i(m_UniformTDiffuse, 0);
+                        GLint tDiffuse = getUniform(programObject, "tDiffuse");
+                        glUniform1i(tDiffuse, 0);
+                    }
+
+                    // spec texure
+                    GLint specTexId = material.specTexture;
+                    GLint enableSpecular = getUniform(programObject, "enableSpecular");
+                    glUniform1i(enableSpecular, specTexId != 0);
+                    if(specTexId)
+                    {
+                        glActiveTexture(GL_TEXTURE1);
+                        glBindTexture(GL_TEXTURE_2D, specTexId);
+                        GLint tSpecular = getUniform(programObject, "tSpecular");
+                        glUniform1i(tSpecular, 1);
                     }
                 }
                 else
@@ -497,6 +510,13 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
     }
 
     // specular
+    if(!strcmp("specTexture", property))
+    {
+        PlatformAdapter::adapter->loadTexture(value, [=,&material](uint32_t texId)
+        {
+            material.specTexture = texId;
+        });
+    }
     if(!strcmp("spec_col", property))
     {
         parseColor(material.spec_col, value);

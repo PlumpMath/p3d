@@ -236,6 +236,16 @@ void QmlAppViewer::onGLRender()
                                         QString fullUrl = m_urlPrefix + texUrl;
                                         m_P3dViewer->setMaterialProperty(matIndex, "diffuseTexture", fullUrl.toUtf8().constData());
                                     }
+                                    else if(texType == "spec")
+                                    {
+                                        if(m_urlPrefix.startsWith("file://"))
+                                        {
+                                            // assume texture file is in same dir as .bin
+                                            texUrl = QFileInfo(texUrl).fileName();
+                                        }
+                                        QString fullUrl = m_urlPrefix + texUrl;
+                                        m_P3dViewer->setMaterialProperty(matIndex, "specTexture", fullUrl.toUtf8().constData());
+                                    }
                                 }
                             }
                         }
@@ -253,6 +263,7 @@ void QmlAppViewer::onGLRender()
     }
     window->resetOpenGLState();
     m_P3dViewer->drawFrame();
+    window->resetOpenGLState();
 }
 
 void QmlAppViewer::onModelInfoReplyDone()

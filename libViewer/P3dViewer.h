@@ -46,14 +46,14 @@ public:
 private:
     struct P3dMaterial
     {
-        GLuint diffuseTexture = 0;
-
         // diffuse
+        GLuint diffuseTexture = 0;
         glm::vec3 diff_col{1.0, 1.0, 1.0};
         float diff_str = 0.5f;
         float diff_tex_str = 1.0f;
 
         // specular
+        GLuint specTexture = 0;
         glm::vec3 spec_col{1.0, 1.0, 1.0};
         float spec_shininess = 0.1f;
         float spec_str = 0.15f;
@@ -75,9 +75,6 @@ private:
 
     static const int programCount = 2;
     GLuint m_Programs[programCount] = {0, 0};
-
-    GLint m_UniformTDiffuse;
-    GLint m_UniformEnableDiffuse;
 
     P3dVector<P3dMaterial> m_Materials;
 
