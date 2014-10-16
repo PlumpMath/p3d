@@ -276,10 +276,13 @@ void ModelLoader::generateNormals(uint16_t *new_faces, GLfloat *new_pos, GLfloat
             glm::vec3 fnormal = glm::cross(posa - posb, posb - posc);
             if(!isnan(fnormal.x) && !isnan(fnormal.y) && !isnan(fnormal.z))
             {
-                if(fnormal.x && fnormal.y && fnormal.z) fnormal = glm::normalize(fnormal);
-                normalsMap[posa] += fnormal;
-                normalsMap[posb] += fnormal;
-                normalsMap[posc] += fnormal;
+                if(fnormal.x || fnormal.y || fnormal.z)
+                {
+                    fnormal = glm::normalize(fnormal);
+                    normalsMap[posa] += fnormal;
+                    normalsMap[posb] += fnormal;
+                    normalsMap[posc] += fnormal;
+                }
             }
         }
     }
