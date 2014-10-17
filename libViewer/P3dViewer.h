@@ -35,6 +35,7 @@ public:
     void onSurfaceCreated();
     void onSurfaceChanged(int width, int height);
     void drawFrame();
+    void setUrlPrefix(const char* prefix);
     bool loadModel(const char* binaryData, size_t size, const char* extension);
     void clearModel();
     CameraNavigation* cameraNavigation() {return m_CameraNavigation;}
@@ -63,9 +64,11 @@ private:
     GLuint loadShaderFromFile(GLenum type, const char *shaderFile, const char *defines = 0);
     GLuint loadProgram(const char* vShaderFile, const char* fShaderFile, const char *defines = 0);
     GLint getUniform(GLuint program, const char* name);
+    char* prefixUrl(const char* url);
 
     ModelLoader* m_ModelLoader;
     CameraNavigation* m_CameraNavigation;
+    char* m_UrlPrefix = nullptr;
 
     enum programs
     {

@@ -34,6 +34,7 @@ var P3DViewer = (function(){
 
     // wrapped c functions
     var setMaterialProperty;
+    var setUrlPrefix;
 
     function mouseup( event ) {
         event.preventDefault();
@@ -136,6 +137,7 @@ var P3DViewer = (function(){
         moduleRunning = true;
 
         setMaterialProperty = Module.cwrap('setMaterialProperty', 'void', ['number', 'string', 'string']);
+        setUrlPrefix = Module.cwrap('setUrlPrefix', 'void', ['string']);
 
         // setup mouse handling
         var canvas = Module.canvas;
@@ -187,6 +189,7 @@ var P3DViewer = (function(){
         xhr.responseType = 'arraybuffer';
         xhr.onload = function(e) {
             if (this.readyState === 4 && (this.status === 200 || this.status === 0)) {
+                setUrlPrefix(blendUrl.substr(0, blendUrl.lastIndexOf('/') + 1));
                 loadModel(this.response, ".blend");
             }
         };

@@ -48,8 +48,8 @@ public:
 		}
 
 		if(converter.uvname) {
-			uvimage = new char[strlen(converter.uvname)];
-            strncpy(uvimage, converter.uvname, strlen(converter.uvname));
+            uvimage = new char[strlen(converter.uvname) + 1];
+            strcpy(uvimage, converter.uvname);
 			logger.debug("UV image in BlendData: %s", uvimage);
 		}
 	}

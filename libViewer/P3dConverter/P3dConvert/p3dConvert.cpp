@@ -115,8 +115,13 @@ void P3dConverter::extract_geometry(Object* ob) {
 		auto mtpoly = me->mtpoly;
 		if(mtpoly) {
 			fbtPrintf("UV IMAGE: %s\n", mtpoly->tpage->name);
-            uvname = new char[strlen(mtpoly->tpage->name)];
-            strncpy(uvname, mtpoly->tpage->name, strlen(mtpoly->tpage->name));
+            const char* tpage_name = mtpoly->tpage->name;
+            if(strstr(tpage_name, "//") == tpage_name)
+            {
+                tpage_name += 2;
+            }
+            uvname = new char[strlen(tpage_name) + 1];
+            strcpy(uvname, tpage_name);
 		}
 		else
 		{

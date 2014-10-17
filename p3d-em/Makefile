@@ -12,7 +12,8 @@ EXPORTED_FUNCTIONS = "[\
 '_zoomCam',\
 '_panCam',\
 '_materialCount',\
-'_setMaterialProperty'\
+'_setMaterialProperty',\
+'_setUrlPrefix'\
 ]"
 
 INCLUDE_DIRS = \

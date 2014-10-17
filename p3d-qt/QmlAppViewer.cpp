@@ -61,6 +61,9 @@ void QmlAppViewer::loadModel(const QUrl &model)
     if(fileName.endsWith(".blend"))
     {
         m_extension = ".blend";
+        QFileInfo fi(path);
+        m_urlPrefix = "file://" + fi.absoluteDir().path() + "/";
+        m_P3dViewer->setUrlPrefix(m_urlPrefix.toUtf8().constData());
     }
     else if(fileName.endsWith(".bin"))
     {

@@ -32,6 +32,7 @@ P3dViewer::P3dViewer(PlatformAdapter* adapter)
 
 P3dViewer::~P3dViewer()
 {
+    delete m_UrlPrefix;
     delete m_CameraNavigation;
     delete m_ModelLoader;
 
@@ -181,6 +182,23 @@ GLint P3dViewer::getUniform(GLuint program, const char *name)
     GLint res = glGetUniformLocation(program, name);
     if (res == -1) {
       logger.error("Could not bind uniform %s", name);
+    }
+    return res;
+}
+
+char *P3dViewer::prefixUrl(const char *url)
+{
+    char* res;
+    if(m_UrlPrefix)
+    {
+        res = new char[strlen(m_UrlPrefix) + strlen(url) + 1];
+        strcpy(res, m_UrlPrefix);
+        strcat(res, url);
+    }
+    else
+    {
+        res = new char[strlen(url) + 1];
+        strcpy(res, url);
     }
     return res;
 }
@@ -411,6 +429,13 @@ void P3dViewer::drawFrame() {
     }
 }
 
+void P3dViewer::setUrlPrefix(const char *prefix)
+{
+    delete[] m_UrlPrefix;
+    m_UrlPrefix = new char[strlen(prefix) + 1];
+    strcpy(m_UrlPrefix, prefix);
+}
+
 bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *extension)
 {
     clearModel();
@@ -425,7 +450,7 @@ bool P3dViewer::loadModel(const char *binaryData, size_t size, const char *exten
     if(res)
     {
         logger.debug("material count: %d", materialCount());
-        for(int i = 0, il = materialCount(); i < il; ++i)
+        while(m_Materials.size() < materialCount())
         {
             m_Materials.push_back(P3dMaterial());
         }
@@ -444,6 +469,7 @@ void P3dViewer::clearModel()
     for(P3dMaterial material: m_Materials)
     {
         PlatformAdapter::adapter->deleteTexture(material.diffuseTexture);
+        PlatformAdapter::adapter->deleteTexture(material.specTexture);
     }
     m_Materials.clear();
 }
@@ -483,6 +509,10 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
     {
         return;
     }
+    while(materialIndex >= m_Materials.size())
+    {
+        m_Materials.push_back(P3dMaterial());
+    }
 
     P3dMaterial& material = m_Materials[materialIndex];
 
@@ -491,9 +521,11 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
     // diffuse
     if(!strcmp("diffuseTexture", property))
     {
-        PlatformAdapter::adapter->loadTexture(value, [=,&material](uint32_t texId)
+        char* url = prefixUrl(value);
+        PlatformAdapter::adapter->loadTexture(url, [=,&material](uint32_t texId)
         {
             material.diffuseTexture = texId;
+            delete[] url;
         });
     }
     if(!strcmp("diff_col", property))
@@ -512,9 +544,11 @@ void P3dViewer::setMaterialProperty(int materialIndex, const char *property, con
     // specular
     if(!strcmp("specTexture", property))
     {
-        PlatformAdapter::adapter->loadTexture(value, [=,&material](uint32_t texId)
+        char* url = prefixUrl(value);
+        PlatformAdapter::adapter->loadTexture(url, [=,&material](uint32_t texId)
         {
             material.specTexture = texId;
+            delete[] url;
         });
     }
     if(!strcmp("spec_col", property))

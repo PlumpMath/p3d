@@ -117,3 +117,8 @@ extern "C" void setMaterialProperty(int matIndex, const char *property, const ch
 {
     viewer.setMaterialProperty(matIndex, property, value);
 }
+
+extern "C" void setUrlPrefix(const char *prefix)
+{
+    viewer.setUrlPrefix(prefix);
+}
