@@ -1,4 +1,4 @@
-OPTIMIZE = -Oz
+OPTIMIZE = -Os
 LDOPTIMIZE = -O3 --closure 1
 #OPTIMIZE = -O0
 #LDOPTIMIZE = -O0
