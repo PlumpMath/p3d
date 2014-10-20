@@ -69,7 +69,7 @@ P3DCONVERTER_SOURCES = \
     fbtTables.cpp \
     fbtTypes.cpp \
     fbtBlend.cpp \
-    bfBlender.cpp \
+    em_bfBlender.cpp \
     p3dConvert.cpp
 
 

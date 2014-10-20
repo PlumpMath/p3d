@@ -7,11 +7,10 @@ INCLUDEPATH += ../libViewer
 INCLUDEPATH += ../ext/glm
 
 SOURCES += \
-    main.cpp \
-    EmPlatformAdapter.cpp
+    *.cpp
 
 HEADERS += \
-    EmPlatformAdapter.h
+    *.h
 
 OTHER_FILES += \
     Makefile \
